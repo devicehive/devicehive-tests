@@ -1,0 +1,11 @@
+{
+  "server": {
+    "wsUrl": "ws://23.253.35.56:8081/DeviceHive/websocket",
+    "deviceId": "11111111-2222-3333-4444-555555555555",
+    "accessKey": "sStsRCchw3pCUeLwyVvhX/Q27CKeJgVFcNcDBvJiB6g=",
+    "deviceKey": "{00000000-0000-0000-0000-000000000000}"
+  },
+  "devices":  5,
+  "notifications":  5,
+  "intervalMillis":  3000
+}

@@ -1,0 +1,13 @@
+{
+  "name": "devicehive_tests",
+  "version": "0.0.1",
+  "description": "devicehive-tests",
+  "author": {
+    "name": "pnetesa",
+    "email": ""
+  },
+  "dependencies": {
+    "nconf": "^0.6.9",
+    "ws": "0.4.25"
+  }
+}
