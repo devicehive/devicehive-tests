@@ -5,7 +5,14 @@
     "accessKey": "sStsRCchw3pCUeLwyVvhX/Q27CKeJgVFcNcDBvJiB6g=",
     "deviceKey": "{00000000-0000-0000-0000-000000000000}"
   },
-  "devices":  5,
-  "notifications":  5,
-  "intervalMillis":  3000
+  "notifTest": {
+    "devices": 2,
+    "notifications": 3,
+    "intervalMillis": 3000
+  },
+  "cmndTest": {
+    "devices": 2,
+    "commands": 3,
+    "intervalMillis": 3000
+  }
 }

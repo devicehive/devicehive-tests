@@ -4,16 +4,17 @@ var utils = require('../common/utils.js');
 
 var fs = require('fs');
 var path = require('path');
-var LOG_PATH = path.join(__dirname, 'load-tests-result.txt');
+var LOG_PATH = path.join(__dirname, 'load-tests-notif.txt');
 
 function NotifTest(devicesCount, notifCount, intervalMillis) {
-    this.devicesCount = devicesCount;
-    this.notifCount = notifCount;
+    this.devicesCount = (devicesCount || 1);
+    this.notifCount = (notifCount || 1);
     this.intervalMillis = (intervalMillis || 100);
     this.devices = [];
     this.client = new WsConn('client');
     this.devicesDone = 0;
     this.statistics = new Statistics();
+    this.ondone = null;
 }
 
 NotifTest.prototype = {
@@ -27,9 +28,9 @@ NotifTest.prototype = {
     
     onClientAuthenticate: function (data, client) {
         if (data.status !== 'success') {
-            return this.device.onError(data);
+            return this.client.onError(data);
         }
-        
+        console.log('%s auth done', client.name);
         this.subscribeClient(client);
     },
     
@@ -46,7 +47,7 @@ NotifTest.prototype = {
     },
     
     onClientSubscribed: function (data, client) {
-        console.log('client#%s subscribed', client.id);
+        console.log('%s subscribed', client.name);
         
         for (var i = 0; i < this.devicesCount; i++) {
             var device = new WsConn('device');
@@ -65,7 +66,7 @@ NotifTest.prototype = {
         var parameters = data.notification.parameters;
 
         var time = +new Date() - parameters.requestTime;
-        console.log('client#%s received notification in %d millis', client.id, time);
+        console.log('%s received notification in %d millis', client.name, time);
 
         this.statistics.add(time);
     },
@@ -74,7 +75,7 @@ NotifTest.prototype = {
         if (data.status != 'success') {
             return device.onError(data);
         }
-        
+        console.log('%s auth done', device.name);
         this.sendNotifications(device);
     },
     
@@ -82,7 +83,7 @@ NotifTest.prototype = {
         var self = this;
         var i = 0;
         device.intervalId = setInterval(function () {
-            if (i++ >= self.notifCount) {
+            if (i++ >= (self.notifCount * self.devicesCount)) {
                 clearInterval(device.intervalId);
                 self.done();
                 return;
@@ -120,6 +121,8 @@ NotifTest.prototype = {
         if (++this.devicesDone < this.devicesCount) {
             return;
         }
+
+        var self = this;
         
         var result = {
             devices: this.devicesCount,
@@ -142,9 +145,9 @@ NotifTest.prototype = {
 
         var stream = fs.createWriteStream(LOG_PATH, { flags: 'a' });
         stream.write(JSON.stringify(result) + '\n', function () {
-            setTimeout(function () {
-                process.exit();
-            }, 5000);
+            if (self.ondone != null) {
+                self.ondone();
+            }
         });
     }
 }

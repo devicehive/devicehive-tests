@@ -33,7 +33,7 @@ WsConn.prototype = {
     
     authenticate: function () {
         
-        console.log('%s authenticated', this.name);
+        console.log('%s authenticates...', this.name);
         
         var authData = {
             action : "authenticate",
