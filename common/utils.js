@@ -1,5 +1,5 @@
 ﻿var config = require('nconf').argv().env().file({
-    file: './config.json'
+    file: require('path').resolve(__dirname, '../config.json')
 });
 
 var requestId = 1;
