@@ -83,7 +83,7 @@ NotifTest.prototype = {
         var self = this;
         var i = 0;
         device.intervalId = setInterval(function () {
-            if (i++ >= (self.notifCount * self.devicesCount)) {
+            if (i++ >= self.notifCount) {
                 clearInterval(device.intervalId);
                 self.done();
                 return;

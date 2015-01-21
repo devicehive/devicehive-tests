@@ -83,7 +83,7 @@ CommandTest.prototype = {
         var self = this;
         var i = 0;
         client.intervalId = setInterval(function () {
-            if (i++ >= (self.cmdCount * self.clientsCount)) {
+            if (i++ >= self.cmdCount) {
                 clearInterval(client.intervalId);
                 self.done();
                 return;
