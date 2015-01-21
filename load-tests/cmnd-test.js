@@ -14,7 +14,6 @@ function CommandTest(clientsCount, cmdCount, intervalMillis) {
     this.device = new WsConn('device');
     this.clientsDone = 0;
     this.statistics = new Statistics();
-    this.ondone = null;
 }
 
 CommandTest.prototype = {
@@ -122,15 +121,17 @@ CommandTest.prototype = {
             return;
         }
         
+        this.closeConnections();
+        
         var self = this;
         
         var result = {
             clients: this.clientsCount,
             cmndsPerDevice: this.cmdCount,
             intervalMillis: this.intervalMillis,
-            totalCommands: this.statistics.count,
-            min: this.statistics.min,
-            max: this.statistics.max,
+            commandsReceived: this.statistics.count,
+            min: this.statistics.getMin(),
+            max: this.statistics.getMax(),
             avg: this.statistics.getAvg()
         };
 
@@ -138,16 +139,19 @@ CommandTest.prototype = {
         console.log('clients: %s', result.clients);
         console.log('commands per client: %s', result.cmndsPerDevice);
         console.log('interval, millis: %s', result.intervalMillis);
-        console.log('total commands: %s', result.totalCommands);
+        console.log('commands received: %s', result.commandsReceived);
         console.log('min: %s', result.min);
         console.log('max: %s', result.max);
         console.log('avg: %s', result.avg);
 
         var stream = fs.createWriteStream(LOG_PATH, { flags: 'a' });
-        stream.write(JSON.stringify(result) + '\n', function () {
-            if (self.ondone != null) {
-                self.ondone();
-            }
+        stream.write(JSON.stringify(result) + '\n');
+    },
+    
+    closeConnections: function () {
+        this.device.socket.close();
+        this.clients.forEach(function (client) {
+            client.socket.close();
         });
     }
 }

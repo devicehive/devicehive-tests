@@ -24,6 +24,9 @@ WsConn.prototype = {
         this.socket.onerror = function (err) {
             self.onError(err);
         };
+        this.socket.onclose = function (socket) {
+            console.log('%s closed connection', self.name);
+        };
     },
     
     onOpen: function (socket) {

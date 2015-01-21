@@ -19,6 +19,12 @@ Statistics.prototype = {
         
         this.sum += value;
     },
+    getMin: function () {
+        return this.count > 0 ? this.min : 0;
+    },
+    getMax: function () {
+        return this.count > 0 ? this.max : 0;
+    },
     getAvg: function () {
         return this.sum / this.count;
     }

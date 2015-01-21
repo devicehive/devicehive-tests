@@ -19,23 +19,12 @@ var app = {
             utils.getConfig('cmndTest:intervalMillis'));
         
         this.tests = [notifTest, cmndTest];
+        //this.tests = [notifTest];
 
         this.tests.forEach(function (test) {
-            test.ondone = app.ontestdone;
             test.run();
         });
     },
-
-    ontestdone: function () {
-        if (++app.testsDone < app.tests.length) {
-            return;
-        }
-        
-        setTimeout(function () {
-            process.exit();
-        }, 5000);
-        //process.exit();
-    }
 };
 
 app.start();

@@ -14,7 +14,6 @@ function NotifTest(devicesCount, notifCount, intervalMillis) {
     this.client = new WsConn('client');
     this.devicesDone = 0;
     this.statistics = new Statistics();
-    this.ondone = null;
 }
 
 NotifTest.prototype = {
@@ -121,6 +120,8 @@ NotifTest.prototype = {
         if (++this.devicesDone < this.devicesCount) {
             return;
         }
+        
+        this.closeConnections();
 
         var self = this;
         
@@ -128,9 +129,9 @@ NotifTest.prototype = {
             devices: this.devicesCount,
             notifsPerDevice: this.notifCount,
             intervalMillis: this.intervalMillis,
-            totalNotifications: this.statistics.count,
-            min: this.statistics.min,
-            max: this.statistics.max,
+            notificationsReceived: this.statistics.count,
+            min: this.statistics.getMin(),
+            max: this.statistics.getMax(),
             avg: this.statistics.getAvg()
         };
 
@@ -138,16 +139,19 @@ NotifTest.prototype = {
         console.log('devices: %s', result.devices);
         console.log('notifications per device: %s', result.notifsPerDevice);
         console.log('interval, millis: %s', result.intervalMillis);
-        console.log('total notifications: %s', result.totalNotifications);
+        console.log('notifications received: %s', result.notificationsReceived);
         console.log('min: %s', result.min);
         console.log('max: %s', result.max);
         console.log('avg: %s', result.avg);
 
         var stream = fs.createWriteStream(LOG_PATH, { flags: 'a' });
-        stream.write(JSON.stringify(result) + '\n', function () {
-            if (self.ondone != null) {
-                self.ondone();
-            }
+        stream.write(JSON.stringify(result) + '\n');
+    },
+
+    closeConnections: function () {
+        this.client.socket.close();
+        this.devices.forEach(function (device) {
+            device.socket.close();
         });
     }
 }
