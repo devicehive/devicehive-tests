@@ -9,10 +9,10 @@ var LOG_PATH = path.join(__dirname, 'load-tests-notif.txt');
 function NotifTest(devicesCount, notifCount, intervalMillis) {
     this.devicesCount = (devicesCount || 1);
     this.notifCount = (notifCount || 1);
+    this.notifReceived = 0;
     this.intervalMillis = (intervalMillis || 100);
     this.devices = [];
     this.client = new WsConn('client');
-    this.devicesDone = 0;
     this.statistics = new Statistics();
 }
 
@@ -68,6 +68,7 @@ NotifTest.prototype = {
         console.log('%s received notification in %d millis', client.name, time);
 
         this.statistics.add(time);
+        this.done();
     },
     
     onAuthenticate: function (data, device) {
@@ -84,7 +85,6 @@ NotifTest.prototype = {
         device.intervalId = setInterval(function () {
             if (i++ >= self.notifCount) {
                 clearInterval(device.intervalId);
-                self.done();
                 return;
             }
 
@@ -117,7 +117,8 @@ NotifTest.prototype = {
     },
 
     done: function (device) {
-        if (++this.devicesDone < this.devicesCount) {
+
+        if (++this.notifReceived < (this.notifCount * this.devicesCount)) {
             return;
         }
         
@@ -125,7 +126,9 @@ NotifTest.prototype = {
 
         var self = this;
         
+        var date = new Date();
         var result = {
+            completedOn: date.toLocaleDateString() + ' ' + date.toLocaleTimeString(),
             devices: this.devicesCount,
             notifsPerDevice: this.notifCount,
             intervalMillis: this.intervalMillis,

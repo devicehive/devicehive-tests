@@ -9,10 +9,10 @@ var LOG_PATH = path.join(__dirname, 'load-tests-cmnd.txt');
 function CommandTest(clientsCount, cmdCount, intervalMillis) {
     this.clientsCount = (clientsCount || 1);
     this.cmdCount = (cmdCount || 1);
+    this.cmdReceived = 0;
     this.intervalMillis = (intervalMillis || 1000);
     this.clients = [];
     this.device = new WsConn('device');
-    this.clientsDone = 0;
     this.statistics = new Statistics();
 }
 
@@ -68,6 +68,7 @@ CommandTest.prototype = {
         console.log('%s received command in %d millis', device.name, time);
 
         this.statistics.add(time);
+        this.done();
     },
     
     onAuthenticate: function (data, client) {
@@ -84,7 +85,6 @@ CommandTest.prototype = {
         client.intervalId = setInterval(function () {
             if (i++ >= self.cmdCount) {
                 clearInterval(client.intervalId);
-                self.done();
                 return;
             }
 
@@ -117,7 +117,8 @@ CommandTest.prototype = {
     },
 
     done: function (client) {
-        if (++this.clientsDone < this.clientsCount) {
+        
+        if (++this.cmdReceived < (this.cmdCount * this.clientsCount)) {
             return;
         }
         
@@ -125,7 +126,9 @@ CommandTest.prototype = {
         
         var self = this;
         
+        var date = new Date();
         var result = {
+            completedOn: date.toLocaleDateString() + ' ' + date.toLocaleTimeString(),
             clients: this.clientsCount,
             cmndsPerDevice: this.cmdCount,
             intervalMillis: this.intervalMillis,
