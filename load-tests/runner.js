@@ -4,25 +4,28 @@ var utils = require('../common/utils.js');
 
 var app = {
     
-    testsDone: 0,
-
     start: function () {
 
-        var notifTest = new NotifTest(
-            utils.getConfig('notifTest:devices'),
-            utils.getConfig('notifTest:notifications'), 
-            utils.getConfig('notifTest:intervalMillis'));
-
-        var cmndTest = new CommandTest(
-            utils.getConfig('cmndTest:devices'),
-            utils.getConfig('cmndTest:commands'), 
-            utils.getConfig('cmndTest:intervalMillis'));
+        //var cmndTest = new CommandTest(
+        //    utils.getConfig('cmndTest:clients'),
+        //    utils.getConfig('cmndTest:commands'), 
+        //    utils.getConfig('cmndTest:intervalMillis'));
         
-        this.tests = [notifTest, cmndTest];
-        //this.tests = [notifTest];
+        //this.tests = [cmndTest];
 
-        this.tests.forEach(function (test) {
-            test.run();
+        //this.tests.forEach(function (test) {
+        //    test.run();
+        //});
+
+        utils.getConfig('notifTest:groups').forEach(function (config) {
+            var notifTest = new NotifTest();
+            notifTest.clientsCount = config.clients;
+            notifTest.devicesCount = config.devices;
+            notifTest.notifCount = config.notifsPerDevice;
+            notifTest.intervalMillis = config.intervalMillis;
+            notifTest.deviceGuids = config.deviceGuids;
+            notifTest.names = config.names;
+            notifTest.run();
         });
     },
 };

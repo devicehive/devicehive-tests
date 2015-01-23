@@ -22,7 +22,9 @@ WsConn.prototype = {
             self.onMessage(message);
         };
         this.socket.onerror = function (err) {
-            self.onError(err);
+            if (self.onerror) {
+                self.onerror.call(self.errContext, err, self);
+            }
         };
         this.socket.onclose = function (socket) {
             console.log('%s closed connection', self.name);
@@ -69,8 +71,14 @@ WsConn.prototype = {
         };
     },
     
-    onError: function (err) {
-        console.log('Error in %s: %s', this.name, JSON.stringify(err));
+    addErrorCallback: function (cb, context) {
+        context || (context = this);
+        this.onerror = cb;
+        this.errContext = context;
+    },
+
+    toString: function () { 
+        return "WsConn: " + this.name;
     }
 }
 

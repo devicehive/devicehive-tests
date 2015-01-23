@@ -1,17 +1,30 @@
 {
   "server": {
-    "wsUrl": "ws://23.253.35.56:8081/DeviceHive/websocket",
-    "deviceId": "11111111-2222-3333-4444-555555555555",
-    "accessKey": "sStsRCchw3pCUeLwyVvhX/Q27CKeJgVFcNcDBvJiB6g=",
-    "deviceKey": "{00000000-0000-0000-0000-000000000000}"
+    "wsUrl": "ws://192.168.152.147:8080/DeviceHiveJava/websocket",
+    "accessKey": "CBc5gtfFAgPSjHzI6N1654Oth/8hYv5zl3X4Sf7Q7+4="
   },
   "notifTest": {
-    "devices": 2,
-    "notifications": 3,
-    "intervalMillis": 3000
+    "groups": [
+      {
+        "clients": 2,
+        "devices": 2,
+        "notifsPerDevice": 3,
+        "intervalMillis": 100,
+        "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
+        "names": [ "a-first", "a-second", "a-third" ]
+      },
+      {
+        "clients": 3,
+        "devices": 3,
+        "notifsPerDevice": 2,
+        "intervalMillis": 200,
+        "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
+        "names": [ "b-first", "b-second", "b-third" ]
+      }
+    ]
   },
   "cmndTest": {
-    "devices": 2,
+    "clients": 2,
     "commands": 3,
     "intervalMillis": 3000
   }
