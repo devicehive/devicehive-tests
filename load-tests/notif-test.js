@@ -72,11 +72,18 @@ NotifTest.prototype = {
         
         for (var i = 0; i < this.devicesCount; i++) {
             var device = new WsConn('device');
+            device.props = {
+                deviceGuid: this.getDeviceGuid(i)
+            },
             device.addErrorCallback(this.onError, this);
             device.addActionCallback('authenticate', this.onAuthenticate, this);
             device.connect();
             this.devices.push(device);
         }
+    },
+    
+    getDeviceGuid: function (index) {
+        return this.deviceGuids[index % this.deviceGuids.length];
     },
     
     onNotificationReceived: function (data, client) {
@@ -116,7 +123,7 @@ NotifTest.prototype = {
         var time = new Date();
         var notifData = {
             action : 'notification/insert',
-            deviceGuid : this.deviceGuids[requestId % this.deviceGuids.length],
+            deviceGuid : device.props.deviceGuid,
             notification : {
                 notification : this.names[requestId % this.names.length],
                 parameters : {

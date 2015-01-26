@@ -2,11 +2,12 @@
 var utils = require('../common/utils.js');
 var deviceId = 1;
 
-function WsConn(name) {
+function WsConn(name, props) {
     this.id = deviceId++;
     this.name = name + '#' + this.id;
     this.actionCallbacks = {};
     this.socket = new WebSocket(utils.getConfig('server:wsUrl') + '/client');
+    this.props = props;
 }
 
 WsConn.prototype = {
