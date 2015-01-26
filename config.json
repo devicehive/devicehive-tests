@@ -10,12 +10,11 @@
         "devices": 2,
         "notifsPerDevice": 3,
         "intervalMillis": 100,
-        "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
+        "deviceGuids": "aaaaaaaa-aaaa-0000-0000-000000a{#}",
         "notifications": [ "a-first", "a-second", "a-third" ]
       },
       {
         "clients": 3,
-        "devices": 3,
         "notifsPerDevice": 2,
         "intervalMillis": 200,
         "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],

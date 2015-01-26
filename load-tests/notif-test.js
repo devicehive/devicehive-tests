@@ -30,6 +30,9 @@ NotifTest.prototype = {
         
         this.start = new Date();
         
+        this.devicesCount = Array.isArray(this.deviceGuids) ? 
+            this.deviceGuids.length : this.devicesCount;
+
         this.notifTotal = this.notifCount * this.devicesCount;
         
         for (var i = 0; i < this.clientsCount; i++) {
@@ -83,7 +86,12 @@ NotifTest.prototype = {
     },
     
     getDeviceGuid: function (index) {
-        return this.deviceGuids[index % this.deviceGuids.length];
+        if (Array.isArray(this.deviceGuids)) {
+            return this.deviceGuids[index % this.deviceGuids.length];
+        }
+
+        var formattedNumber = ("00000" + index).slice(-5);
+        return this.deviceGuids.replace('{#}', formattedNumber);
     },
     
     onNotificationReceived: function (data, client) {
