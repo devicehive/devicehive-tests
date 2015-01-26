@@ -24,7 +24,7 @@ var app = {
             notifTest.notifCount = config.notifsPerDevice;
             notifTest.intervalMillis = config.intervalMillis;
             notifTest.deviceGuids = config.deviceGuids;
-            notifTest.names = config.names;
+            notifTest.names = config.notifications;
             notifTest.run();
         });
     },

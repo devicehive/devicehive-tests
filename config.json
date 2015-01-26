@@ -11,7 +11,7 @@
         "notifsPerDevice": 3,
         "intervalMillis": 100,
         "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
-        "names": [ "a-first", "a-second", "a-third" ]
+        "notifications": [ "a-first", "a-second", "a-third" ]
       },
       {
         "clients": 3,
@@ -19,7 +19,7 @@
         "notifsPerDevice": 2,
         "intervalMillis": 200,
         "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
-        "names": [ "b-first", "b-second", "b-third" ]
+        "notifications": [ "b-first", "b-second", "b-third" ]
       }
     ]
   },
