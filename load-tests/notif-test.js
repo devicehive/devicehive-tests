@@ -3,6 +3,8 @@ var Statistics = require('./statistics.js');
 var utils = require('../common/utils.js');
 
 function NotifTest() {
+    this.name = '';
+
     this.clientsCount = 1;
     this.devicesCount = 1;
     this.notifCount = 1;
@@ -24,6 +26,8 @@ NotifTest.prototype = {
     
     run: function (callback) {
         
+        console.log('-- Started \'%s\'', this.name);
+
         this.ondone = callback;
         this.start = new Date();
         
@@ -153,36 +157,40 @@ NotifTest.prototype = {
             return;
         }
         
-        console.log('All notifications sent');
-        
         var received = this.notifReceived;
+        var result = this.getResult();
         var self = this;
         
         var doneIfNotifsWontCome = function () {
             
             if (self.notifReceived !== received) {
                 received = self.notifReceived;
+                result = self.getResult();
                 setTimeout(doneIfNotifsWontCome, 5000);
                 return;
             }
             
-            self.done();
+            self.done(null, result);
         }
         setTimeout(doneIfNotifsWontCome, 5000);
+
+        console.log('-- All notifications sent. Wait for more incoming notifications...');
     },
     
-    done: function (err) {
+    done: function (err, result) {
         this.closeConnections();
         if (this.ondone) {
-            this.ondone(err, this.getResult());
+            this.ondone(err, result);
             this.ondone = null;
         }
+        console.log('-- Completed \'%s\'', this.name);
     },
     
     getResult: function () {
         
         var end = new Date();
         var result = {
+            name: this.name,
             start: this.start.toLocaleDateString() + ' ' + this.start.toLocaleTimeString(),
             end: end.toLocaleDateString() + ' ' + end.toLocaleTimeString(),
             clients: this.clientsCount,
@@ -218,7 +226,7 @@ NotifTest.prototype = {
         this.done({
             message: 'Error in %s' + conn.name,
             error: err
-        });
+        }, this.getResult());
     }
 }
 

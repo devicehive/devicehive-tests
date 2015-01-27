@@ -10,13 +10,14 @@ var LOG_PATH = path.join(__dirname, 'load-tests-notif.txt');
 var app = {
     
     start: function () {
-        async.eachSeries(
-            utils.getConfig('notifTest:groups'), 
+        var run = utils.getConfig('notifTest:runAsync') ? async.each : async.eachSeries;
+        run(utils.getConfig('notifTest:groups'), 
             app.startNotifTest, app.onNotifTestComplete);
     },
     
     startNotifTest: function (config, callback) {
         var notifTest = new NotifTest();
+        notifTest.name = config.name;
         notifTest.clientsCount = config.clients;
         notifTest.devicesCount = config.devices;
         notifTest.notifCount = config.notifsPerDevice;
@@ -37,6 +38,7 @@ var app = {
     
     showResult: function (result) {
         console.log('--------------------------------------');
+        console.log('name: %s', result.name);
         console.log('start: %s', result.start);
         console.log('end: %s', result.end);
         console.log('clients: %s', result.clients);
@@ -55,9 +57,9 @@ var app = {
 
     onNotifTestComplete: function (err) {
         if (err) {
-            console.log('Error: ' + JSON.stringify(err));
+            console.log('-- Error: ' + JSON.stringify(err));
         }
-        console.log('Finished running notification tests.');
+        console.log('-- Finished running notification tests.');
     }
 };
 
