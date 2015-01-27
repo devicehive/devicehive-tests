@@ -7,6 +7,7 @@
     "runAsync": false,
     "groups": [
       {
+        "disabled": true,
         "name": "Many devices, two clients",
         "clients": 2,
         "devices": 20,
@@ -14,20 +15,20 @@
         "intervalMillis": 100,
         "listenAllDevices": false,
         "deviceGuids": "aaaaaaaa-aaaa-0000-0000-000000a{#}",
-        "notifications": [ "a-first", "a-second", "a-third" ],
+        "notifications": [ "a-first", "a-second", "a-third", "a-fourth", "a-fifth", "a-sixth" ],
         "parameters": {
            "t" : "20.0", 
            "p" : "29.92"
         }
       },
       {
-        "name": "One device, three clients",
-        "clients": 3,
+        "name": "One device, many clients",
+        "clients": 40,
         "notifsPerDevice": 2,
         "intervalMillis": 200,
         "listenAllDevices": true,
         "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
-        "notifications": [ "b-first", "b-second", "b-third" ]
+        "notifications": [ "b-first", "b-second", "b-third", "b-fourth", "b-fifth", "b-sixth" ]
       }
     ]
   },

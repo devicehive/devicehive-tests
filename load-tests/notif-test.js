@@ -22,6 +22,7 @@ function NotifTest(config) {
     this.clients = [];
     this.devices = [];
     this.statistics = new Statistics();
+    this.clientsSubscribed = 0;
 }
 
 NotifTest.prototype = {
@@ -65,7 +66,11 @@ NotifTest.prototype = {
         };
         
         if (this.notifications) {
-            data.names = this.notifications;
+            data.names = [];
+            var max = client.id % this.notifications.length;
+            for (var i = 0; i <= max; i++) {
+                data.names.push(this.notifications[i]);
+            }
         }
         
         if (!this.listenAllDevices) {
@@ -102,10 +107,12 @@ NotifTest.prototype = {
     onClientSubscribed: function (data, client) {
         console.log('%s subscribed', client.name);
         
-        if (this.clients.length < this.clientsCount) {
-            return;
+        if (++this.clientsSubscribed === this.clientsCount) {
+            this.createDevices();
         }
-        
+    },
+    
+    createDevices: function () {
         for (var i = 0; i < this.devicesCount; i++) {
             var device = new WsConn('device');
             device.props = {
@@ -226,7 +233,6 @@ NotifTest.prototype = {
             notifsPerDevice: this.notifCount,
             intervalMillis: this.intervalMillis,
             notificationsSent: this.notifSent,
-            notificationsExpected: this.notifSent * this.clientsCount,
             notificationsReceived: this.notifReceived,
             min: this.statistics.getMin(),
             max: this.statistics.getMax(),

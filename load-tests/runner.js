@@ -16,6 +16,11 @@ var app = {
     },
     
     startNotifTest: function (config, callback) {
+        
+        if (config.disabled) {
+            return callback();
+        }
+
         new NotifTest(config)
             .run(function (err, result) {
                 app.saveResult(result);
@@ -39,7 +44,6 @@ var app = {
         console.log('notifications per device: %s', result.notifsPerDevice);
         console.log('interval, millis: %s', result.intervalMillis);
         console.log('notifications sent: %s', result.notificationsSent);
-        console.log('notifications expected: %s', result.notificationsExpected);
         console.log('notifications received: %s', result.notificationsReceived);
         console.log('min: %s', result.min);
         console.log('max: %s', result.max);
