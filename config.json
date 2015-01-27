@@ -4,7 +4,7 @@
     "accessKey": "CBc5gtfFAgPSjHzI6N1654Oth/8hYv5zl3X4Sf7Q7+4="
   },
   "notifTest": {
-    "runAsync": true,
+    "runAsync": false,
     "groups": [
       {
         "name": "Many devices, two clients",
@@ -12,6 +12,7 @@
         "devices": 20,
         "notifsPerDevice": 3,
         "intervalMillis": 100,
+        "listenAllDevices": false,
         "deviceGuids": "aaaaaaaa-aaaa-0000-0000-000000a{#}",
         "notifications": [ "a-first", "a-second", "a-third" ],
         "parameters": {
@@ -24,6 +25,7 @@
         "clients": 3,
         "notifsPerDevice": 2,
         "intervalMillis": 200,
+        "listenAllDevices": true,
         "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
         "notifications": [ "b-first", "b-second", "b-third" ]
       }

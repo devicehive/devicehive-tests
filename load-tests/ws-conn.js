@@ -1,9 +1,9 @@
 ﻿global.WebSocket = require('ws');
 var utils = require('../common/utils.js');
-var deviceId = 1;
+var connId = 1;
 
 function WsConn(name, props) {
-    this.id = deviceId++;
+    this.id = connId++;
     this.name = name + '#' + this.id;
     this.actionCallbacks = {};
     this.socket = new WebSocket(utils.getConfig('server:wsUrl') + '/client');

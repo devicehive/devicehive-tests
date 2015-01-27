@@ -9,8 +9,9 @@ function NotifTest(config) {
     this.devicesCount = config.devices;
     this.notifCount = config.notifsPerDevice || 1;
     this.intervalMillis = config.intervalMillis || 1000;
+    this.listenAllDevices = config.listenAllDevices;
     this.deviceGuids = config.deviceGuids || [];
-    this.notifications = config.notifications || [];
+    this.notifications = config.notifications;
     this.parameters = config.parameters || {};
     
     this.notifIndex = 0;
@@ -60,12 +61,42 @@ NotifTest.prototype = {
         
         var data = {
             action : 'notification/subscribe',
-            deviceGuids : this.deviceGuids,
-            names : this.notifications,
             requestId : utils.getRequestId()
         };
         
+        if (this.notifications) {
+            data.names = this.notifications;
+        }
+        
+        if (!this.listenAllDevices) {
+            data.deviceGuids = this.getDeviceGuids(client);
+        }
+        
         client.send(JSON.stringify(data));
+    },
+    
+    getDeviceGuids: function (client) {
+        var index = client.id % this.clientsCount;
+        if (this.devicesCount === this.clientsCount) {
+
+            return this.getDeviceGuid(index);
+
+        } if (this.devicesCount < this.clientsCount) {
+
+            return this.getDeviceGuid(index);
+
+        } else if (this.devicesCount > this.clientsCount) {
+
+            var deviceGuids = [];
+            var devicesPerClient = Math.ceil(this.devicesCount / this.clientsCount);
+            var startIndex = index * devicesPerClient;
+            var endIndex = Math.ceil(index * devicesPerClient + devicesPerClient);
+            for (var i = startIndex; i < endIndex; i++) { 
+                deviceGuids.push(this.getDeviceGuid(i));
+            }
+            return deviceGuids;
+
+        }
     },
     
     onClientSubscribed: function (data, client) {
@@ -171,7 +202,7 @@ NotifTest.prototype = {
         }
         setTimeout(doneIfNotifsWontCome, 5000);
 
-        console.log('-- All notifications sent. Wait for more incoming notifications...');
+        console.log('-- All notifications sent. 5 secs wait for incoming notifications...');
     },
     
     done: function (err, result) {
