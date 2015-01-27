@@ -2,7 +2,7 @@
     this.min = Number.MAX_VALUE;
     this.max = Number.MIN_VALUE;
     this.sum = 0;
-    this.errors = 0;
+    this.errors = false;
     this.count = 0;
 }
 

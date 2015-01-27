@@ -49,7 +49,14 @@ WsConn.prototype = {
             requestId : utils.getRequestId()
         };
         
-        this.socket.send(JSON.stringify(authData));
+        this.send(JSON.stringify(authData));
+    },
+    
+    send: function (data) {
+        if (this.socket.readyState !== 1) { // OPEN state
+            return;
+        }
+        this.socket.send(data);
     },
     
     onMessage: function (message) {

@@ -2,10 +2,6 @@
 var Statistics = require('./statistics.js');
 var utils = require('../common/utils.js');
 
-var fs = require('fs');
-var path = require('path');
-var LOG_PATH = path.join(__dirname, 'load-tests-notif.txt');
-
 function NotifTest() {
     this.clientsCount = 1;
     this.devicesCount = 1;
@@ -26,8 +22,9 @@ function NotifTest() {
 
 NotifTest.prototype = {
     
-    run: function () {
+    run: function (callback) {
         
+        this.ondone = callback;
         this.start = new Date();
         
         this.devicesCount = Array.isArray(this.deviceGuids) ? 
@@ -63,7 +60,7 @@ NotifTest.prototype = {
             requestId : utils.getRequestId()
         };
         
-        client.socket.send(JSON.stringify(data));
+        client.send(JSON.stringify(data));
     },
     
     onClientSubscribed: function (data, client) {
@@ -117,6 +114,7 @@ NotifTest.prototype = {
         device.intervalId = setInterval(function () {
             if (self.notifIndex++ >= self.notifTotal) {
                 clearInterval(device.intervalId);
+                device.intervalId = null;
                 return;
             }
             
@@ -145,7 +143,7 @@ NotifTest.prototype = {
             requestId : requestId
         }
         
-        device.socket.send(JSON.stringify(notifData));
+        device.send(JSON.stringify(notifData));
         this.doneAllSent();
     },
     
@@ -158,27 +156,27 @@ NotifTest.prototype = {
         console.log('All notifications sent');
         
         var received = this.notifReceived;
-        var result = this.getResult();
         var self = this;
         
         var doneIfNotifsWontCome = function () {
             
             if (self.notifReceived !== received) {
                 received = self.notifReceived;
-                result = self.getResult();
                 setTimeout(doneIfNotifsWontCome, 5000);
                 return;
             }
             
-            self.done(result);
+            self.done();
         }
         setTimeout(doneIfNotifsWontCome, 5000);
     },
     
-    done: function (result) {
+    done: function (err) {
         this.closeConnections();
-        var stream = fs.createWriteStream(LOG_PATH, { flags: 'a' });
-        stream.write(JSON.stringify(result) + '\n');
+        if (this.ondone) {
+            this.ondone(err, this.getResult());
+            this.ondone = null;
+        }
     },
     
     getResult: function () {
@@ -200,21 +198,6 @@ NotifTest.prototype = {
             errors: this.statistics.errors
         };
         
-        console.log('--------------------------------------');
-        console.log('start: %s', result.start);
-        console.log('end: %s', result.end);
-        console.log('clients: %s', result.clients);
-        console.log('devices: %s', result.devices);
-        console.log('notifications per device: %s', result.notifsPerDevice);
-        console.log('interval, millis: %s', result.intervalMillis);
-        console.log('notifications sent: %s', result.notificationsSent);
-        console.log('notifications expected: %s', result.notificationsExpected);
-        console.log('notifications received: %s', result.notificationsReceived);
-        console.log('min: %s', result.min);
-        console.log('max: %s', result.max);
-        console.log('avg: %s', result.avg);
-        console.log('errors: %s', result.errors);
-        
         return result;
     },
     
@@ -224,13 +207,18 @@ NotifTest.prototype = {
         });
         this.devices.forEach(function (device) {
             device.socket.close();
+            if (device.intervalId) {
+                clearInterval(device.intervalId);
+            }
         });
     },
     
     onError: function (err, conn) {
-        console.log('Error in %s: %s', conn.name, JSON.stringify(err));
-        this.statistics.errors++;
-        conn.socket.close();
+        this.statistics.errors = true;
+        this.done({
+            message: 'Error in %s' + conn.name,
+            error: err
+        });
     }
 }
 
