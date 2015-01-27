@@ -2,15 +2,16 @@
 var Statistics = require('./statistics.js');
 var utils = require('../common/utils.js');
 
-function NotifTest() {
-    this.name = '';
+function NotifTest(config) {
+    this.name = config.name || '';
 
-    this.clientsCount = 1;
-    this.devicesCount = 1;
-    this.notifCount = 1;
-    this.intervalMillis = 1000;
-    this.deviceGuids = [];
-    this.names = [];
+    this.clientsCount = config.clients || 1;
+    this.devicesCount = config.devices;
+    this.notifCount = config.notifsPerDevice || 1;
+    this.intervalMillis = config.intervalMillis || 1000;
+    this.deviceGuids = config.deviceGuids || [];
+    this.notifications = config.notifications || [];
+    this.parameters = config.parameters || {};
     
     this.notifIndex = 0;
     this.notifTotal = 0;
@@ -27,7 +28,7 @@ NotifTest.prototype = {
     run: function (callback) {
         
         console.log('-- Started \'%s\'', this.name);
-
+        
         this.ondone = callback;
         this.start = new Date();
         
@@ -60,7 +61,7 @@ NotifTest.prototype = {
         var data = {
             action : 'notification/subscribe',
             deviceGuids : this.deviceGuids,
-            names : this.names,
+            names : this.notifications,
             requestId : utils.getRequestId()
         };
         
@@ -129,20 +130,16 @@ NotifTest.prototype = {
     sendNotification: function (device) {
         
         var requestId = utils.getRequestId();
-        
         var time = new Date();
+        var parameters = utils.clone(this.parameters);
+        parameters.requestTime = +time;
+
         var notifData = {
             action : 'notification/insert',
             deviceGuid : device.props.deviceGuid,
             notification : {
-                notification : this.names[requestId % this.names.length],
-                parameters : {
-                    name : device.name + ' sensor',
-                    tag : 'b27c94fed9e64f60aa893aa4e6458095',
-                    time : time.toUTCString(),
-                    value : 1234,
-                    requestTime: +time
-                }
+                notification : this.notifications[requestId % this.notifications.length],
+                parameters : parameters
             },
             requestId : requestId
         }

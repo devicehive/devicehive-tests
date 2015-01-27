@@ -11,5 +11,21 @@ module.exports = {
 
     getConfig: function (key) {
         return config.get(key);
+    },
+
+    clone: function (obj) {
+        
+        var self = this;
+
+        if (obj == null || typeof (obj) != 'object')
+            return obj;
+
+        var copy = obj.constructor();
+        var keys = Object.keys(obj);
+        keys.forEach(function (key) { 
+            copy[key] = self.clone(obj[key]);
+        });
+
+        return copy;
     }
 }

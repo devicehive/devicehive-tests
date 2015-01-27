@@ -16,19 +16,12 @@ var app = {
     },
     
     startNotifTest: function (config, callback) {
-        var notifTest = new NotifTest();
-        notifTest.name = config.name;
-        notifTest.clientsCount = config.clients;
-        notifTest.devicesCount = config.devices;
-        notifTest.notifCount = config.notifsPerDevice;
-        notifTest.intervalMillis = config.intervalMillis;
-        notifTest.deviceGuids = config.deviceGuids;
-        notifTest.names = config.notifications;
-        notifTest.run(function (err, result) {
-            app.saveResult(result);
-            app.showResult(result);
-            callback(err);
-        });
+        new NotifTest(config)
+            .run(function (err, result) {
+                app.saveResult(result);
+                app.showResult(result);
+                callback(err);
+            });
     },
 
     saveResult: function (result) {

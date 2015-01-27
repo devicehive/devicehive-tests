@@ -13,7 +13,11 @@
         "notifsPerDevice": 3,
         "intervalMillis": 100,
         "deviceGuids": "aaaaaaaa-aaaa-0000-0000-000000a{#}",
-        "notifications": [ "a-first", "a-second", "a-third" ]
+        "notifications": [ "a-first", "a-second", "a-third" ],
+        "parameters": {
+           "t" : "20.0", 
+           "p" : "29.92"
+        }
       },
       {
         "name": "One device, three clients",
