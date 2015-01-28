@@ -4,6 +4,7 @@
     this.sum = 0;
     this.errors = false;
     this.count = 0;
+    this.subscribedExpected = {};
 }
 
 Statistics.prototype = {
@@ -19,6 +20,36 @@ Statistics.prototype = {
         }
         
         this.sum += value;
+    },
+    addSubscribed: function (name) {
+        var subscribedExpected = this.subscribedExpected[name];
+        if (!subscribedExpected) {
+            subscribedExpected = this.subscribedExpected[name] = {
+                subscribed: 0,
+                expected: 0
+            };
+        }
+
+        subscribedExpected.subscribed++;
+    },
+    addExpected: function (name) {
+
+        var subscribedExpected = this.subscribedExpected[name];
+
+        if (!subscribedExpected) {
+            return;
+        }
+
+        subscribedExpected.expected += subscribedExpected.subscribed;
+    },
+    getExpected: function() {
+        var self = this;
+        var expected = 0;
+        var keys = Object.keys(this.subscribedExpected);
+        keys.forEach(function (key) {
+            expected += self.subscribedExpected[key].expected;
+        });
+        return expected;
     },
     getMin: function () {
         return this.count > 0 ? this.min : 0;

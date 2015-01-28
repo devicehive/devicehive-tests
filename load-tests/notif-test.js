@@ -13,12 +13,12 @@ function NotifTest(config) {
     this.deviceGuids = config.deviceGuids || [];
     this.notifications = config.notifications;
     this.parameters = config.parameters || {};
-    
+
     this.notifIndex = 0;
     this.notifTotal = 0;
     this.notifSent = 0;
     this.notifReceived = 0;
-    
+
     this.clients = [];
     this.devices = [];
     this.statistics = new Statistics();
@@ -26,19 +26,19 @@ function NotifTest(config) {
 }
 
 NotifTest.prototype = {
-    
+
     run: function (callback) {
-        
+
         console.log('-- Started \'%s\'', this.name);
-        
+
         this.ondone = callback;
         this.start = new Date();
-        
-        this.devicesCount = Array.isArray(this.deviceGuids) ? 
+
+        this.devicesCount = Array.isArray(this.deviceGuids) ?
             this.deviceGuids.length : this.devicesCount;
 
         this.notifTotal = this.notifCount * this.devicesCount;
-        
+
         for (var i = 0; i < this.clientsCount; i++) {
             var client = new WsConn('client');
             client.addErrorCallback(this.onError, this);
@@ -49,44 +49,47 @@ NotifTest.prototype = {
             this.clients.push(client);
         }
     },
-    
+
     onClientAuthenticate: function (data, client) {
         if (data.status !== 'success') {
-            return this.client.onError(data);
+            return this.onError(data);
         }
         console.log('%s auth done', client.name);
         this.subscribeClient(client);
     },
-    
+
     subscribeClient: function (client) {
-        
+
         var data = {
-            action : 'notification/subscribe',
-            requestId : utils.getRequestId()
+            action: 'notification/subscribe',
+            requestId: utils.getRequestId()
         };
-        
+
         if (this.notifications) {
             data.names = [];
             var max = client.id % this.notifications.length;
             for (var i = 0; i <= max; i++) {
-                data.names.push(this.notifications[i]);
+                var notification = this.notifications[i];
+                this.statistics.addSubscribed(notification);
+                data.names.push(notification);
             }
         }
-        
+
         if (!this.listenAllDevices) {
             data.deviceGuids = this.getDeviceGuids(client);
         }
-        
+
         client.send(JSON.stringify(data));
     },
-    
+
     getDeviceGuids: function (client) {
         var index = client.id % this.clientsCount;
         if (this.devicesCount === this.clientsCount) {
 
             return this.getDeviceGuid(index);
 
-        } if (this.devicesCount < this.clientsCount) {
+        }
+        if (this.devicesCount < this.clientsCount) {
 
             return this.getDeviceGuid(index);
 
@@ -96,35 +99,35 @@ NotifTest.prototype = {
             var devicesPerClient = Math.ceil(this.devicesCount / this.clientsCount);
             var startIndex = index * devicesPerClient;
             var endIndex = Math.ceil(index * devicesPerClient + devicesPerClient);
-            for (var i = startIndex; i < endIndex; i++) { 
+            for (var i = startIndex; i < endIndex; i++) {
                 deviceGuids.push(this.getDeviceGuid(i));
             }
             return deviceGuids;
 
         }
     },
-    
+
     onClientSubscribed: function (data, client) {
         console.log('%s subscribed', client.name);
-        
+
         if (++this.clientsSubscribed === this.clientsCount) {
             this.createDevices();
         }
     },
-    
+
     createDevices: function () {
         for (var i = 0; i < this.devicesCount; i++) {
             var device = new WsConn('device');
             device.props = {
                 deviceGuid: this.getDeviceGuid(i)
-            },
+            };
             device.addErrorCallback(this.onError, this);
             device.addActionCallback('authenticate', this.onAuthenticate, this);
             device.connect();
             this.devices.push(device);
         }
     },
-    
+
     getDeviceGuid: function (index) {
         if (Array.isArray(this.deviceGuids)) {
             return this.deviceGuids[index % this.deviceGuids.length];
@@ -133,17 +136,17 @@ NotifTest.prototype = {
         var formattedNumber = ("00000" + index).slice(-5);
         return this.deviceGuids.replace('{#}', formattedNumber);
     },
-    
+
     onNotificationReceived: function (data, client) {
         var parameters = data.notification.parameters;
-        
+
         var time = +new Date() - parameters.requestTime;
         console.log('%s received notification \'%s\' in %d millis', client.name, data.notification.notification, time);
-        
+
         this.statistics.add(time);
         this.notifReceived++;
     },
-    
+
     onAuthenticate: function (data, device) {
         if (data.status != 'success') {
             return device.onError(data);
@@ -151,7 +154,7 @@ NotifTest.prototype = {
         console.log('%s auth done', device.name);
         this.sendNotifications(device);
     },
-    
+
     sendNotifications: function (device) {
         var self = this;
         device.intervalId = setInterval(function () {
@@ -160,58 +163,59 @@ NotifTest.prototype = {
                 device.intervalId = null;
                 return;
             }
-            
+
             self.sendNotification(device);
         }, this.intervalMillis);
     },
-    
+
     sendNotification: function (device) {
-        
+
         var requestId = utils.getRequestId();
         var time = new Date();
+        var notification = this.notifications[requestId % this.notifications.length];
+        this.statistics.addExpected(notification);
         var parameters = utils.clone(this.parameters);
         parameters.requestTime = +time;
 
         var notifData = {
-            action : 'notification/insert',
-            deviceGuid : device.props.deviceGuid,
-            notification : {
-                notification : this.notifications[requestId % this.notifications.length],
-                parameters : parameters
+            action: 'notification/insert',
+            deviceGuid: device.props.deviceGuid,
+            notification: {
+                notification: notification,
+                parameters: parameters
             },
-            requestId : requestId
-        }
-        
+            requestId: requestId
+        };
+
         device.send(JSON.stringify(notifData));
         this.doneAllSent();
     },
-    
-    doneAllSent: function (device) {
-        
+
+    doneAllSent: function () {
         if (++this.notifSent < this.notifTotal) {
             return;
         }
-        
+
         var received = this.notifReceived;
         var result = this.getResult();
         var self = this;
-        
+
         var doneIfNotifsWontCome = function () {
-            
+
             if (self.notifReceived !== received) {
                 received = self.notifReceived;
                 result = self.getResult();
                 setTimeout(doneIfNotifsWontCome, 5000);
                 return;
             }
-            
+
             self.done(null, result);
-        }
+        };
         setTimeout(doneIfNotifsWontCome, 5000);
 
         console.log('-- All notifications sent. 5 secs wait for incoming notifications...');
     },
-    
+
     done: function (err, result) {
         this.closeConnections();
         if (this.ondone) {
@@ -220,11 +224,11 @@ NotifTest.prototype = {
         }
         console.log('-- Completed \'%s\'', this.name);
     },
-    
+
     getResult: function () {
-        
+
         var end = new Date();
-        var result = {
+        return {
             name: this.name,
             start: this.start.toLocaleDateString() + ' ' + this.start.toLocaleTimeString(),
             end: end.toLocaleDateString() + ' ' + end.toLocaleTimeString(),
@@ -233,16 +237,15 @@ NotifTest.prototype = {
             notifsPerDevice: this.notifCount,
             intervalMillis: this.intervalMillis,
             notificationsSent: this.notifSent,
+            notificationsExpected: this.statistics.getExpected(),
             notificationsReceived: this.notifReceived,
             min: this.statistics.getMin(),
             max: this.statistics.getMax(),
             avg: this.statistics.getAvg(),
             errors: this.statistics.errors
         };
-        
-        return result;
     },
-    
+
     closeConnections: function () {
         this.clients.forEach(function (client) {
             client.socket.close();
@@ -254,7 +257,7 @@ NotifTest.prototype = {
             }
         });
     },
-    
+
     onError: function (err, conn) {
         this.statistics.errors = true;
         this.done({
@@ -262,6 +265,6 @@ NotifTest.prototype = {
             error: err
         }, this.getResult());
     }
-}
+};
 
 module.exports = NotifTest;

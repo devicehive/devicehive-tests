@@ -1,6 +1,6 @@
 ﻿var async = require('async');
 var NotifTest = require('./notif-test.js');
-var CommandTest = require('./cmnd-test.js');
+//var CommandTest = require('./cmnd-test.js');
 var utils = require('../common/utils.js');
 
 var fs = require('fs');
@@ -44,6 +44,7 @@ var app = {
         console.log('notifications per device: %s', result.notifsPerDevice);
         console.log('interval, millis: %s', result.intervalMillis);
         console.log('notifications sent: %s', result.notificationsSent);
+        console.log('notifications expected: %s', result.notificationsExpected);
         console.log('notifications received: %s', result.notificationsReceived);
         console.log('min: %s', result.min);
         console.log('max: %s', result.max);
