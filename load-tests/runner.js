@@ -2,6 +2,7 @@
 var NotifTest = require('./notif-test.js');
 //var CommandTest = require('./cmnd-test.js');
 var utils = require('../common/utils.js');
+var log = require('../common/log.js');
 
 var fs = require('fs');
 var path = require('path');
@@ -24,8 +25,8 @@ var app = {
         new NotifTest(config)
             .run(function (err, result) {
                 app.saveResult(result);
-                app.showResult(result);
-                callback(err);
+                app.showResult(result, err);
+                callback();
             });
     },
 
@@ -34,30 +35,32 @@ var app = {
         stream.write(JSON.stringify(result) + '\n');
     },
     
-    showResult: function (result) {
-        console.log('--------------------------------------');
-        console.log('name: %s', result.name);
-        console.log('start: %s', result.start);
-        console.log('end: %s', result.end);
-        console.log('clients: %s', result.clients);
-        console.log('devices: %s', result.devices);
-        console.log('notifications per device: %s', result.notifsPerDevice);
-        console.log('interval, millis: %s', result.intervalMillis);
-        console.log('notifications sent: %s', result.notificationsSent);
-        console.log('notifications expected: %s', result.notificationsExpected);
-        console.log('notifications received: %s', result.notificationsReceived);
-        console.log('min: %s', result.min);
-        console.log('max: %s', result.max);
-        console.log('avg: %s', result.avg);
-        console.log('errors: %s', result.errors);
-        console.log('--------------------------------------');
+    showResult: function (result, err) {
+        log.info('--------------------------------------');
+        log.info('name: %s', result.name);
+        log.info('start: %s', result.start);
+        log.info('end: %s', result.end);
+        log.info('clients: %s', result.clients);
+        log.info('devices: %s', result.devices);
+        log.info('notifications per device: %s', result.notifsPerDevice);
+        log.info('interval, millis: %s', result.intervalMillis);
+        log.info('notifications sent: %s', result.notificationsSent);
+        log.info('notifications expected: %s', result.notificationsExpected);
+        log.info('notifications received: %s', result.notificationsReceived);
+        log.info('min: %s', result.min);
+        log.info('max: %s', result.max);
+        log.info('avg: %s', result.avg);
+        log.info('errors: %s', result.errors);
+
+        if (err) {
+            log.error('-- Error: ' + JSON.stringify(err));
+        }
+
+        log.info('--------------------------------------');
     },
 
-    onNotifTestComplete: function (err) {
-        if (err) {
-            console.log('-- Error: ' + JSON.stringify(err));
-        }
-        console.log('-- Finished running notification tests.');
+    onNotifTestComplete: function () {
+        log.info('-- Finished running all notification tests.');
     }
 };
 

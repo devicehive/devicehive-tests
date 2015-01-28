@@ -1,6 +1,7 @@
 ﻿var WsConn = require('./ws-conn.js');
 var Statistics = require('./statistics.js');
 var utils = require('../common/utils.js');
+var log = require('../common/log.js');
 
 function NotifTest(config) {
     this.name = config.name || '';
@@ -13,6 +14,7 @@ function NotifTest(config) {
     this.deviceGuids = config.deviceGuids || [];
     this.notifications = config.notifications;
     this.parameters = config.parameters || {};
+    this.waitDelay = config.waitDelay || 5000;
 
     this.notifIndex = 0;
     this.notifTotal = 0;
@@ -29,7 +31,9 @@ NotifTest.prototype = {
 
     run: function (callback) {
 
-        console.log('-- Started \'%s\'', this.name);
+        this.oncomplete = this.doComplete;
+
+        log.info('-- Started \'%s\'', this.name);
 
         this.ondone = callback;
         this.start = new Date();
@@ -54,7 +58,7 @@ NotifTest.prototype = {
         if (data.status !== 'success') {
             return this.onError(data);
         }
-        console.log('%s auth done', client.name);
+        log.debug('%s auth complete', client.name);
         this.subscribeClient(client);
     },
 
@@ -65,18 +69,18 @@ NotifTest.prototype = {
             requestId: utils.getRequestId()
         };
 
+        if (!this.listenAllDevices) {
+            data.deviceGuids = this.getDeviceGuids(client);
+        }
+
         if (this.notifications) {
             data.names = [];
             var max = client.id % this.notifications.length;
             for (var i = 0; i <= max; i++) {
                 var notification = this.notifications[i];
-                this.statistics.addSubscribed(notification);
+                this.statistics.addSubscribed(notification, data.deviceGuids);
                 data.names.push(notification);
             }
-        }
-
-        if (!this.listenAllDevices) {
-            data.deviceGuids = this.getDeviceGuids(client);
         }
 
         client.send(JSON.stringify(data));
@@ -86,12 +90,12 @@ NotifTest.prototype = {
         var index = client.id % this.clientsCount;
         if (this.devicesCount === this.clientsCount) {
 
-            return this.getDeviceGuid(index);
+            return [ this.getDeviceGuid(index) ];
 
         }
         if (this.devicesCount < this.clientsCount) {
 
-            return this.getDeviceGuid(index);
+            return [ this.getDeviceGuid(index) ];
 
         } else if (this.devicesCount > this.clientsCount) {
 
@@ -108,7 +112,7 @@ NotifTest.prototype = {
     },
 
     onClientSubscribed: function (data, client) {
-        console.log('%s subscribed', client.name);
+        log.debug('%s subscribed', client.name);
 
         if (++this.clientsSubscribed === this.clientsCount) {
             this.createDevices();
@@ -141,7 +145,7 @@ NotifTest.prototype = {
         var parameters = data.notification.parameters;
 
         var time = +new Date() - parameters.requestTime;
-        console.log('%s received notification \'%s\' in %d millis', client.name, data.notification.notification, time);
+        log.debug('%s received notification \'%s\' in %d millis', client.name, data.notification.notification, time);
 
         this.statistics.add(time);
         this.notifReceived++;
@@ -151,7 +155,7 @@ NotifTest.prototype = {
         if (data.status != 'success') {
             return device.onError(data);
         }
-        console.log('%s auth done', device.name);
+        log.debug('%s auth complete', device.name);
         this.sendNotifications(device);
     },
 
@@ -173,7 +177,7 @@ NotifTest.prototype = {
         var requestId = utils.getRequestId();
         var time = new Date();
         var notification = this.notifications[requestId % this.notifications.length];
-        this.statistics.addExpected(notification);
+        this.statistics.addExpected(notification, device.props.deviceGuid);
         var parameters = utils.clone(this.parameters);
         parameters.requestTime = +time;
 
@@ -205,24 +209,34 @@ NotifTest.prototype = {
             if (self.notifReceived !== received) {
                 received = self.notifReceived;
                 result = self.getResult();
-                setTimeout(doneIfNotifsWontCome, 5000);
+                setTimeout(doneIfNotifsWontCome, self.waitDelay);
                 return;
             }
 
-            self.done(null, result);
+            self.complete(null, result);
         };
-        setTimeout(doneIfNotifsWontCome, 5000);
+        setTimeout(doneIfNotifsWontCome, this.waitDelay);
 
-        console.log('-- All notifications sent. 5 secs wait for incoming notifications...');
+        log.info('-- All notifications sent. %s sec wait for incoming notifications...',
+            Math.floor(this.waitDelay / 1000));
     },
 
-    done: function (err, result) {
-        this.closeConnections();
-        if (this.ondone) {
-            this.ondone(err, result);
-            this.ondone = null;
+    complete: function (err, result) {
+        if (this.oncomplete) {
+            this.oncomplete(err, result)
+            this.oncomplete = null;
         }
-        console.log('-- Completed \'%s\'', this.name);
+    },
+
+    doComplete: function (err, result) {
+        var self = this;
+        log.info('-- Completed \'%s\'. Closing connnections...', this.name);
+        this.closeConnections(function () {
+            if (self.ondone) {
+                self.ondone(err, result);
+                self.ondone = null;
+            }
+        });
     },
 
     getResult: function () {
@@ -246,7 +260,7 @@ NotifTest.prototype = {
         };
     },
 
-    closeConnections: function () {
+    closeConnections: function (callback) {
         this.clients.forEach(function (client) {
             client.socket.close();
         });
@@ -256,12 +270,16 @@ NotifTest.prototype = {
                 clearInterval(device.intervalId);
             }
         });
+
+        if (callback) {
+            callback();
+        }
     },
 
     onError: function (err, conn) {
         this.statistics.errors = true;
-        this.done({
-            message: 'Error in %s' + conn.name,
+        this.complete({
+            message: 'Error in ' + conn.name,
             error: err
         }, this.getResult());
     }

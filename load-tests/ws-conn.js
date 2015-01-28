@@ -1,5 +1,6 @@
 ﻿global.WebSocket = require('ws');
 var utils = require('../common/utils.js');
+var log = require('../common/log.js');
 var connId = 1;
 
 function WsConn(name, props) {
@@ -13,7 +14,7 @@ function WsConn(name, props) {
 WsConn.prototype = {
     
     connect: function () {
-        console.log('%s connecting...', this.name);
+        log.debug('%s connecting...', this.name);
         var self = this;
         
         this.socket.onopen = function (socket) {
@@ -28,18 +29,18 @@ WsConn.prototype = {
             }
         };
         this.socket.onclose = function (socket) {
-            console.log('%s closed connection', self.name);
+            log.debug('%s closed connection', self.name);
         };
     },
     
     onOpen: function (socket) {
-        console.log('%s connected', this.name);
+        log.debug('%s connected', this.name);
         this.authenticate();
     },
     
     authenticate: function () {
         
-        console.log('%s authenticates...', this.name);
+        log.debug('%s authenticates...', this.name);
         
         var authData = {
             action : "authenticate",
@@ -63,7 +64,7 @@ WsConn.prototype = {
         
         var data = JSON.parse(message.data);
         var action = data.action;
-        console.log('%s got message: %s', this.name, action);
+        log.debug('%s got message: %s', this.name, action);
         
         var subscription = action ? this.actionCallbacks[action] : null;
         if (subscription) {
@@ -83,10 +84,6 @@ WsConn.prototype = {
         context || (context = this);
         this.onerror = cb;
         this.errContext = context;
-    },
-
-    toString: function () { 
-        return "WsConn: " + this.name;
     }
 }
 

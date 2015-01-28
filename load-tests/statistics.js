@@ -8,6 +8,7 @@
 }
 
 Statistics.prototype = {
+
     add: function (value) {
         this.count++;
         
@@ -21,19 +22,29 @@ Statistics.prototype = {
         
         this.sum += value;
     },
-    addSubscribed: function (name) {
-        var subscribedExpected = this.subscribedExpected[name];
-        if (!subscribedExpected) {
-            subscribedExpected = this.subscribedExpected[name] = {
-                subscribed: 0,
-                expected: 0
-            };
-        }
 
-        subscribedExpected.subscribed++;
+    addSubscribed: function (name, guids) {
+
+        var self = this;
+        guids || ((guids = ['all']) && (this.all = true));
+
+        guids.forEach(function (guid) {
+            var key = [name, '-', guid].join('');
+            var subscribedExpected = self.subscribedExpected[key];
+            if (!subscribedExpected) {
+                subscribedExpected = self.subscribedExpected[key] = {
+                    subscribed: 0,
+                    expected: 0
+                };
+            }
+
+            subscribedExpected.subscribed++;
+        });
     },
-    addExpected: function (name) {
 
+    addExpected: function (name, guid) {
+        guid = this.all ? 'all' : guid;
+        name = [name, '-', guid].join('');
         var subscribedExpected = this.subscribedExpected[name];
 
         if (!subscribedExpected) {
@@ -42,6 +53,7 @@ Statistics.prototype = {
 
         subscribedExpected.expected += subscribedExpected.subscribed;
     },
+
     getExpected: function() {
         var self = this;
         var expected = 0;
@@ -51,12 +63,15 @@ Statistics.prototype = {
         });
         return expected;
     },
+
     getMin: function () {
         return this.count > 0 ? this.min : 0;
     },
+
     getMax: function () {
         return this.count > 0 ? this.max : 0;
     },
+
     getAvg: function () {
         return this.sum / this.count;
     }

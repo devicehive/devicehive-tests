@@ -8,18 +8,19 @@
     "groups": [
       {
         "disabled": true,
-        "name": "Many devices, two clients",
-        "clients": 2,
-        "devices": 20,
-        "notifsPerDevice": 3,
-        "intervalMillis": 100,
+        "name": "Many devices, many clients",
+        "clients": 20,
+        "devices": 10,
+        "notifsPerDevice": 10,
+        "intervalMillis": 200,
         "listenAllDevices": false,
         "deviceGuids": "aaaaaaaa-aaaa-0000-0000-000000a{#}",
         "notifications": [ "a-first", "a-second", "a-third", "a-fourth", "a-fifth", "a-sixth" ],
         "parameters": {
-           "t" : "20.0", 
+           "t" : "20.0",
            "p" : "29.92"
-        }
+        },
+        "waitDelay": 1000
       },
       {
         "name": "One device, many clients",
@@ -36,5 +37,8 @@
     "clients": 2,
     "commands": 3,
     "intervalMillis": 3000
+  },
+  "log": {
+    "level": "INFO"
   }
 }
