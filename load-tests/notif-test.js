@@ -256,7 +256,8 @@ NotifTest.prototype = {
             min: this.statistics.getMin(),
             max: this.statistics.getMax(),
             avg: this.statistics.getAvg(),
-            errors: this.statistics.errors
+            errors: this.statistics.errors,
+            errorsCount: this.statistics.errorsCount
         };
     },
 
@@ -278,10 +279,17 @@ NotifTest.prototype = {
 
     onError: function (err, conn) {
         this.statistics.errors = true;
-        this.complete({
-            message: 'Error in ' + conn.name,
-            error: err
-        }, this.getResult());
+        this.statistics.errorsCount++;
+        log.error('-- Error: ' + JSON.stringify(err));
+        conn.socket.close();
+        if (conn.intervalId) {
+            clearInterval(conn.intervalId);
+        }
+
+        //this.complete({
+        //    message: 'Error in ' + conn.name,
+        //    error: err
+        //}, this.getResult());
     }
 };
 

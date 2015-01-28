@@ -51,6 +51,7 @@ var app = {
         log.info('max: %s', result.max);
         log.info('avg: %s', result.avg);
         log.info('errors: %s', result.errors);
+        log.info('errors count: %s', result.errorsCount);
 
         if (err) {
             log.error('-- Error: ' + JSON.stringify(err));
