@@ -1,6 +1,6 @@
 ﻿var async = require('async');
 var NotifTest = require('./notif-test.js');
-//var CommandTest = require('./cmnd-test.js');
+var CommandTest = require('./cmnd-test.js');
 var utils = require('../common/utils.js');
 var log = require('../common/log.js');
 
@@ -14,6 +14,12 @@ var app = {
         var run = utils.getConfig('notifTest:runAsync') ? async.each : async.eachSeries;
         run(utils.getConfig('notifTest:groups'), 
             app.startNotifTest, app.onNotifTestComplete);
+
+        var cmndTest = new CommandTest(
+            utils.getConfig('cmndTest:clients'),
+            utils.getConfig('cmndTest:commands'),
+            utils.getConfig('cmndTest:intervalMillis'));
+        cmndTest.run();
     },
     
     startNotifTest: function (config, callback) {

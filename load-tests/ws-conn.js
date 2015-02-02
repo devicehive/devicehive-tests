@@ -12,13 +12,13 @@ function WsConn(name, props) {
 }
 
 WsConn.prototype = {
-    
+
     connect: function () {
         log.debug('%s connecting...', this.name);
         var self = this;
-        
-        this.socket.onopen = function (socket) {
-            self.onOpen(socket);
+
+        this.socket.onopen = function () {
+            self.onOpen();
         };
         this.socket.onmessage = function (message) {
             self.onMessage(message);
@@ -28,20 +28,20 @@ WsConn.prototype = {
                 self.onerror.call(self.errContext, err, self);
             }
         };
-        this.socket.onclose = function (socket) {
+        this.socket.onclose = function () {
             log.debug('%s closed connection', self.name);
         };
     },
-    
-    onOpen: function (socket) {
+
+    onOpen: function () {
         log.debug('%s connected', this.name);
         this.authenticate();
     },
-    
+
     authenticate: function () {
-        
+
         log.debug('%s authenticates...', this.name);
-        
+
         var authData = {
             action : "authenticate",
             accessKey : utils.getConfig('server:accessKey'),
@@ -49,37 +49,37 @@ WsConn.prototype = {
             password : null,
             requestId : utils.getRequestId()
         };
-        
-        this.send(JSON.stringify(authData));
+
+        this.send(authData);
     },
-    
+
     send: function (data) {
         if (this.socket.readyState !== 1) { // OPEN state
             return;
         }
-        this.socket.send(data);
+        this.socket.send(JSON.stringify(data));
     },
-    
+
     onMessage: function (message) {
-        
+
         var data = JSON.parse(message.data);
         var action = data.action;
         log.debug('%s got message: %s', this.name, action);
-        
+
         var subscription = action ? this.actionCallbacks[action] : null;
         if (subscription) {
             subscription.cb.call(subscription.context, data, this);
         }
     },
-    
+
     addActionCallback: function (action, cb, context) {
         context || (context = this);
         this.actionCallbacks[action] = {
-            context: context, 
+            context: context,
             cb: cb
         };
     },
-    
+
     addErrorCallback: function (cb, context) {
         context || (context = this);
         this.onerror = cb;

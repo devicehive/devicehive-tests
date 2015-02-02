@@ -17,68 +17,89 @@ function CommandTest(clientsCount, cmdCount, intervalMillis) {
 }
 
 CommandTest.prototype = {
-    
+
     run: function () {
+        this.device.props = {
+            deviceGuid: utils.getConfig('cmndTest:deviceGuids')[0]
+        };
         this.device.addActionCallback('authenticate', this.onDeviceAuthenticate, this);
         this.device.addActionCallback('command/subscribe', this.onDeviceSubscribed, this);
         this.device.addActionCallback('command/insert', this.onCommandReceived, this);
         this.device.connect();
     },
-    
+
     onDeviceAuthenticate: function (data, device) {
         if (data.status !== 'success') {
             return this.device.onError(data);
         }
-        console.log('%s auth done', device.name);
+        console.log('%s auth complete', device.name);
         this.subscribeDevice(device);
     },
-    
+
     subscribeDevice: function (device) {
-        
+
         var data = {
             action: 'command/subscribe',
-            deviceGuids: [utils.getConfig('server:deviceId')], 
-            names: null, 
+            deviceGuids: utils.getConfig('cmndTest:deviceGuids'),
+            names: null,
             requestId: utils.getRequestId()
         }
-        
+
         device.socket.send(JSON.stringify(data));
     },
-    
+
     onDeviceSubscribed: function (data, device) {
         console.log('%s subscribed', device.name);
-        
+
         for (var i = 0; i < this.clientsCount; i++) {
             var client = new WsConn('client');
             client.addActionCallback('authenticate', this.onAuthenticate, this);
+            client.addActionCallback('command/update', this.onCommandResultReceived, this);
             client.connect();
             this.clients.push(client);
         }
     },
-    
+
     onCommandReceived: function (data, device) {
-        
+
         if (data.command.command !== 'cmd-load-testing') {
             return;
         }
-        
-        var parameters = data.command.parameters;
 
-        var time = +new Date() - parameters.requestTime;
-        console.log('%s received command in %d millis', device.name, time);
-
-        this.statistics.add(time);
-        this.done();
+        this.sendCommandResult(device, data.command);
     },
-    
+
+    sendCommandResult: function (device, command) {
+        var data = {
+            commandId: command.id,
+            command: {
+                status: 'done',
+                requestTime: command.parameters.requestTime
+            },
+            deviceGuid: device.props.deviceGuid,
+            requestId: utils.getRequestId(),
+            action: "command/update"
+        };
+
+        device.send(data);
+    },
+
     onAuthenticate: function (data, client) {
         if (data.status != 'success') {
             return client.onError(data);
         }
-        console.log('%s auth done', client.name);
+        console.log('%s auth complete', client.name);
         this.sendCommands(client);
     },
-    
+
+    onCommandResultReceived: function (data, client) {
+        var time = +new Date() - data.command.parameters.requestTime;
+        console.log('%s received command result in %d millis', client.name, time);
+
+        this.statistics.add(time);
+        this.done();
+    },
+
     sendCommands: function (client) {
         var self = this;
         var i = 0;
@@ -88,18 +109,18 @@ CommandTest.prototype = {
                 return;
             }
 
-            self.sendNotification(client);
+            self.sendCommand(client);
         }, this.intervalMillis);
     },
-    
-    sendNotification: function (client) {
-        
+
+    sendCommand: function (client) {
+
         var requestId = utils.getRequestId();
-        
+
         var time = new Date();
         var notifData = {
             action : 'command/insert',
-            deviceGuid : utils.getConfig('server:deviceId'),
+            deviceGuid : utils.getConfig('cmndTest:deviceGuids')[0],
             requestId : requestId,
             command : {
                 command : 'cmd-load-testing',
@@ -112,20 +133,18 @@ CommandTest.prototype = {
                 }
             }
         }
-        
+
         client.socket.send(JSON.stringify(notifData));
     },
 
     done: function (client) {
-        
+
         if (++this.cmdReceived < (this.cmdCount * this.clientsCount)) {
             return;
         }
-        
+
         this.closeConnections();
-        
-        var self = this;
-        
+
         var date = new Date();
         var result = {
             completedOn: date.toLocaleDateString() + ' ' + date.toLocaleTimeString(),
@@ -150,7 +169,7 @@ CommandTest.prototype = {
         var stream = fs.createWriteStream(LOG_PATH, { flags: 'a' });
         stream.write(JSON.stringify(result) + '\n');
     },
-    
+
     closeConnections: function () {
         this.device.socket.close();
         this.clients.forEach(function (client) {
