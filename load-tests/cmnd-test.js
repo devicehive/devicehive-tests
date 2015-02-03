@@ -178,7 +178,7 @@ CommandTest.prototype = {
 
     onCommandResultReceived: function (data, client) {
         var time = +new Date() - data.command.parameters.requestTime;
-        log.debug('%s received command result in %d millis', client.name, time);
+        log.debug('%s received command \'%s\' result in %d millis', client.name, data.command.command, time);
 
         this.statistics.add(time);
         this.cmndReceived++;

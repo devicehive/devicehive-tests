@@ -1,24 +1,50 @@
 ﻿var async = require('async');
-var notifTests = require('./runner-notif');
-var commandTests = require('./runner-cmnd');
-var utils = require('../common/utils.js');
+var TestTypes = require('./runner-test-types');
+var utils = require('../common/utils');
+var log = require('../common/log');
+
+var fs = require('fs');
+var path = require('path');
 
 var app = {
-    
+
+    testTypes: new TestTypes(),
+
     start: function () {
-        var run = utils.getConfig('notifTest:runAsync') ?
+        var run = utils.getConfig('loadTests:runAsync') ?
             async.each : async.eachSeries;
 
-        run(utils.getConfig('notifTest:groups'),
-            notifTests.start, notifTests.onComplete);
+        run(utils.getConfig('loadTests:tests'),
+            app.executeTest, app.onComplete);
+    },
 
-        run = utils.getConfig('cmndTest:runAsync') ?
-            async.each : async.eachSeries;
+    executeTest: function (config, callback) {
 
-        run(utils.getConfig('cmndTest:groups'),
-            commandTests.start, commandTests.onComplete);
+        if (config.disabled) {
+            return callback();
+        }
+
+        app.testTypes.create(config)
+            .run(function (err, result) {
+                app.saveResult(config, result);
+                app.showResult(config, result, err);
+                callback();
+            });
+    },
+
+    saveResult: function (config, result) {
+        var logPath = path.join(__dirname, this.testTypes.filename(config));
+        var stream = fs.createWriteStream(logPath, { flags: 'a' });
+        stream.write(JSON.stringify(result) + '\n');
+    },
+
+    showResult: function (config, result, err) {
+        app.testTypes.showResult(config, result, err);
+    },
+
+    onComplete: function () {
+        log.info('-- Finished running all tests.');
     }
-
 };
 
 app.start();

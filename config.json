@@ -3,19 +3,20 @@
     "wsUrl": "ws://23.253.35.56:8081/DeviceHive/websocket",
     "accessKey": "sStsRCchw3pCUeLwyVvhX/Q27CKeJgVFcNcDBvJiB6g="
   },
-  "notifTest": {
+  "loadTests": {
     "runAsync": false,
-    "groups": [
+    "tests": [
       {
+        "type": "notifTest",
         "disabled": true,
         "name": "Many devices, many clients",
         "clients": 10000,
         "devices": 10000,
         "notifsPerDevice": 100,
         "intervalMillis": 100,
-        "sendToAllDevices": false,
+        "listenAllDevices": false,
         "deviceGuids": "aaaaaaaa-aaaa-0000-0000-000000a{#}",
-        "commands": [ "a-first", "a-second", "a-third", "a-fourth", "a-fifth", "a-sixth" ],
+        "notifications": [ "a-first", "a-second", "a-third", "a-fourth", "a-fifth", "a-sixth" ],
         "parameters": {
           "t" : "20.0",
           "p" : "29.92"
@@ -23,22 +24,19 @@
         "waitDelay": 30000
       },
       {
-        "disabled": true,
+        "type": "notifTest",
+        "disabled": false,
         "name": "One device, many clients",
         "clients": 40,
         "notifsPerDevice": 2,
         "intervalMillis": 200,
-        "sendToAllDevices": true,
-        "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
-        "commands": [ "b-first", "b-second", "b-third", "b-fourth", "b-fifth", "b-sixth" ],
+        "listenAllDevices": true,
+        "deviceGuids": [ "11111111-2222-3333-4444-555555555555" ],
+        "notifications": [ "b-first", "b-second", "b-third", "b-fourth", "b-fifth", "b-sixth" ],
         "waitDelay": 1000
-      }
-    ]
-  },
-  "cmndTest": {
-    "runAsync": false,
-    "groups": [
+      },
       {
+        "type": "cmndTest",
         "disabled": true,
         "name": "Many devices, many clients",
         "clients": 10000,
@@ -55,6 +53,7 @@
         "waitDelay": 30000
       },
       {
+        "type": "cmndTest",
         "name": "One device, few clients",
         "clients": 4,
         "commandsPerClient": 2,
