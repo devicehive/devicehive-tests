@@ -13,9 +13,9 @@
         "devices": 10000,
         "notifsPerDevice": 100,
         "intervalMillis": 100,
-        "listenAllDevices": false,
+        "sendToAllDevices": false,
         "deviceGuids": "aaaaaaaa-aaaa-0000-0000-000000a{#}",
-        "notifications": [ "a-first", "a-second", "a-third", "a-fourth", "a-fifth", "a-sixth" ],
+        "commands": [ "a-first", "a-second", "a-third", "a-fourth", "a-fifth", "a-sixth" ],
         "parameters": {
           "t" : "20.0",
           "p" : "29.92"
@@ -28,18 +28,47 @@
         "clients": 40,
         "notifsPerDevice": 2,
         "intervalMillis": 200,
-        "listenAllDevices": true,
+        "sendToAllDevices": true,
         "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
-        "notifications": [ "b-first", "b-second", "b-third", "b-fourth", "b-fifth", "b-sixth" ],
+        "commands": [ "b-first", "b-second", "b-third", "b-fourth", "b-fifth", "b-sixth" ],
         "waitDelay": 1000
       }
     ]
   },
   "cmndTest": {
-    "deviceGuids": [ "11111111-2222-3333-4444-555555555555" ],
-    "clients": 2,
-    "commands": 3,
-    "intervalMillis": 3000
+    "runAsync": false,
+    "groups": [
+      {
+        "disabled": true,
+        "name": "Many devices, many clients",
+        "clients": 10000,
+        "devices": 10000,
+        "commandsPerClient": 100,
+        "intervalMillis": 100,
+        "sendToAllDevices": false,
+        "deviceGuids": "aaaaaaaa-aaaa-0000-0000-000000a{#}",
+        "commands": [ "a-first", "a-second", "a-third", "a-fourth", "a-fifth", "a-sixth" ],
+        "parameters": {
+          "t" : "20.0",
+          "p" : "29.92"
+        },
+        "waitDelay": 30000
+      },
+      {
+        "name": "One device, few clients",
+        "clients": 4,
+        "commandsPerClient": 2,
+        "intervalMillis": 200,
+        "sendToAllDevices": false,
+        "deviceGuids": [ "11111111-2222-3333-4444-555555555555" ],
+        "commands": [ "b-cmd-first", "b-cmd-second", "b-cmd-third", "b-cmd-fourth", "b-cmd-fifth", "b-cmd-sixth" ],
+        "parameters": {
+          "t" : "on",
+          "p" : "off"
+        },
+        "waitDelay": 1000
+      }
+    ]
   },
   "log": {
     "level": "DEBUG"

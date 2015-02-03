@@ -1,38 +1,80 @@
 ﻿var WsConn = require('./ws-conn.js');
 var Statistics = require('./statistics.js');
 var utils = require('../common/utils.js');
+var log = require('../common/log.js');
 
-var fs = require('fs');
-var path = require('path');
-var LOG_PATH = path.join(__dirname, 'load-tests-cmnd.txt');
+function CommandTest(config) {
+    this.name = config.name || '';
 
-function CommandTest(clientsCount, cmdCount, intervalMillis) {
-    this.clientsCount = (clientsCount || 1);
-    this.cmdCount = (cmdCount || 1);
-    this.cmdReceived = 0;
-    this.intervalMillis = (intervalMillis || 1000);
+    this.clientsCount = config.clients || 1;
+    this.devicesCount = config.devices;
+    this.commandsPerClient = config.commandsPerClient || 1;
+    this.intervalMillis = config.intervalMillis || 1000;
+    this.sendToAllDevices = config.sendToAllDevices;
+    this.deviceGuids = config.deviceGuids || [];
+    this.commands = config.commands;
+    this.parameters = config.parameters || {};
+    this.waitDelay = config.waitDelay || 5000;
+
+    this.cmndIndex = 0;
+    this.cmndTotal = 0;
+    this.cmndSent = 0;
+    this.cmndReceived = 0;
+
     this.clients = [];
-    this.device = new WsConn('device');
+    this.devices = [];
     this.statistics = new Statistics();
+    this.devicesSubscribed = 0;
 }
 
 CommandTest.prototype = {
 
-    run: function () {
-        this.device.props = {
-            deviceGuid: utils.getConfig('cmndTest:deviceGuids')[0]
-        };
-        this.device.addActionCallback('authenticate', this.onDeviceAuthenticate, this);
-        this.device.addActionCallback('command/subscribe', this.onDeviceSubscribed, this);
-        this.device.addActionCallback('command/insert', this.onCommandReceived, this);
-        this.device.connect();
+    run: function (callback) {
+
+        this.oncomplete = this.doComplete;
+
+        log.info('-- Started \'%s\'', this.name);
+
+        this.ondone = callback;
+        this.statistics = new Statistics();
+
+        this.devicesCount = Array.isArray(this.deviceGuids) ?
+            this.deviceGuids.length : this.devicesCount;
+
+        this.cmndTotal = this.commandsPerClient * this.clientsCount;
+
+        this.createDevices();
+    },
+
+    createDevices: function () {
+        for (var i = 0; i < this.devicesCount; i++) {
+            var device = new WsConn('device');
+            device.props = {
+                deviceGuid: this.getDeviceGuid(i)
+            };
+            device.addErrorCallback(this.onError, this);
+            device.addActionCallback('authenticate', this.onDeviceAuthenticate, this);
+            device.addActionCallback('command/subscribe', this.onDeviceSubscribed, this);
+            device.addActionCallback('command/insert', this.onCommandReceived, this);
+            device.connect();
+            this.devices.push(device);
+        }
+    },
+
+    getDeviceGuid: function (index) {
+        if (Array.isArray(this.deviceGuids)) {
+            return this.deviceGuids[index % this.deviceGuids.length];
+        }
+
+        var formattedNumber = ("00000" + index).slice(-5);
+        return this.deviceGuids.replace('{#}', formattedNumber);
     },
 
     onDeviceAuthenticate: function (data, device) {
-        if (data.status !== 'success') {
-            return this.device.onError(data);
+        if (data.status != 'success') {
+            return device.onError(data);
         }
-        console.log('%s auth complete', device.name);
+        log.debug('%s auth complete', device.name);
         this.subscribeDevice(device);
     },
 
@@ -40,32 +82,35 @@ CommandTest.prototype = {
 
         var data = {
             action: 'command/subscribe',
-            deviceGuids: utils.getConfig('cmndTest:deviceGuids'),
-            names: null,
             requestId: utils.getRequestId()
+        };
+
+        if (!this.sendToAllDevices) {
+            data.deviceGuids = [ device.props.deviceGuid ];
         }
 
-        device.socket.send(JSON.stringify(data));
+        if (this.commands) {
+            data.names = [];
+            var max = device.id % this.commands.length;
+            for (var i = 0; i <= max; i++) {
+                var command = this.commands[i];
+                this.statistics.addSubscribed(command, data.deviceGuids);
+                data.names.push(command);
+            }
+        }
+
+        device.send(data);
     },
 
     onDeviceSubscribed: function (data, device) {
-        console.log('%s subscribed', device.name);
+        log.debug('%s subscribed', device.name);
 
-        for (var i = 0; i < this.clientsCount; i++) {
-            var client = new WsConn('client');
-            client.addActionCallback('authenticate', this.onAuthenticate, this);
-            client.addActionCallback('command/update', this.onCommandResultReceived, this);
-            client.connect();
-            this.clients.push(client);
+        if (++this.devicesSubscribed === this.devicesCount) {
+            this.createClients();
         }
     },
 
     onCommandReceived: function (data, device) {
-
-        if (data.command.command !== 'cmd-load-testing') {
-            return;
-        }
-
         this.sendCommandResult(device, data.command);
     },
 
@@ -84,28 +129,67 @@ CommandTest.prototype = {
         device.send(data);
     },
 
-    onAuthenticate: function (data, client) {
-        if (data.status != 'success') {
-            return client.onError(data);
+    createClients: function () {
+        for (var i = 0; i < this.clientsCount; i++) {
+            var client = new WsConn('client');
+            client.props = {
+                deviceGuids: this.getDeviceGuids(client)
+            };
+            client.addErrorCallback(this.onError, this);
+            client.addActionCallback('authenticate', this.onClientAuthenticate, this);
+            client.addActionCallback('command/update', this.onCommandResultReceived, this);
+            client.connect();
+            this.clients.push(client);
         }
-        console.log('%s auth complete', client.name);
+    },
+
+    getDeviceGuids: function (client) {
+        var index = client.id % this.clientsCount;
+        if (this.devicesCount === this.clientsCount) {
+
+            return [ this.getDeviceGuid(index) ];
+
+        }
+        if (this.devicesCount < this.clientsCount) {
+
+            return [ this.getDeviceGuid(index) ];
+
+        } else if (this.devicesCount > this.clientsCount) {
+
+            var deviceGuids = [];
+            var devicesPerClient = Math.ceil(this.devicesCount / this.clientsCount);
+            var startIndex = index * devicesPerClient;
+            var endIndex = Math.ceil(index * devicesPerClient + devicesPerClient);
+            for (var i = startIndex; i < endIndex; i++) {
+                deviceGuids.push(this.getDeviceGuid(i));
+            }
+            return deviceGuids;
+
+        }
+    },
+
+    onClientAuthenticate: function (data, client) {
+        if (data.status !== 'success') {
+            return this.onError(data);
+        }
+        log.debug('%s auth complete', client.name);
         this.sendCommands(client);
     },
 
     onCommandResultReceived: function (data, client) {
         var time = +new Date() - data.command.parameters.requestTime;
-        console.log('%s received command result in %d millis', client.name, time);
+        log.debug('%s received command result in %d millis', client.name, time);
 
         this.statistics.add(time);
-        this.done();
+        this.cmndReceived++;
     },
 
     sendCommands: function (client) {
         var self = this;
-        var i = 0;
         client.intervalId = setInterval(function () {
-            if (i++ >= self.cmdCount) {
+            if (self.cmndIndex++ >= self.cmndTotal) {
                 clearInterval(client.intervalId);
+                client.intervalId = null;
                 return;
             }
 
@@ -116,66 +200,121 @@ CommandTest.prototype = {
     sendCommand: function (client) {
 
         var requestId = utils.getRequestId();
-
         var time = new Date();
-        var notifData = {
-            action : 'command/insert',
-            deviceGuid : utils.getConfig('cmndTest:deviceGuids')[0],
-            requestId : requestId,
-            command : {
-                command : 'cmd-load-testing',
-                parameters : {
-                    name : client.name + ' sensor',
-                    tag : 'b27c94fed9e64f60aa893aa4e6458095',
-                    time : time.toUTCString(),
-                    value : 1234,
-                    requestTime: +time
-                }
-            }
-        }
+        var command = this.commands[requestId % this.commands.length];
+        var deviceGuid = client.props.deviceGuids[requestId % client.props.deviceGuids.length];
+        this.statistics.addExpected(command, deviceGuid);
+        var parameters = utils.clone(this.parameters);
+        parameters.requestTime = +time;
 
-        client.socket.send(JSON.stringify(notifData));
+        var cmndData = {
+            action : 'command/insert',
+            deviceGuid: deviceGuid,
+            command: {
+                command: command,
+                parameters: parameters
+            },
+            requestId: requestId
+        };
+
+        client.send(cmndData);
+        this.doneAllSent();
     },
 
-    done: function (client) {
-
-        if (++this.cmdReceived < (this.cmdCount * this.clientsCount)) {
+    doneAllSent: function () {
+        if (++this.cmndSent < this.cmndTotal) {
             return;
         }
 
-        this.closeConnections();
+        var received = this.cmndReceived;
+        var result = this.getResult();
+        var self = this;
 
-        var date = new Date();
-        var result = {
-            completedOn: date.toLocaleDateString() + ' ' + date.toLocaleTimeString(),
-            clients: this.clientsCount,
-            cmndsPerDevice: this.cmdCount,
-            intervalMillis: this.intervalMillis,
-            commandsReceived: this.statistics.count,
-            min: this.statistics.getMin(),
-            max: this.statistics.getMax(),
-            avg: this.statistics.getAvg()
+        var doneIfCmndsWontCome = function () {
+
+            if (self.cmndReceived !== received) {
+                received = self.cmndReceived;
+                result = self.getResult();
+                setTimeout(doneIfCmndsWontCome, self.waitDelay);
+                return;
+            }
+
+            self.complete(null, result);
         };
+        setTimeout(doneIfCmndsWontCome, this.waitDelay);
 
-        console.log('--------------------------------------');
-        console.log('clients: %s', result.clients);
-        console.log('commands per client: %s', result.cmndsPerDevice);
-        console.log('interval, millis: %s', result.intervalMillis);
-        console.log('commands received: %s', result.commandsReceived);
-        console.log('min: %s', result.min);
-        console.log('max: %s', result.max);
-        console.log('avg: %s', result.avg);
-
-        var stream = fs.createWriteStream(LOG_PATH, { flags: 'a' });
-        stream.write(JSON.stringify(result) + '\n');
+        log.info('-- All commands sent. %s sec wait for incoming commands...',
+            Math.floor(this.waitDelay / 1000));
     },
 
-    closeConnections: function () {
-        this.device.socket.close();
+    complete: function (err, result) {
+        if (this.oncomplete) {
+            this.oncomplete(err, result)
+            this.oncomplete = null;
+        }
+    },
+
+    doComplete: function (err, result) {
+        var self = this;
+        log.info('-- Completed \'%s\'. Closing connnections...', this.name);
+        this.closeConnections(function () {
+            if (self.ondone) {
+                self.ondone(err, result);
+                self.ondone = null;
+            }
+        });
+    },
+
+    getResult: function () {
+        return {
+            name: this.name,
+            start: this.statistics.getStart(),
+            end: this.statistics.getEnd(),
+            clients: this.clientsCount,
+            devices: this.devicesCount,
+            commandsPerClient: this.commandsPerClient,
+            intervalMillis: this.intervalMillis,
+            commandsSent: this.cmndSent,
+            commandsExpected: this.statistics.getExpected(),
+            commandsReceived: this.cmndReceived,
+            min: this.statistics.getMin(),
+            max: this.statistics.getMax(),
+            avg: this.statistics.getAvg(),
+            errors: this.statistics.errors,
+            errorsCount: this.statistics.errorsCount
+        };
+    },
+
+    closeConnections: function (callback) {
         this.clients.forEach(function (client) {
             client.socket.close();
+            if (client.intervalId) {
+                clearInterval(client.intervalId);
+            }
         });
+        this.devices.forEach(function (device) {
+            device.socket.close();
+        });
+
+        if (callback) {
+            callback();
+        }
+    },
+
+    onError: function (err, conn) {
+        this.statistics.errors = true;
+        this.statistics.errorsCount++;
+        log.error('-- Error: ' + JSON.stringify(err));
+        conn.socket.close();
+        if (conn.intervalId) {
+            clearInterval(conn.intervalId);
+        }
+
+        //this.complete({
+        //    message: 'Error in ' + conn.name,
+        //    error: err
+        //}, this.getResult());
     }
-}
+};
 
 module.exports = CommandTest;

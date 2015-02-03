@@ -8,7 +8,7 @@ function NotifTest(config) {
 
     this.clientsCount = config.clients || 1;
     this.devicesCount = config.devices;
-    this.notifCount = config.notifsPerDevice || 1;
+    this.notifsPerDevice = config.notifsPerDevice || 1;
     this.intervalMillis = config.intervalMillis || 1000;
     this.listenAllDevices = config.listenAllDevices;
     this.deviceGuids = config.deviceGuids || [];
@@ -23,7 +23,6 @@ function NotifTest(config) {
 
     this.clients = [];
     this.devices = [];
-    this.statistics = new Statistics();
     this.clientsSubscribed = 0;
 }
 
@@ -36,13 +35,17 @@ NotifTest.prototype = {
         log.info('-- Started \'%s\'', this.name);
 
         this.ondone = callback;
-        this.start = new Date();
+        this.statistics = new Statistics();
 
         this.devicesCount = Array.isArray(this.deviceGuids) ?
             this.deviceGuids.length : this.devicesCount;
 
-        this.notifTotal = this.notifCount * this.devicesCount;
+        this.notifTotal = this.notifsPerDevice * this.devicesCount;
 
+        this.createClients();
+    },
+
+    createClients: function () {
         for (var i = 0; i < this.clientsCount; i++) {
             var client = new WsConn('client');
             client.addErrorCallback(this.onError, this);
@@ -83,7 +86,7 @@ NotifTest.prototype = {
             }
         }
 
-        client.send(JSON.stringify(data));
+        client.send(data);
     },
 
     getDeviceGuids: function (client) {
@@ -126,7 +129,7 @@ NotifTest.prototype = {
                 deviceGuid: this.getDeviceGuid(i)
             };
             device.addErrorCallback(this.onError, this);
-            device.addActionCallback('authenticate', this.onAuthenticate, this);
+            device.addActionCallback('authenticate', this.onDeviceAuthenticate, this);
             device.connect();
             this.devices.push(device);
         }
@@ -151,7 +154,7 @@ NotifTest.prototype = {
         this.notifReceived++;
     },
 
-    onAuthenticate: function (data, device) {
+    onDeviceAuthenticate: function (data, device) {
         if (data.status != 'success') {
             return device.onError(data);
         }
@@ -191,7 +194,7 @@ NotifTest.prototype = {
             requestId: requestId
         };
 
-        device.send(JSON.stringify(notifData));
+        device.send(notifData);
         this.doneAllSent();
     },
 
@@ -240,15 +243,13 @@ NotifTest.prototype = {
     },
 
     getResult: function () {
-
-        var end = new Date();
         return {
             name: this.name,
-            start: this.start.toLocaleDateString() + ' ' + this.start.toLocaleTimeString(),
-            end: end.toLocaleDateString() + ' ' + end.toLocaleTimeString(),
+            start: this.statistics.getStart(),
+            end: this.statistics.getEnd(),
             clients: this.clientsCount,
             devices: this.devicesCount,
-            notifsPerDevice: this.notifCount,
+            notifsPerDevice: this.notifsPerDevice,
             intervalMillis: this.intervalMillis,
             notificationsSent: this.notifSent,
             notificationsExpected: this.statistics.getExpected(),

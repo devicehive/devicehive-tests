@@ -1,4 +1,6 @@
 ﻿function Statistics() {
+    this.start = new Date();
+
     this.min = Number.MAX_VALUE;
     this.max = Number.MIN_VALUE;
     this.sum = 0;
@@ -63,6 +65,15 @@ Statistics.prototype = {
             expected += self.subscribedExpected[key].expected;
         });
         return expected;
+    },
+
+    getStart: function() {
+        return this.start.toLocaleDateString() + ' ' + this.start.toLocaleTimeString();
+    },
+
+    getEnd: function() {
+        var end = new Date();
+        return end.toLocaleDateString() + ' ' + end.toLocaleTimeString();
     },
 
     getMin: function () {
