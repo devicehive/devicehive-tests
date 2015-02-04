@@ -7,6 +7,7 @@
     this.count = 0;
     this.subscribedExpected = {};
     this.errors = false;
+    this.serverErrorsCount = 0;
     this.errorsCount = 0;
 }
 

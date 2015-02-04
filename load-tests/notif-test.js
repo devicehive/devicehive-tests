@@ -59,7 +59,7 @@ NotifTest.prototype = {
 
     onClientAuthenticate: function (data, client) {
         if (data.status !== 'success') {
-            return this.onError(data);
+            return this.onError(data, client);
         }
         log.debug('%s auth complete', client.name);
         this.subscribeClient(client);
@@ -160,7 +160,7 @@ NotifTest.prototype = {
 
     onDeviceAuthenticate: function (data, device) {
         if (data.status != 'success') {
-            return device.onError(data);
+            return device.onError(data, device);
         }
         log.debug('%s auth complete', device.name);
         this.sendNotifications(device);

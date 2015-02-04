@@ -1,5 +1,6 @@
 ﻿var CommandTest = require('./cmnd-test');
 var NotifTest = require('./notif-test');
+var MessageTest = require('./msg-test');
 var log = require('../common/log');
 
 function TestTypes() {
@@ -74,6 +75,40 @@ TestTypes.prototype = {
             log.info('min: %s', result.min);
             log.info('max: %s', result.max);
             log.info('avg: %s', result.avg);
+            log.info('errors: %s', result.errors);
+            log.info('errors count: %s', result.errorsCount);
+
+            if (err) {
+                log.error('-- Error: ' + JSON.stringify(err));
+            }
+
+            log.info('--------------------------------------');
+        }
+    },
+
+    messageTest: {
+        create: function (config) {
+            return new MessageTest(config);
+        },
+
+        filename: 'load-tests-msg.txt',
+
+        showResult: function (result, err) {
+            log.info('--------------------------------------');
+            log.info('name: %s', result.name);
+            log.info('start: %s', result.start);
+            log.info('end: %s', result.end);
+            log.info('connections: %s', result.connections);
+            log.info('devices: %s', result.devices);
+            log.info('messages per client: %s', result.messagesPerClient);
+            log.info('interval, millis: %s', result.intervalMillis);
+            log.info('messages sent: %s', result.messagesSent);
+            log.info('messages expected: %s', result.messagesExpected);
+            log.info('messages received: %s', result.messagesReceived);
+            log.info('min: %s', result.min);
+            log.info('max: %s', result.max);
+            log.info('avg: %s', result.avg);
+            log.info('server errors count: %s', result.serverErrorsCount);
             log.info('errors: %s', result.errors);
             log.info('errors count: %s', result.errorsCount);
 

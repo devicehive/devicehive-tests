@@ -7,12 +7,62 @@
     "runAsync": false,
     "tests": [
       {
-        "type": "notifTest",
+        "type": "messageTest",
         "disabled": false,
+        "name": "Notifications one direction",
+        "connections": 20,
+        "messagesPerClient": 10,
+        "intervalMillis": 100,
+        "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
+        "names": [ "a-first", "a-second", "a-third", "a-fourth", "a-fifth", "a-sixth" ],
+        "messages": [
+          {
+            "action": "notification/insert",
+            "deviceGuid": "{#deviceGuid}",
+            "notification": {
+              "notification": "{#name}",
+              "parameters": {
+                "t" : "20.0",
+                "p" : "29.92"
+              }
+            },
+            "requestId": "{#requestId}"
+          }
+        ],
+        "waitDelay": 1000
+      },
+      {
+        "type": "messageTest",
+        "disabled": false,
+        "name": "Commands one direction",
+        "connections": 20,
+        "messagesPerClient": 10,
+        "intervalMillis": 100,
+        "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
+        "names": [ "a-cmd-first", "a-cmd-second", "a-cmd-third", "a-cmd-fourth", "a-cmd-fifth", "a-cmd-sixth" ],
+        "messages": [
+          {
+            "action": "command/insert",
+            "deviceGuid": "{#deviceGuid}",
+            "command": {
+              "command": "{#name}",
+              "parameters": {
+                "t" : "on",
+                "p" : "off"
+              }
+            },
+            "requestId": "{#requestId}"
+          }
+        ],
+        "waitDelay": 1000
+      },
+      {
+        "type": "notifTest",
+        "disabled": true,
         "name": "Many devices, many clients",
-        "clients": 10,
-        "devices": 10,
-        "notifsPerDevice": 100,
+        "clients": 1,
+        "devices": 4,
+        "notifsPerDevice": 10,
         "intervalMillis": 100,
         "listenAllDevices": false,
         "deviceGuids": "aaaaaaaa-aaaa-0000-0000-000000a{#}",
@@ -21,26 +71,30 @@
           "t" : "20.0",
           "p" : "29.92"
         },
-        "waitDelay": 30000
+        "waitDelay": 3000
       },
       {
         "type": "notifTest",
         "disabled": true,
         "name": "One device, many clients",
-        "clients": 40,
+        "clients": 4,
         "notifsPerDevice": 2,
         "intervalMillis": 200,
         "listenAllDevices": true,
         "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
         "notifications": [ "b-first", "b-second", "b-third", "b-fourth", "b-fifth", "b-sixth" ],
+        "parameters": {
+          "t" : "20.0",
+          "p" : "29.92"
+        },
         "waitDelay": 1000
       },
       {
         "type": "cmndTest",
         "disabled": true,
         "name": "Many devices, many clients",
-        "clients": 10000,
-        "devices": 10000,
+        "clients": 1,
+        "devices": 4,
         "commandsPerClient": 100,
         "intervalMillis": 100,
         "sendToAllDevices": false,
@@ -50,10 +104,11 @@
           "t" : "20.0",
           "p" : "29.92"
         },
-        "waitDelay": 30000
+        "waitDelay": 3000
       },
       {
         "type": "cmndTest",
+        "disabled": true,
         "name": "One device, few clients",
         "clients": 4,
         "commandsPerClient": 2,
@@ -70,6 +125,6 @@
     ]
   },
   "log": {
-    "level": "DEBUG"
+    "level": "INFO"
   }
 }
