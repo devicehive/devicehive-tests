@@ -136,8 +136,9 @@ NotifTest.prototype = {
     },
 
     getDeviceGuid: function (index) {
+        index = index % this.devicesCount;
         if (Array.isArray(this.deviceGuids)) {
-            return this.deviceGuids[index % this.deviceGuids.length];
+            return this.deviceGuids[index];
         }
 
         var formattedNumber = ("00000" + index).slice(-5);
@@ -146,6 +147,9 @@ NotifTest.prototype = {
 
     onNotificationReceived: function (data, client) {
         var parameters = data.notification.parameters;
+        if (parameters != null && typeof(parameters) === "string") {
+            parameters = JSON.parse(parameters);
+        }
 
         var time = +new Date() - parameters.requestTime;
         log.debug('%s received notification \'%s\' in %d millis', client.name, data.notification.notification, time);
