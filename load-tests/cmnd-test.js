@@ -62,8 +62,9 @@ CommandTest.prototype = {
     },
 
     getDeviceGuid: function (index) {
+        index = index % this.devicesCount;
         if (Array.isArray(this.deviceGuids)) {
-            return this.deviceGuids[index % this.deviceGuids.length];
+            return this.deviceGuids[index];
         }
 
         var formattedNumber = ("00000" + index).slice(-5);
@@ -115,11 +116,17 @@ CommandTest.prototype = {
     },
 
     sendCommandResult: function (device, command) {
+
+        var parameters = command.parameters;
+        if (parameters != null && typeof(parameters) === "string") {
+            parameters = JSON.parse(parameters);
+        }
+
         var data = {
             commandId: command.id,
             command: {
                 status: 'done',
-                requestTime: command.parameters.requestTime
+                requestTime: parameters.requestTime
             },
             deviceGuid: device.props.deviceGuid,
             requestId: utils.getRequestId(),
@@ -177,7 +184,12 @@ CommandTest.prototype = {
     },
 
     onCommandResultReceived: function (data, client) {
-        var time = +new Date() - data.command.parameters.requestTime;
+        var parameters = data.command.parameters;
+        if (parameters != null && typeof(parameters) === "string") {
+            parameters = JSON.parse(parameters);
+        }
+
+        var time = +new Date() - parameters.requestTime;
         log.debug('%s received command \'%s\' result in %d millis', client.name, data.command.command, time);
 
         this.statistics.add(time);
