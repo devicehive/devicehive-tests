@@ -77,11 +77,11 @@ Statistics.prototype = {
     },
 
     getMin: function () {
-        return this.count > 0 ? this.min : 0;
+        return this.min === Number.MAX_VALUE ? 0 : this.min;
     },
 
     getMax: function () {
-        return this.count > 0 ? this.max : 0;
+        return this.max === Number.MIN_VALUE ? 0 : this.max;
     },
 
     getAvg: function () {
