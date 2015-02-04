@@ -20,6 +20,12 @@ WsConn.prototype = {
         this.socket.onopen = function () {
             self.onOpen();
         };
+        this.socket.onclose = function (event) {
+            if (!event.wasClean) {
+                var err = { message: 'connection lost' };
+                self.onerror.call(self.errContext, err, self);
+            }
+        };
         this.socket.onmessage = function (message) {
             self.onMessage(message);
         };
