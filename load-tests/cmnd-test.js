@@ -67,7 +67,7 @@ CommandTest.prototype = {
             return this.deviceGuids[index];
         }
 
-        var formattedNumber = ("00000" + index).slice(-5);
+        var formattedNumber = ('00000' + index).slice(-5);
         return this.deviceGuids.replace('{#}', formattedNumber);
     },
 
@@ -118,7 +118,7 @@ CommandTest.prototype = {
     sendCommandResult: function (device, command) {
 
         var parameters = command.parameters;
-        if (parameters != null && typeof(parameters) === "string") {
+        if (parameters != null && typeof(parameters) === 'string') {
             parameters = JSON.parse(parameters);
         }
 
@@ -130,7 +130,7 @@ CommandTest.prototype = {
             },
             deviceGuid: device.props.deviceGuid,
             requestId: utils.getRequestId(),
-            action: "command/update"
+            action: 'command/update'
         };
 
         device.send(data);
@@ -185,7 +185,7 @@ CommandTest.prototype = {
 
     onCommandResultReceived: function (data, client) {
         var parameters = data.command.parameters;
-        if (parameters != null && typeof(parameters) === "string") {
+        if (parameters != null && typeof(parameters) === 'string') {
             parameters = JSON.parse(parameters);
         }
 

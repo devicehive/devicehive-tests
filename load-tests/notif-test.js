@@ -141,13 +141,13 @@ NotifTest.prototype = {
             return this.deviceGuids[index];
         }
 
-        var formattedNumber = ("00000" + index).slice(-5);
+        var formattedNumber = ('00000' + index).slice(-5);
         return this.deviceGuids.replace('{#}', formattedNumber);
     },
 
     onNotificationReceived: function (data, client) {
         var parameters = data.notification.parameters;
-        if (parameters != null && typeof(parameters) === "string") {
+        if (parameters != null && typeof(parameters) === 'string') {
             parameters = JSON.parse(parameters);
         }
 
