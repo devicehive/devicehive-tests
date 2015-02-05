@@ -59,7 +59,7 @@
       },
       {
         "type": "messageTest",
-        "disabled": true,
+        "disabled": false,
         "name": "20 clients, 10 commands, 1 device",
         "connections": 20,
         "messagesPerClient": 10,
@@ -84,7 +84,7 @@
       },
       {
         "type": "notifTest",
-        "disabled": true,
+        "disabled": false,
         "name": "Full cycle: 4 devices, 10 notifications, 1 client",
         "clients": 1,
         "devices": 4,
@@ -101,7 +101,7 @@
       },
       {
         "type": "notifTest",
-        "disabled": true,
+        "disabled": false,
         "name": "Full cycle: 1 device, 2 notifications, 4 clients",
         "clients": 4,
         "notifsPerDevice": 2,
@@ -113,11 +113,11 @@
           "t" : "20.0",
           "p" : "29.92"
         },
-        "waitDelay": 1000
+        "waitDelay": 3000
       },
       {
         "type": "cmndTest",
-        "disabled": true,
+        "disabled": false,
         "name": "Full cycle: 1 client, 100 commands, 4 devices",
         "clients": 1,
         "devices": 4,
@@ -134,7 +134,7 @@
       },
       {
         "type": "cmndTest",
-        "disabled": true,
+        "disabled": false,
         "name": "Full cycle: 4 clients, 2 commands, 1 device",
         "clients": 4,
         "commandsPerClient": 2,
@@ -146,7 +146,7 @@
           "t" : "on",
           "p" : "off"
         },
-        "waitDelay": 1000
+        "waitDelay": 3000
       }
     ]
   },
