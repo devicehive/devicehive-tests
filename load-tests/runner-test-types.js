@@ -42,6 +42,7 @@ TestTypes.prototype = {
             log.info('min: %s', result.min);
             log.info('max: %s', result.max);
             log.info('avg: %s', result.avg);
+            log.info('med: %s', result.med);
             log.info('errors: %s', result.errors);
             log.info('errors count: %s', result.errorsCount);
 
@@ -75,6 +76,7 @@ TestTypes.prototype = {
             log.info('min: %s', result.min);
             log.info('max: %s', result.max);
             log.info('avg: %s', result.avg);
+            log.info('med: %s', result.med);
             log.info('errors: %s', result.errors);
             log.info('errors count: %s', result.errorsCount);
 
@@ -108,6 +110,7 @@ TestTypes.prototype = {
             log.info('min: %s', result.min);
             log.info('max: %s', result.max);
             log.info('avg: %s', result.avg);
+            log.info('med: %s', result.med);
             log.info('server errors count: %s', result.serverErrorsCount);
             log.info('errors: %s', result.errors);
             log.info('errors count: %s', result.errorsCount);

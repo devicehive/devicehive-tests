@@ -240,6 +240,7 @@ MessageTest.prototype = {
             min: this.statistics.getMin(),
             max: this.statistics.getMax(),
             avg: this.statistics.getAvg(),
+            med: this.statistics.getMedian(),
             serverErrorsCount: this.statistics.serverErrorsCount,
             errors: this.statistics.errors,
             errorsCount: this.statistics.errorsCount

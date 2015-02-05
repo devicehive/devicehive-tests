@@ -4,6 +4,7 @@
     this.min = Number.MAX_VALUE;
     this.max = Number.MIN_VALUE;
     this.sum = 0;
+    this.values = [];
     this.count = 0;
     this.subscribedExpected = {};
     this.errors = false;
@@ -14,6 +15,7 @@
 Statistics.prototype = {
 
     add: function (value) {
+        this.values.push(value);
         this.count++;
         
         if (value < this.min) {
@@ -87,6 +89,20 @@ Statistics.prototype = {
 
     getAvg: function () {
         return this.sum / this.count;
+    },
+
+    getMedian: function () {
+        this.values.sort(function (x, y) {
+            return x - y;
+        });
+
+        var midIndex = Math.ceil(this.values.length / 2)
+        var isOdd = (this.values.length % 2) === 1;
+        if (isOdd) {
+            return this.values[midIndex];
+        } else {
+            return (this.values[midIndex] + this.values[midIndex + 1]) / 2;
+        }
     }
 }
 

@@ -261,6 +261,7 @@ NotifTest.prototype = {
             min: this.statistics.getMin(),
             max: this.statistics.getMax(),
             avg: this.statistics.getAvg(),
+            med: this.statistics.getMedian(),
             errors: this.statistics.errors,
             errorsCount: this.statistics.errorsCount
         };
