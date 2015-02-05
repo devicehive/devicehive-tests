@@ -7,6 +7,7 @@ function MessageTest(config) {
     this.name = config.name || '';
 
     this.connCount = config.connections || 1;
+    this.devicesCount = config.devices;
     this.messagesPerClient = config.messagesPerClient || 1;
     this.intervalMillis = config.intervalMillis || 1000;
     this.deviceGuids = config.deviceGuids || [];
