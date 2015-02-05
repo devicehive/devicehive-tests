@@ -1,7 +1,7 @@
 {
   "server": {
     "wsUrl": "ws://192.168.152.147:8080/DeviceHiveJava/websocket",
-    "accessKey": "CBc5gtfFAgPSjHzI6N1654Oth/8hYv5zl3X4Sf7Q7+4="
+    "accessKey": "615Ff5Q8ro9gvMK6THncprFtshed3BWsEHcqRMhnlqo="
   },
   "loadTests": {
     "runAsync": false,
@@ -9,9 +9,9 @@
       {
         "type": "messageTest",
         "disabled": false,
-        "name": "Notifications one direction",
+        "name": "20 connections, 3 notifications, 1 device",
         "connections": 20,
-        "messagesPerClient": 10,
+        "messagesPerClient": 3,
         "intervalMillis": 100,
         "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
         "names": [ "a-first", "a-second", "a-third", "a-fourth", "a-fifth", "a-sixth" ],
@@ -34,7 +34,33 @@
       {
         "type": "messageTest",
         "disabled": false,
-        "name": "Commands one direction",
+        "name": "20 connections, 5 notifications, 1000 devices",
+        "connections": 20,
+        "messagesPerClient": 5,
+        "intervalMillis": 100,
+        "devices": 1000,
+        "deviceGuids": "aaaaaaaa-aaaa-0000-0000-000000a{#}",
+        "names": [ "b-first", "b-second", "b-third", "b-fourth", "b-fifth", "b-sixth" ],
+        "messages": [
+          {
+            "action": "notification/insert",
+            "deviceGuid": "{#deviceGuid}",
+            "notification": {
+              "notification": "{#name}",
+              "parameters": {
+                "t" : "20.0",
+                "p" : "29.92"
+              }
+            },
+            "requestId": "{#requestId}"
+          }
+        ],
+        "waitDelay": 1000
+      },
+      {
+        "type": "messageTest",
+        "disabled": true,
+        "name": "20 clients, 10 commands, 1 device",
         "connections": 20,
         "messagesPerClient": 10,
         "intervalMillis": 100,
@@ -59,7 +85,7 @@
       {
         "type": "notifTest",
         "disabled": true,
-        "name": "Many devices, many clients",
+        "name": "Full cycle: 4 devices, 10 notifications, 1 client",
         "clients": 1,
         "devices": 4,
         "notifsPerDevice": 10,
@@ -76,7 +102,7 @@
       {
         "type": "notifTest",
         "disabled": true,
-        "name": "One device, many clients",
+        "name": "Full cycle: 1 device, 2 notifications, 4 clients",
         "clients": 4,
         "notifsPerDevice": 2,
         "intervalMillis": 200,
@@ -92,7 +118,7 @@
       {
         "type": "cmndTest",
         "disabled": true,
-        "name": "Many devices, many clients",
+        "name": "Full cycle: 1 client, 100 commands, 4 devices",
         "clients": 1,
         "devices": 4,
         "commandsPerClient": 100,
@@ -109,7 +135,7 @@
       {
         "type": "cmndTest",
         "disabled": true,
-        "name": "One device, few clients",
+        "name": "Full cycle: 4 clients, 2 commands, 1 device",
         "clients": 4,
         "commandsPerClient": 2,
         "intervalMillis": 200,
