@@ -44,6 +44,7 @@ var app = {
 
     onComplete: function () {
         log.info('-- Finished running all tests.');
+        process.exit(0);
     }
 };
 
