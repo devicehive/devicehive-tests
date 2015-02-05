@@ -36,6 +36,7 @@ var app = {
         var logPath = path.join(__dirname, this.testTypes.filename(config));
         var stream = fs.createWriteStream(logPath, { flags: 'a' });
         stream.write(JSON.stringify(result) + '\n');
+        stream.end();
     },
 
     showResult: function (config, result, err) {
