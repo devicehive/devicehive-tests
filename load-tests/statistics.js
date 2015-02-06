@@ -99,7 +99,7 @@ Statistics.prototype = {
     },
 
     getAvg: function () {
-        return this.sum / this.count;
+        return (this.sum / this.count).toFixed(2);
     },
 
     getMedian: function () {
@@ -112,7 +112,7 @@ Statistics.prototype = {
         if (isOdd) {
             return this.values[midIndex];
         } else {
-            return (this.values[midIndex] + this.values[midIndex + 1]) / 2;
+            return ((this.values[midIndex] + this.values[midIndex + 1]) / 2).toFixed(2);
         }
     }
 }
