@@ -1,4 +1,6 @@
-﻿function Statistics() {
+﻿var util = require('util');
+
+function Statistics() {
     this.start = new Date();
 
     this.min = Number.MAX_VALUE;
@@ -74,9 +76,18 @@ Statistics.prototype = {
         return this.start.toLocaleDateString() + ' ' + this.start.toLocaleTimeString();
     },
 
-    getEnd: function() {
+    getDuration: function() {
         var end = new Date();
-        return end.toLocaleDateString() + ' ' + end.toLocaleTimeString();
+        var duration = new Date(0);
+        duration.setUTCMinutes(duration.getTimezoneOffset());
+        duration.setMilliseconds(end - this.start);
+        return require('util').format('%s:%s:%s',
+            ('0' + duration.getHours()).slice(-2),
+            ('0' + duration.getMinutes()).slice(-2),
+            ('0' + duration.getSeconds()).slice(-2));
+    },
+
+    getDura: function () {
     },
 
     getMin: function () {

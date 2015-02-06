@@ -229,7 +229,7 @@ MessageTest.prototype = {
         return {
             name: this.name,
             start: this.statistics.getStart(),
-            end: this.statistics.getEnd(),
+            duration: this.statistics.getDuration(),
             connections: this.connCount,
             devices: this.devicesCount,
             messagesPerClient: this.messagesPerClient,

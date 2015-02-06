@@ -5,6 +5,7 @@
 var requestId = 1;
 
 module.exports = {
+
     getRequestId: function () { 
         return requestId++;
     },

@@ -25,7 +25,7 @@ TestTypes.prototype = {
             log.info('--------------------------------------');
             log.info('name: %s', result.name);
             log.info('start: %s', result.start);
-            log.info('end: %s', result.end);
+            log.info('duration: %s', result.duration);
             log.info('clients: %s', result.clients);
             log.info('devices: %s', result.devices);
             log.info('notifications per device: %s', result.notifsPerDevice);
@@ -46,14 +46,14 @@ TestTypes.prototype = {
 
             log.info('--------------------------------------');
 
-            log.summary('conns: %s\tmin: %s\tmax: %s\tavg: %s\tmed: %s\terrors: %s\tcommands: %s\tsent: %s\texpected: %s\treceived: %s',
+            log.summary('duration: %s\tconns: %s\tmin: %s\tmax: %s\tavg: %s\tmed: %s\terrors: %s\tsent: %s\texpected: %s\treceived: %s',
+                result.duration,
                 result.clients + result.devices,
                 result.min,
                 result.max,
                 result.avg,
                 result.med,
                 result.errorsCount,
-                result.notifsPerDevice,
                 result.notificationsSent,
                 result.notificationsExpected,
                 result.notificationsReceived);
@@ -69,7 +69,7 @@ TestTypes.prototype = {
             log.info('--------------------------------------');
             log.info('name: %s', result.name);
             log.info('start: %s', result.start);
-            log.info('end: %s', result.end);
+            log.info('duration: %s', result.duration);
             log.info('clients: %s', result.clients);
             log.info('devices: %s', result.devices);
             log.info('commands per client: %s', result.commandsPerClient);
@@ -90,14 +90,14 @@ TestTypes.prototype = {
 
             log.info('--------------------------------------');
 
-            log.summary('conns: %s\tmin: %s\tmax: %s\tavg: %s\tmed: %s\terrors: %s\tcommands: %s\tsent: %s\texpected: %s\treceived: %s',
+            log.summary('duration: %s\tconns: %s\tmin: %s\tmax: %s\tavg: %s\tmed: %s\terrors: %s\tsent: %s\texpected: %s\treceived: %s',
+                result.duration,
                 result.clients + result.devices,
                 result.min,
                 result.max,
                 result.avg,
                 result.med,
                 result.errorsCount,
-                result.commandsPerClient,
                 result.commandsSent,
                 result.commandsExpected,
                 result.commandsReceived);
@@ -113,7 +113,7 @@ TestTypes.prototype = {
             log.info('--------------------------------------');
             log.info('name: %s', result.name);
             log.info('start: %s', result.start);
-            log.info('end: %s', result.end);
+            log.info('duration: %s', result.duration);
             log.info('connections: %s', result.connections);
             log.info('devices: %s', result.devices);
             log.info('messages per client: %s', result.messagesPerClient);
@@ -135,14 +135,14 @@ TestTypes.prototype = {
 
             log.info('--------------------------------------');
 
-            log.summary('conns: %s\tmin: %s\tmax: %s\tavg: %s\tmed: %s\terrors: %s\tmessages: %s\tsent: %s\texpected: %s\treceived: %s',
+            log.summary('duration: %s\tconns: %s\tmin: %s\tmax: %s\tavg: %s\tmed: %s\terrors: %s\tsent: %s\texpected: %s\treceived: %s',
+                result.duration,
                 result.connections,
                 result.min,
                 result.max,
                 result.avg,
                 result.med,
                 result.errorsCount,
-                result.messagesPerClient,
                 result.messagesSent,
                 result.messagesExpected,
                 result.messagesReceived);

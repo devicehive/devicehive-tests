@@ -250,7 +250,7 @@ NotifTest.prototype = {
         return {
             name: this.name,
             start: this.statistics.getStart(),
-            end: this.statistics.getEnd(),
+            duration: this.statistics.getDuration(),
             clients: this.clientsCount,
             devices: this.devicesCount,
             notifsPerDevice: this.notifsPerDevice,
