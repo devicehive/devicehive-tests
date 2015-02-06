@@ -151,6 +151,6 @@
     ]
   },
   "log": {
-    "level": "INFO"
+    "level": "SUMMARY"
   }
 }

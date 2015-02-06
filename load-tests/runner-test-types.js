@@ -12,10 +12,6 @@ TestTypes.prototype = {
         return this[config.type].create(config);
     },
 
-    filename: function (config) {
-        return this[config.type].filename;
-    },
-
     showResult: function (config, result, err) {
         return this[config.type].showResult(result, err);
     },
@@ -24,8 +20,6 @@ TestTypes.prototype = {
         create: function (config) {
             return new NotifTest(config);
         },
-
-        filename: 'load-tests-notif.txt',
 
         showResult: function (result, err) {
             log.info('--------------------------------------');
@@ -51,6 +45,18 @@ TestTypes.prototype = {
             }
 
             log.info('--------------------------------------');
+
+            log.summary('conns: %s\tmin: %s\tmax: %s\tavg: %s\tmed: %s\terrors: %s\tcommands: %s\tsent: %s\texpected: %s\treceived: %s',
+                result.clients + result.devices,
+                result.min,
+                result.max,
+                result.avg,
+                result.med,
+                result.errorsCount,
+                result.notifsPerDevice,
+                result.notificationsSent,
+                result.notificationsExpected,
+                result.notificationsReceived);
         }
     },
 
@@ -58,8 +64,6 @@ TestTypes.prototype = {
         create: function (config) {
             return new CommandTest(config);
         },
-
-        filename: 'load-tests-cmnd.txt',
 
         showResult: function (result, err) {
             log.info('--------------------------------------');
@@ -85,6 +89,18 @@ TestTypes.prototype = {
             }
 
             log.info('--------------------------------------');
+
+            log.summary('conns: %s\tmin: %s\tmax: %s\tavg: %s\tmed: %s\terrors: %s\tcommands: %s\tsent: %s\texpected: %s\treceived: %s',
+                result.clients + result.devices,
+                result.min,
+                result.max,
+                result.avg,
+                result.med,
+                result.errorsCount,
+                result.commandsPerClient,
+                result.commandsSent,
+                result.commandsExpected,
+                result.commandsReceived);
         }
     },
 
@@ -92,8 +108,6 @@ TestTypes.prototype = {
         create: function (config) {
             return new MessageTest(config);
         },
-
-        filename: 'load-tests-msg.txt',
 
         showResult: function (result, err) {
             log.info('--------------------------------------');
@@ -120,6 +134,18 @@ TestTypes.prototype = {
             }
 
             log.info('--------------------------------------');
+
+            log.summary('conns: %s\tmin: %s\tmax: %s\tavg: %s\tmed: %s\terrors: %s\tmessages: %s\tsent: %s\texpected: %s\treceived: %s',
+                result.connections,
+                result.min,
+                result.max,
+                result.avg,
+                result.med,
+                result.errorsCount,
+                result.messagesPerClient,
+                result.messagesSent,
+                result.messagesExpected,
+                result.messagesReceived);
         }
     }
 }

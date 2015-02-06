@@ -11,6 +11,8 @@ var app = {
     testTypes: new TestTypes(),
 
     start: function () {
+        log.summary('Tests started...');
+
         var run = utils.getConfig('loadTests:runAsync') ?
             async.each : async.eachSeries;
 
@@ -33,7 +35,7 @@ var app = {
     },
 
     saveResult: function (config, result) {
-        var logPath = path.join(__dirname, this.testTypes.filename(config));
+        var logPath = path.join(__dirname, 'load-tests.txt');
         var stream = fs.createWriteStream(logPath, { flags: 'a' });
         stream.write(JSON.stringify(result) + '\n');
         stream.end();
@@ -45,6 +47,7 @@ var app = {
 
     onComplete: function () {
         log.info('-- Finished running all tests.');
+        log.summary('Done.');
         setTimeout(function () {
             process.exit(0);
         }, 3000);
