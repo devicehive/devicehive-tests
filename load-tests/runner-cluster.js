@@ -9,7 +9,7 @@ if (cluster.isMaster) {
     }
 
     cluster.on('exit', function (worker) {
-        console.log('worker ' + worker.process.pid + ' died');
+        console.log('worker ' + worker.process.pid + ' exit');
     });
 
 } else {
