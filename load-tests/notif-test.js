@@ -141,7 +141,7 @@ NotifTest.prototype = {
             return this.deviceGuids[index];
         }
 
-        var formattedNumber = ('00000' + index).slice(-5);
+        var formattedNumber = ("00000000" + index).slice(-8);
         return this.deviceGuids.replace('{#}', formattedNumber);
     },
 

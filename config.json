@@ -34,12 +34,12 @@
       {
         "type": "messageTest",
         "disabled": false,
-        "name": "20 connections, 5 notifications, 1000 devices",
+        "name": "20 connections, 5 notifications, 99999999 devices",
         "connections": 20,
         "messagesPerClient": 5,
         "intervalMillis": 100,
-        "devices": 1000,
-        "deviceGuids": "aaaaaaaa-aaaa-0000-0000-000000a{#}",
+        "devices": 99999999,
+        "deviceGuids": "aaaaaaaa-aaaa-0000-0-000000a{#}",
         "names": [ "b-first", "b-second", "b-third", "b-fourth", "b-fifth", "b-sixth" ],
         "messages": [
           {
@@ -91,7 +91,7 @@
         "notifsPerDevice": 10,
         "intervalMillis": 100,
         "listenAllDevices": false,
-        "deviceGuids": "aaaaaaaa-aaaa-0000-0000-000000a{#}",
+        "deviceGuids": "aaaaaaaa-aaaa-0000-0-000000a{#}",
         "notifications": [ "a-first", "a-second", "a-third", "a-fourth", "a-fifth", "a-sixth" ],
         "parameters": {
           "t" : "20.0",
@@ -124,7 +124,7 @@
         "commandsPerClient": 100,
         "intervalMillis": 100,
         "sendToAllDevices": false,
-        "deviceGuids": "aaaaaaaa-aaaa-0000-0000-000000a{#}",
+        "deviceGuids": "aaaaaaaa-aaaa-0000-0-000000a{#}",
         "commands": [ "a-first", "a-second", "a-third", "a-fourth", "a-fifth", "a-sixth" ],
         "parameters": {
           "t" : "20.0",
