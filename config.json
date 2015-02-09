@@ -38,7 +38,7 @@
         "connections": 20,
         "messagesPerClient": 5,
         "intervalMillis": 100,
-        "devices": 99999999,
+        "devices": 1000000,
         "deviceGuids": "aaaaaaaa-aaaa-0000-0-000000a{#}",
         "names": [ "b-first", "b-second", "b-third", "b-fourth", "b-fifth", "b-sixth" ],
         "messages": [
