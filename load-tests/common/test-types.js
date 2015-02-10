@@ -1,6 +1,6 @@
-﻿var CommandTest = require('./../websockets/cmnd-test');
-var NotifTest = require('./../websockets/notif-test');
-var MessageTest = require('./../websockets/msg-test');
+﻿var Command = require('./../websockets/command');
+var Notification = require('./../websockets/notification');
+var Message = require('./../websockets/message');
 var log = require('../../common/log');
 
 function TestTypes() {
@@ -18,7 +18,7 @@ TestTypes.prototype = {
 
     notifTest: {
         create: function (config) {
-            return new NotifTest(config);
+            return new Notification(config);
         },
 
         showResult: function (result, err) {
@@ -62,7 +62,7 @@ TestTypes.prototype = {
 
     cmndTest: {
         create: function (config) {
-            return new CommandTest(config);
+            return new Command(config);
         },
 
         showResult: function (result, err) {
@@ -106,7 +106,7 @@ TestTypes.prototype = {
 
     messageTest: {
         create: function (config) {
-            return new MessageTest(config);
+            return new Message(config);
         },
 
         showResult: function (result, err) {
