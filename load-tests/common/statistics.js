@@ -1,6 +1,4 @@
-﻿var util = require('util');
-
-function Statistics() {
+﻿function Statistics() {
     this.start = new Date();
 
     this.min = Number.MAX_VALUE;
@@ -85,9 +83,6 @@ Statistics.prototype = {
             ('0' + duration.getHours()).slice(-2),
             ('0' + duration.getMinutes()).slice(-2),
             ('0' + duration.getSeconds()).slice(-2));
-    },
-
-    getDura: function () {
     },
 
     getMin: function () {

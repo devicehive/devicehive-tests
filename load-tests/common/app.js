@@ -1,7 +1,7 @@
 ﻿var async = require('async');
 var TestTypes = require('./test-types');
-var utils = require('../common/utils');
-var log = require('../common/log');
+var utils = require('../../common/utils');
+var log = require('../../common/log');
 
 var fs = require('fs');
 var path = require('path');
@@ -35,7 +35,7 @@ var app = {
     },
 
     saveResult: function (config, result) {
-        var logPath = path.join(__dirname, 'load-tests.txt');
+        var logPath = path.join(__dirname, '../load-tests.txt');
         var stream = fs.createWriteStream(logPath, { flags: 'a' });
         stream.write(JSON.stringify(result) + '\n');
         stream.end();

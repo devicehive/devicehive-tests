@@ -1,6 +1,6 @@
 var cluster = require('cluster');
 var numCPUs = require('os').cpus().length;
-var app = require('./app');
+var app = require('./common/app');
 
 if (cluster.isMaster) {
     // Fork workers.

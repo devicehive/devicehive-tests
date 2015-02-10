@@ -1,7 +1,7 @@
-﻿var CommandTest = require('./cmnd-test');
-var NotifTest = require('./notif-test');
-var MessageTest = require('./msg-test');
-var log = require('../common/log');
+﻿var CommandTest = require('./../websockets/cmnd-test');
+var NotifTest = require('./../websockets/notif-test');
+var MessageTest = require('./../websockets/msg-test');
+var log = require('../../common/log');
 
 function TestTypes() {
 }

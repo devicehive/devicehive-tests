@@ -1,7 +1,7 @@
 ﻿var WsConn = require('./ws-conn.js');
-var Statistics = require('./statistics.js');
-var utils = require('../common/utils.js');
-var log = require('../common/log.js');
+var Statistics = require('./../common/statistics.js');
+var utils = require('../../common/utils.js');
+var log = require('../../common/log.js');
 
 function CommandTest(config) {
     this.name = config.name || '';
@@ -87,7 +87,7 @@ CommandTest.prototype = {
         };
 
         if (!this.sendToAllDevices) {
-            data.deviceGuids = [ device.props.deviceGuid ];
+            data.deviceGuids = [device.props.deviceGuid];
         }
 
         if (this.commands) {
@@ -154,12 +154,12 @@ CommandTest.prototype = {
         var index = client.id % this.clientsCount;
         if (this.devicesCount === this.clientsCount) {
 
-            return [ this.getDeviceGuid(index) ];
+            return [this.getDeviceGuid(index)];
 
         }
         if (this.devicesCount < this.clientsCount) {
 
-            return [ this.getDeviceGuid(index) ];
+            return [this.getDeviceGuid(index)];
 
         } else if (this.devicesCount > this.clientsCount) {
 
@@ -220,7 +220,7 @@ CommandTest.prototype = {
         parameters.requestTime = +time;
 
         var cmndData = {
-            action : 'command/insert',
+            action: 'command/insert',
             deviceGuid: deviceGuid,
             command: {
                 command: command,

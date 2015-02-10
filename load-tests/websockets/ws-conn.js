@@ -1,6 +1,6 @@
 ﻿global.WebSocket = require('ws');
-var utils = require('../common/utils.js');
-var log = require('../common/log.js');
+var utils = require('../../common/utils.js');
+var log = require('../../common/log.js');
 var connId = 1;
 
 function WsConn(name, props) {

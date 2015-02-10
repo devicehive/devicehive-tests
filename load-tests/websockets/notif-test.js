@@ -1,7 +1,7 @@
 ﻿var WsConn = require('./ws-conn.js');
-var Statistics = require('./statistics.js');
-var utils = require('../common/utils.js');
-var log = require('../common/log.js');
+var Statistics = require('./../common/statistics.js');
+var utils = require('../../common/utils.js');
+var log = require('../../common/log.js');
 
 function NotifTest(config) {
     this.name = config.name || '';
