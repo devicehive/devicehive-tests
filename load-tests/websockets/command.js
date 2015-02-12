@@ -120,6 +120,7 @@ Command.prototype = {
                 status: 'done',
                 requestTime: parameters.requestTime
             },
+            //deviceId: device.props.deviceGuid, // won't work yet it specified in spec...
             deviceGuid: device.props.deviceGuid,
             requestId: utils.getRequestId(),
             action: 'command/update'
