@@ -1,6 +1,6 @@
 {
   "server": {
-    "wsUrl": "ws://192.168.152.147:8080/DeviceHiveJava/websocket",
+    "wsUrl": "ws://192.168.152.147:8080/dh/websocket",
     "accessKey": "615Ff5Q8ro9gvMK6THncprFtshed3BWsEHcqRMhnlqo="
   },
   "loadTests": {
