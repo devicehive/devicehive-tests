@@ -117,6 +117,7 @@ Command.prototype = {
         var data = {
             commandId: command.id,
             command: {
+                originSessionId: command.originSessionId,
                 status: 'done',
                 requestTime: parameters.requestTime
             },
