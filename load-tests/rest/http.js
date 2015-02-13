@@ -1,7 +1,8 @@
 var XMLHttpRequest = require('xhr2');
 var utils = require('../../common/utils.js');
 
-function Http() {
+function Http(requestId) {
+    this.requestId = requestId;
     this.xhr = new XMLHttpRequest();
     this.baseUrl = utils.getConfig('server:restUrl');
 }
@@ -28,7 +29,7 @@ Http.prototype = {
             var err = isSuccess ? void 0 : self.serverErrorMessage(self.xhr);
 
             var result = self.xhr.responseText ? JSON.parse(self.xhr.responseText) : null;
-            return cb(err, result);
+            return cb(err, self.requestId, result);
         }
 
         this.xhr.setRequestHeader('Authorization',

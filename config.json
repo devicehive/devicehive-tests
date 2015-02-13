@@ -11,7 +11,8 @@
         "type": "restMessageTest",
         "disabled": false,
         "name": "5 requests, 1 device",
-        "requests": 5,
+        "senders": "3",
+        "requestsPerSender": 5,
         "intervalMillis": 100,
         "deviceGuids": [ "11111111-2222-3333-4444-555555555555" ],
         "names": [ "a-first", "a-second" ],
@@ -27,7 +28,7 @@
             }
           }
         ],
-        "waitDelay": 1000
+        "waitDelay": 3000
       },
       {
         "type": "messageTest",
@@ -146,6 +147,6 @@
     ]
   },
   "log": {
-    "level": "SUMMARY"
+    "level": "INFO"
   }
 }

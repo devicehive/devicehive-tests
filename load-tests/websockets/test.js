@@ -107,23 +107,18 @@ Test.prototype = {
     doComplete: function (err, result) {
         var self = this;
         log.info('-- Completed \'%s\'. Closing connnections...', this.name);
-        this.closeConnections(function () {
-            if (self.ondone) {
-                self.ondone(err, result);
-                self.ondone = null;
-            }
-        });
+        this.closeConnections();
+
+        if (self.ondone) {
+            self.ondone(err, result);
+            self.ondone = null;
+        }
     },
 
-    closeConnections: function (callback) {
-
+    closeConnections: function () {
         this.closeConnectionsImpl(this.clients);
         this.closeConnectionsImpl(this.devices);
         this.closeConnectionsImpl(this.connections);
-
-        if (callback) {
-            callback();
-        }
     },
 
     closeConnectionsImpl: function (connections) {

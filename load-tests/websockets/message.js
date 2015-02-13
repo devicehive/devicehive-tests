@@ -26,18 +26,18 @@ function Message(config) {
 
     this.connections = [];
     this.clientsSubscribed = 0;
+
+    this.statistics = new Statistics();
 }
 
 Message.prototype = {
 
     run: function (callback) {
 
-        this.oncomplete = this.doComplete;
-
         log.info('-- Started \'%s\'', this.name);
 
+        this.oncomplete = this.doComplete;
         this.ondone = callback;
-        this.statistics = new Statistics();
         this.requestTime = {};
 
         this.devicesCount = Array.isArray(this.deviceGuids) ?

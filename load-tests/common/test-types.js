@@ -162,7 +162,7 @@ TestTypes.prototype = {
             log.info('duration: %s', result.duration);
             log.info('connections: %s', result.connections);
             log.info('devices: %s', result.devices);
-            log.info('messages per client: %s', result.messagesPerClient);
+            log.info('requests per sender: %s', result.requestsPerSender);
             log.info('interval, millis: %s', result.intervalMillis);
             log.info('messages sent: %s', result.messagesSent);
             log.info('messages expected: %s', result.messagesExpected);
