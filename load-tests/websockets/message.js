@@ -1,4 +1,5 @@
 ﻿var Test = require('./test');
+var testUtils = require('./../common/test-utils');
 var WsConn = require('./ws-conn.js');
 var Statistics = require('./../common/statistics.js');
 var utils = require('../../common/utils.js');
@@ -92,19 +93,19 @@ Message.prototype = {
         var requestId = utils.getRequestId();
         var message = utils.clone(this.messages[requestId % this.messages.length]);
 
-        this.substitute(message, '{#name}', function () {
+        testUtils.substitute(message, '{#name}', function () {
             return self.names[requestId % self.names.length];
         });
 
-        this.substitute(message, '{#deviceGuid}', function () {
+        testUtils.substitute(message, '{#deviceGuid}', function () {
             return self.getDeviceGuid(conn.id);
         });
 
-        this.substitute(message, '{#deviceGuids}', function () {
+        testUtils.substitute(message, '{#deviceGuids}', function () {
             return self.getDeviceGuids(conn);
         });
 
-        this.substitute(message, '{#requestId}', function () {
+        testUtils.substitute(message, '{#requestId}', function () {
             return requestId;
         });
 
@@ -112,27 +113,6 @@ Message.prototype = {
 
         conn.send(message);
         this.doneAllSent();
-    },
-
-    substitute: function (obj, field, valueCb) {
-
-        if (obj == null || typeof (obj) != 'object') {
-            return;
-        }
-
-        var self = this;
-
-        var keys = Object.keys(obj);
-        keys.forEach(function (key) {
-
-            if (obj[key] === field) {
-                obj[key] = valueCb();
-                return;
-            }
-
-            self.substitute(obj[key], field, valueCb);
-        });
-
     },
 
     getResult: function () {

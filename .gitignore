@@ -9,3 +9,10 @@
 /.idea
 /load-tests/load-tests-msg.txt
 /load-tests/load-tests.txt
+/config-wotio.json
+/config-testserver.json
+/config-tanya.json
+/config-simple.json
+/config-rest.json
+/config-empty.json
+/big_config.json
