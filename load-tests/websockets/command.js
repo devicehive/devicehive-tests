@@ -119,7 +119,9 @@ Command.prototype = {
             command: {
                 originSessionId: command.originSessionId,
                 status: 'done',
-                requestTime: parameters.requestTime
+                parameters: {
+                    requestTime: parameters.requestTime
+                }
             },
             //deviceId: device.props.deviceGuid, // won't work yet it specified in spec...
             deviceGuid: device.props.deviceGuid,
