@@ -1,20 +1,19 @@
 {
   "server": {
-    "wsUrl": "ws://23.253.35.56:8081/DeviceHive/websocket",
-    "restUrl": "http://23.253.35.56:8081/DeviceHive/rest",
-    "accessKey": "sStsRCchw3pCUeLwyVvhX/Q27CKeJgVFcNcDBvJiB6g="
+    "wsUrl": "ws://192.168.152.147:8080/dh/websocket",
+    "accessKey": "615Ff5Q8ro9gvMK6THncprFtshed3BWsEHcqRMhnlqo="
   },
   "loadTests": {
     "runAsync": false,
     "tests": [
       {
         "type": "rest-message",
-        "disabled": false,
+        "disabled": true,
         "name": "30 REST notifications, 1 device",
-        "senders": 3,
+        "senders": 30,
         "requestsPerSender": 10,
         "intervalMillis": 200,
-        "deviceGuids": [ "11111111-2222-3333-4444-555555555555" ],
+        "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
         "names": [ "a-first", "a-second" ],
         "requests": [
           {
@@ -33,12 +32,12 @@
       },
       {
         "type": "rest-message",
-        "disabled": false,
+        "disabled": true,
         "name": "30 REST commands, 1 device",
-        "senders": 3,
+        "senders": 30,
         "requestsPerSender": 10,
         "intervalMillis": 200,
-        "deviceGuids": [ "11111111-2222-3333-4444-555555555555" ],
+        "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
         "names": [ "a-cmd-first", "a-cmd-second" ],
         "requests": [
           {
@@ -58,11 +57,37 @@
       {
         "type": "ws-message",
         "disabled": false,
+        "name": "20 connections, 3 notifications, 1 device",
+        "connections": 20,
+        "messagesPerClient": 3,
+        "intervalMillis": 100,
+        "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
+        "names": [ "a-first", "a-second", "a-third", "a-fourth", "a-fifth", "a-sixth" ],
+        "messages": [
+          {
+            "action": "notification/insert",
+            "deviceGuid": "{#deviceGuid}",
+            "notification": {
+              "notification": "{#name}",
+              "parameters": {
+                "t" : "20.0",
+                "p" : "29.92"
+              }
+            },
+            "requestId": "{#requestId}"
+          }
+        ],
+        "waitDelay": 1000
+      },
+      {
+        "type": "ws-message",
+        "disabled": false,
         "name": "20 connections, 5 notifications, 99999999 devices",
         "connections": 20,
         "messagesPerClient": 5,
         "intervalMillis": 100,
-        "deviceGuids": [ "11111111-2222-3333-4444-555555555555" ],
+        "devices": 1000000,
+        "deviceGuids": "aaaaaaaa-aaaa-0000-0-000000a{#}",
         "names": [ "b-first", "b-second", "b-third", "b-fourth", "b-fifth", "b-sixth" ],
         "messages": [
           {
@@ -87,7 +112,7 @@
         "connections": 20,
         "messagesPerClient": 10,
         "intervalMillis": 100,
-        "deviceGuids": [ "11111111-2222-3333-4444-555555555555" ],
+        "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
         "names": [ "a-cmd-first", "a-cmd-second", "a-cmd-third", "a-cmd-fourth", "a-cmd-fifth", "a-cmd-sixth" ],
         "messages": [
           {
@@ -110,10 +135,11 @@
         "disabled": false,
         "name": "Full cycle: 4 devices, 10 notifications, 1 client",
         "clients": 1,
+        "devices": 4,
         "notifsPerDevice": 10,
         "intervalMillis": 100,
         "listenAllDevices": false,
-        "deviceGuids": [ "11111111-2222-3333-4444-555555555555" ],
+        "deviceGuids": "aaaaaaaa-aaaa-0000-0-000000a{#}",
         "notifications": [ "a-first", "a-second", "a-third", "a-fourth", "a-fifth", "a-sixth" ],
         "parameters": {
           "t" : "20.0",
@@ -129,7 +155,7 @@
         "notifsPerDevice": 2,
         "intervalMillis": 200,
         "listenAllDevices": true,
-        "deviceGuids": [ "11111111-2222-3333-4444-555555555555" ],
+        "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
         "notifications": [ "b-first", "b-second", "b-third", "b-fourth", "b-fifth", "b-sixth" ],
         "parameters": {
           "t" : "20.0",
@@ -142,10 +168,11 @@
         "disabled": false,
         "name": "Full cycle: 1 client, 100 commands, 4 devices",
         "clients": 1,
+        "devices": 4,
         "commandsPerClient": 100,
         "intervalMillis": 100,
         "sendToAllDevices": false,
-        "deviceGuids": [ "11111111-2222-3333-4444-555555555555" ],
+        "deviceGuids": "aaaaaaaa-aaaa-0000-0-000000a{#}",
         "commands": [ "a-first", "a-second", "a-third", "a-fourth", "a-fifth", "a-sixth" ],
         "parameters": {
           "t" : "20.0",
@@ -161,7 +188,7 @@
         "commandsPerClient": 2,
         "intervalMillis": 200,
         "sendToAllDevices": false,
-        "deviceGuids": [ "11111111-2222-3333-4444-555555555555" ],
+        "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
         "commands": [ "b-cmd-first", "b-cmd-second", "b-cmd-third", "b-cmd-fourth", "b-cmd-fifth", "b-cmd-sixth" ],
         "parameters": {
           "t" : "on",

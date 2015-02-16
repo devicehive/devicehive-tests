@@ -94,10 +94,15 @@ Statistics.prototype = {
     },
 
     getAvg: function () {
-        return (this.sum / this.count).toFixed(2);
+        return this.min === Number.MAX_VALUE ? 0 :
+            (this.sum / this.count).toFixed(2);
     },
 
     getMedian: function () {
+
+        if (!this.values.length) {
+            return 0;
+        }
 
         if (this.values.length < 3) {
             return this.getAvg();
