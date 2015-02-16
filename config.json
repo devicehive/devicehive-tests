@@ -8,17 +8,18 @@
     "runAsync": false,
     "tests": [
       {
-        "type": "restMessageTest",
+        "type": "rest-message",
         "disabled": false,
-        "name": "5 requests, 1 device",
-        "senders": "3",
-        "requestsPerSender": 5,
-        "intervalMillis": 100,
+        "name": "30 REST notifications, 1 device",
+        "senders": 3,
+        "requestsPerSender": 10,
+        "intervalMillis": 200,
         "deviceGuids": [ "11111111-2222-3333-4444-555555555555" ],
         "names": [ "a-first", "a-second" ],
         "requests": [
           {
             "method": "POST",
+            "type": "notification",
             "data": {
               "notification": "{#name}",
               "parameters": {
@@ -28,11 +29,35 @@
             }
           }
         ],
-        "waitDelay": 3000
+        "waitDelay": 1000
       },
       {
-        "type": "messageTest",
-        "disabled": true,
+        "type": "rest-message",
+        "disabled": false,
+        "name": "30 REST commands, 1 device",
+        "senders": 3,
+        "requestsPerSender": 10,
+        "intervalMillis": 200,
+        "deviceGuids": [ "11111111-2222-3333-4444-555555555555" ],
+        "names": [ "a-cmd-first", "a-cmd-second" ],
+        "requests": [
+          {
+            "method": "POST",
+            "type": "command",
+            "data": {
+              "command": "{#name}",
+              "parameters": {
+                "equipment": "temp-sensor",
+                "enabled": false
+              }
+            }
+          }
+        ],
+        "waitDelay": 1000
+      },
+      {
+        "type": "ws-message",
+        "disabled": false,
         "name": "20 connections, 5 notifications, 99999999 devices",
         "connections": 20,
         "messagesPerClient": 5,
@@ -56,8 +81,8 @@
         "waitDelay": 1000
       },
       {
-        "type": "messageTest",
-        "disabled": true,
+        "type": "ws-message",
+        "disabled": false,
         "name": "20 clients, 10 commands, 1 device",
         "connections": 20,
         "messagesPerClient": 10,
@@ -81,8 +106,8 @@
         "waitDelay": 1000
       },
       {
-        "type": "notifTest",
-        "disabled": true,
+        "type": "ws-notification",
+        "disabled": false,
         "name": "Full cycle: 4 devices, 10 notifications, 1 client",
         "clients": 1,
         "notifsPerDevice": 10,
@@ -97,8 +122,8 @@
         "waitDelay": 3000
       },
       {
-        "type": "notifTest",
-        "disabled": true,
+        "type": "ws-notification",
+        "disabled": false,
         "name": "Full cycle: 1 device, 2 notifications, 4 clients",
         "clients": 4,
         "notifsPerDevice": 2,
@@ -113,8 +138,8 @@
         "waitDelay": 3000
       },
       {
-        "type": "cmndTest",
-        "disabled": true,
+        "type": "ws-command",
+        "disabled": false,
         "name": "Full cycle: 1 client, 100 commands, 4 devices",
         "clients": 1,
         "commandsPerClient": 100,
@@ -129,8 +154,8 @@
         "waitDelay": 3000
       },
       {
-        "type": "cmndTest",
-        "disabled": true,
+        "type": "ws-command",
+        "disabled": false,
         "name": "Full cycle: 4 clients, 2 commands, 1 device",
         "clients": 4,
         "commandsPerClient": 2,
@@ -147,6 +172,6 @@
     ]
   },
   "log": {
-    "level": "INFO"
+    "level": "SUMMARY"
   }
 }

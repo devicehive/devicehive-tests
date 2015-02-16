@@ -17,7 +17,7 @@ TestTypes.prototype = {
         return this[config.type].showResult(result, err);
     },
 
-    notifTest: {
+    'ws-notification': {
         create: function (config) {
             return new Notification(config);
         },
@@ -61,7 +61,7 @@ TestTypes.prototype = {
         }
     },
 
-    cmndTest: {
+    'ws-command': {
         create: function (config) {
             return new Command(config);
         },
@@ -105,7 +105,7 @@ TestTypes.prototype = {
         }
     },
 
-    messageTest: {
+    'ws-message': {
         create: function (config) {
             return new Message(config);
         },
@@ -150,7 +150,7 @@ TestTypes.prototype = {
         }
     },
 
-    restMessageTest: {
+    'rest-message': {
         create: function (config) {
             return new RestMessage(config);
         },
@@ -160,7 +160,7 @@ TestTypes.prototype = {
             log.info('name: %s', result.name);
             log.info('start: %s', result.start);
             log.info('duration: %s', result.duration);
-            log.info('connections: %s', result.connections);
+            log.info('senders: %s', result.senders);
             log.info('devices: %s', result.devices);
             log.info('requests per sender: %s', result.requestsPerSender);
             log.info('interval, millis: %s', result.intervalMillis);
@@ -181,9 +181,9 @@ TestTypes.prototype = {
 
             log.info('--------------------------------------');
 
-            log.summary('duration: %s\tconns: %s\tmin: %s\tmax: %s\tavg: %s\tmed: %s\terrors: %s\tsent: %s\texpected: %s\treceived: %s',
+            log.summary('duration: %s\tsenders: %s\tmin: %s\tmax: %s\tavg: %s\tmed: %s\terrors: %s\tsent: %s\texpected: %s\treceived: %s',
                 result.duration,
-                result.connections,
+                result.senders,
                 result.min,
                 result.max,
                 result.avg,
@@ -193,6 +193,7 @@ TestTypes.prototype = {
                 result.messagesExpected,
                 result.messagesReceived);
         }
-    }}
+    }
+}
 
 module.exports = TestTypes;

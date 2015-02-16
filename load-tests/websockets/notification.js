@@ -1,12 +1,10 @@
-﻿var Test = require('./test');
-var WsConn = require('./ws-conn.js');
+﻿var Sender = require('./ws-sender.js');
 var Statistics = require('./../common/statistics.js');
+var testUtils = require('./../common/test-utils');
 var utils = require('../../common/utils.js');
 var log = require('../../common/log.js');
 
 function Notification(config) {
-    Test.mixin(Notification);
-
     this.name = config.name || '';
 
     this.clientsCount = config.clients || 1;
@@ -33,10 +31,11 @@ Notification.prototype = {
 
     run: function (callback) {
 
-        this.oncomplete = this.doComplete;
-
         log.info('-- Started \'%s\'', this.name);
 
+        this.oncomplete = function (context, err, result) {
+            testUtils.doWsComplete(context, err, result);
+        };
         this.ondone = callback;
         this.statistics = new Statistics();
 
@@ -50,7 +49,7 @@ Notification.prototype = {
 
     createClients: function () {
         for (var i = 0; i < this.clientsCount; i++) {
-            var client = new WsConn('client');
+            var client = new Sender('client');
             client.addErrorCallback(this.onError, this);
             client.addActionCallback('authenticate', this.onClientAuthenticate, this);
             client.addActionCallback('notification/subscribe', this.onClientSubscribed, this);
@@ -62,7 +61,7 @@ Notification.prototype = {
 
     onClientAuthenticate: function (data, client) {
         var self = this;
-        this.onAuthenticate(data, client, function (data, client) {
+        testUtils.onWsAuthenticate(data, client, function (data, client) {
             self.subscribeClient(client);
         });
     },
@@ -75,7 +74,7 @@ Notification.prototype = {
         };
 
         if (!this.listenAllDevices) {
-            data.deviceGuids = this.getDeviceGuids(client);
+            data.deviceGuids = testUtils.getDeviceGuids(this, client.id);
         }
 
         if (this.notifications) {
@@ -101,9 +100,9 @@ Notification.prototype = {
 
     createDevices: function () {
         for (var i = 0; i < this.devicesCount; i++) {
-            var device = new WsConn('device');
+            var device = new Sender('device');
             device.props = {
-                deviceGuid: this.getDeviceGuid(i)
+                deviceGuid: testUtils.getDeviceGuid(this, i)
             };
             device.addErrorCallback(this.onError, this);
             device.addActionCallback('authenticate', this.onDeviceAuthenticate, this);
@@ -127,8 +126,8 @@ Notification.prototype = {
 
     onDeviceAuthenticate: function (data, device) {
         var self = this;
-        this.onAuthenticate(data, device, function (data, device) {
-            self.sendMessages(device, self.sendNotification);
+        testUtils.onWsAuthenticate(data, device, function (data, device) {
+            testUtils.sendMessages(self, device, self.sendNotification);
         });
     },
 
@@ -152,7 +151,7 @@ Notification.prototype = {
         };
 
         device.send(notifData);
-        this.doneAllSent();
+        testUtils.doneAllSent(this);
     },
 
     getResult: function () {
@@ -174,6 +173,10 @@ Notification.prototype = {
             errors: this.statistics.errors,
             errorsCount: this.statistics.errorsCount
         };
+    },
+
+    onError: function (err, sender) {
+        testUtils.onWsError(this, err, sender);
     }
 };
 

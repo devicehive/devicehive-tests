@@ -1,13 +1,10 @@
-﻿var Test = require('./test');
-var testUtils = require('./../common/test-utils');
-var WsConn = require('./ws-conn.js');
+﻿var Sender = require('./ws-sender.js');
 var Statistics = require('./../common/statistics.js');
+var testUtils = require('./../common/test-utils');
 var utils = require('../../common/utils.js');
 var log = require('../../common/log.js');
 
 function Message(config) {
-    Test.mixin(Message);
-
     this.name = config.name || '';
 
     this.connCount = config.connections || 1;
@@ -36,7 +33,9 @@ Message.prototype = {
 
         log.info('-- Started \'%s\'', this.name);
 
-        this.oncomplete = this.doComplete;
+        this.oncomplete = function (context, err, result) {
+            testUtils.doWsComplete(context, err, result);
+        };
         this.ondone = callback;
         this.requestTime = {};
 
@@ -51,16 +50,16 @@ Message.prototype = {
     createClients: function () {
         var self = this;
         for (var i = 0; i < this.connCount; i++) {
-            var conn = new WsConn('conn');
-            conn.addErrorCallback(this.onError, this);
-            conn.addActionCallback('authenticate', this.onConnAuthenticate, this);
+            var sender = new Sender('conn');
+            sender.addErrorCallback(this.onError, this);
+            sender.addActionCallback('authenticate', this.onConnAuthenticate, this);
 
             this.messages.forEach(function(message) {
-                conn.addActionCallback(message.action, self.onAction, self);
+                sender.addActionCallback(message.action, self.onAction, self);
             });
 
-            conn.connect();
-            this.connections.push(conn);
+            sender.connect();
+            this.connections.push(sender);
         }
     },
 
@@ -79,14 +78,14 @@ Message.prototype = {
         this.received++
     },
 
-    onConnAuthenticate: function (data, conn) {
+    onConnAuthenticate: function (data, sender) {
         var self = this;
-        this.onAuthenticate(data, conn, function (data, conn) {
-            self.sendMessages(conn, self.sendMessage);
+        testUtils.onWsAuthenticate(data, sender, function (data, sender) {
+            testUtils.sendMessages(self, sender, self.sendMessage);
         });
     },
 
-    sendMessage: function (conn) {
+    sendMessage: function (sender) {
 
         var self = this;
 
@@ -98,11 +97,11 @@ Message.prototype = {
         });
 
         testUtils.substitute(message, '{#deviceGuid}', function () {
-            return self.getDeviceGuid(conn.id);
+            return testUtils.getDeviceGuid(self, sender.id);
         });
 
         testUtils.substitute(message, '{#deviceGuids}', function () {
-            return self.getDeviceGuids(conn);
+            return testUtils.getDeviceGuids(self, sender);
         });
 
         testUtils.substitute(message, '{#requestId}', function () {
@@ -111,8 +110,8 @@ Message.prototype = {
 
         this.requestTime[requestId] = +new Date();
 
-        conn.send(message);
-        this.doneAllSent();
+        sender.send(message);
+        testUtils.doneAllSent(this);
     },
 
     getResult: function () {
@@ -135,6 +134,10 @@ Message.prototype = {
             errors: this.statistics.errors,
             errorsCount: this.statistics.errorsCount
         };
+    },
+
+    onError: function (err, sender) {
+        testUtils.onWsError(this, err, sender);
     }
 };
 

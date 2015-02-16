@@ -3,7 +3,7 @@ var utils = require('../../common/utils.js');
 var log = require('../../common/log.js');
 var connId = 1;
 
-function WsConn(name, props) {
+function WsSender(name, props) {
     this.id = connId++;
     this.name = name + '#' + this.id;
     this.actionCallbacks = {};
@@ -11,7 +11,7 @@ function WsConn(name, props) {
     this.props = props;
 }
 
-WsConn.prototype = {
+WsSender.prototype = {
 
     connect: function () {
         log.debug('%s connecting...', this.name);
@@ -93,4 +93,4 @@ WsConn.prototype = {
     }
 }
 
-module.exports = WsConn;
+module.exports = WsSender;

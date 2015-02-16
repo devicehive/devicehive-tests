@@ -1,12 +1,10 @@
-﻿var Test = require('./test');
-var WsConn = require('./ws-conn.js');
+﻿var Sender = require('./ws-sender.js');
 var Statistics = require('./../common/statistics.js');
+var testUtils = require('./../common/test-utils');
 var utils = require('../../common/utils.js');
 var log = require('../../common/log.js');
 
 function Command(config) {
-    Test.mixin(Command);
-
     this.name = config.name || '';
 
     this.clientsCount = config.clients || 1;
@@ -34,10 +32,11 @@ Command.prototype = {
 
     run: function (callback) {
 
-        this.oncomplete = this.doComplete;
-
         log.info('-- Started \'%s\'', this.name);
 
+        this.oncomplete = function (context, err, result) {
+            testUtils.doWsComplete(context, err, result);
+        };
         this.ondone = callback;
         this.statistics = new Statistics();
 
@@ -51,9 +50,9 @@ Command.prototype = {
 
     createDevices: function () {
         for (var i = 0; i < this.devicesCount; i++) {
-            var device = new WsConn('device');
+            var device = new Sender('device');
             device.props = {
-                deviceGuid: this.getDeviceGuid(i)
+                deviceGuid: testUtils.getDeviceGuid(this, i)
             };
             device.addErrorCallback(this.onError, this);
             device.addActionCallback('authenticate', this.onDeviceAuthenticate, this);
@@ -66,7 +65,7 @@ Command.prototype = {
 
     onDeviceAuthenticate: function (data, device) {
         var self = this;
-        this.onAuthenticate(data, device, function (data, device) {
+        testUtils.onWsAuthenticate(data, device, function (data, device) {
             self.subscribeDevice(device);
         });
     },
@@ -123,7 +122,7 @@ Command.prototype = {
                     requestTime: parameters.requestTime
                 }
             },
-            //deviceId: device.props.deviceGuid, // won't work yet it specified in spec...
+            //deviceId: device.props.deviceGuid, // won't work although it specified in spec...
             deviceGuid: device.props.deviceGuid,
             requestId: utils.getRequestId(),
             action: 'command/update'
@@ -134,9 +133,9 @@ Command.prototype = {
 
     createClients: function () {
         for (var i = 0; i < this.clientsCount; i++) {
-            var client = new WsConn('client');
+            var client = new Sender('client');
             client.props = {
-                deviceGuids: this.getDeviceGuids(client)
+                deviceGuids: testUtils.getDeviceGuids(this, client.id)
             };
             client.addErrorCallback(this.onError, this);
             client.addActionCallback('authenticate', this.onClientAuthenticate, this);
@@ -148,8 +147,8 @@ Command.prototype = {
 
     onClientAuthenticate: function (data, client) {
         var self = this;
-        this.onAuthenticate(data, client, function (data, client) {
-            self.sendMessages(client, self.sendCommand);
+        testUtils.onWsAuthenticate(data, client, function (data, client) {
+            testUtils.sendMessages(self, client, self.sendCommand);
         });
     },
 
@@ -187,7 +186,7 @@ Command.prototype = {
         };
 
         client.send(cmndData);
-        this.doneAllSent();
+        testUtils.doneAllSent(this);
     },
 
     getResult: function () {
@@ -209,6 +208,10 @@ Command.prototype = {
             errors: this.statistics.errors,
             errorsCount: this.statistics.errorsCount
         };
+    },
+
+    onError: function (err, sender) {
+        testUtils.onWsError(this, err, sender);
     }
 };
 

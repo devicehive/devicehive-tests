@@ -1,9 +1,7 @@
 var log = require('../../common/log.js');
-var utils = require('../../common/utils.js');
 var testUtils = require('./../common/test-utils');
-var Http = require('./http');
 var Statistics = require('./../common/statistics.js');
-var Sender = require('./sender');
+var Sender = require('./http-sender');
 
 function Message(config) {
     this.name = config.name;
@@ -23,15 +21,13 @@ function Message(config) {
     this.statistics = new Statistics();
 
     this.requestTime = {};
-
     this.senders = [];
 }
 
 Message.prototype = {
     run: function (callback) {
 
-        this.oncomplete = this.doComplete;
-        this.oncomplete = callback;
+        this.oncomplete = testUtils.doRestComplete;
         this.ondone = callback;
 
         this.devicesCount = Array.isArray(this.deviceGuids) ?
@@ -41,7 +37,7 @@ Message.prototype = {
 
         for (var i = 0; i < this.sendersCount; i++) {
             var sender = new Sender(this);
-            this.sendMessages(sender, this.sendRequest);
+            testUtils.sendMessages(this, sender, this.sendRequest);
             this.senders.push(sender);
         }
     },
@@ -49,41 +45,23 @@ Message.prototype = {
     sendRequest: function(sender) {
         var self = this;
 
-        sender.send(function (err, sender, requestId, result) {
-            self.onResponse(err, sender, requestId, result);
+        sender.send(function (err, sender, result) {
+            self.onResponse(err, sender, result);
         });
-        this.doneAllSent();
+        testUtils.doneAllSent(this);
     },
 
-    onResponse: function (err, sender, requestId, result) {
+    onResponse: function (err, sender, result) {
 
         if (err) {
             //this.statistics.serverErrorsCount++;
-            return self.onError(err);
+            return this.onError(err);
         }
 
-        var time = +new Date() - sender.requestTime[requestId];
+        var time = +new Date() - sender.requestTime[sender.requestId];
         this.statistics.add(time);
 
         this.received++
-    },
-
-    doComplete: function (err, result) {
-
-        var self = this;
-
-        this.senders.forEach(function (sender) {
-            if (sender.intervalId) {
-                clearInterval(sender.intervalId);
-            }
-        });
-
-        log.info('-- Completed \'%s\'. Closing connnections...', this.name);
-
-        if (self.ondone) {
-            self.ondone(err, result);
-            self.ondone = null;
-        }
     },
 
     getResult: function () {
@@ -91,7 +69,7 @@ Message.prototype = {
             name: this.name,
             start: this.statistics.getStart(),
             duration: this.statistics.getDuration(),
-            connections: this.connCount,
+            senders: this.sendersCount,
             devices: this.devicesCount,
             requestsPerSender: this.requestsPerSender,
             intervalMillis: this.intervalMillis,
@@ -112,54 +90,6 @@ Message.prototype = {
         this.statistics.errors = true;
         this.statistics.errorsCount++;
         log.error('-- Error: ' + JSON.stringify(err));
-    },
-
-    // ----------------------------------------------- utils -------------------------------------------------
-
-    sendMessages: function (sender, callback) {
-        var self = this;
-        sender.intervalId = setInterval(function () {
-            if (self.index++ >= self.total) {
-                clearInterval(sender.intervalId);
-                sender.intervalId = null;
-                return;
-            }
-
-            callback.call(self, sender);
-        }, this.intervalMillis);
-    },
-
-    doneAllSent: function () {
-        if (++this.sent < this.total) {
-            return;
-        }
-
-        var received = this.received;
-        var result = this.getResult();
-        var self = this;
-
-        var doneIfMsgsWontCome = function () {
-
-            if (self.received !== received) {
-                received = self.received;
-                result = self.getResult();
-                setTimeout(doneIfMsgsWontCome, self.waitDelay);
-                return;
-            }
-
-            self.complete(null, result);
-        };
-        setTimeout(doneIfMsgsWontCome, this.waitDelay);
-
-        log.info('-- All messages sent. %s sec wait for incoming messages...',
-            Math.floor(this.waitDelay / 1000));
-    },
-
-    complete: function (err, result) {
-        if (this.oncomplete) {
-            this.oncomplete(err, result)
-            this.oncomplete = null;
-        }
     }
 }
 

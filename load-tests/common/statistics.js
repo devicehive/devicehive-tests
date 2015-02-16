@@ -98,6 +98,11 @@ Statistics.prototype = {
     },
 
     getMedian: function () {
+
+        if (this.values.length < 3) {
+            return this.getAvg();
+        }
+
         this.values.sort(function (x, y) {
             return x - y;
         });
