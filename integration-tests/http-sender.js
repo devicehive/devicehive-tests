@@ -17,6 +17,11 @@ HttpSender.prototype = {
         this.sendRequest(params, cb);
     },
 
+    put: function (params, cb) {
+        params.method = 'PUT';
+        this.sendRequest(params, cb);
+    },
+
     delete: function (params, cb) {
         params.method = 'DELETE';
         this.sendRequest(params, cb);

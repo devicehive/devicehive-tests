@@ -6,7 +6,9 @@ var async = require('async');
 
 var status = {
     OK: 200,
-    EXPECTED_CREATED: 201
+    EXPECTED_CREATED: 201,
+    EXPECTED_UPDATED: 204,
+    EXPECTED_DELETED: 204
 };
 
 
@@ -121,29 +123,10 @@ describe('REST Access Key', function(){
     })
 
     describe('#Create()', function() {
-        it('should match created and returned keys', function(done){
-
-            function getParams(label) {
-                var expDate = new Date();
-                expDate.setFullYear(expDate.getFullYear() + 10);
-                return {
-                    user: admin,
-                    data: {
-                        label: label,
-                        expirationDate: expDate.toISOString(),
-                        permissions: [{
-                            domains: ['www.example.com'],
-                            networkIds: [1, 2],
-                            actions: ['GetNetwork', 'GetDevice'],
-                            deviceGuids: null,
-                            subnets: null
-                        }]
-                    }
-                };
-            }
+        it('should match created and returned access key properties', function(done){
 
             function createForAdmin(callback) {
-                var createParams = getParams('_integr-test-1');
+                var createParams = common.getParams('_integr-test-create-1');
                 common.create(path, createParams, function (err, createResult) {
                     var getParams = { user: admin, id: createResult.id };
                     common.get(path, getParams, function (err, getResult) {
@@ -160,8 +143,8 @@ describe('REST Access Key', function(){
                 })
             }
 
-            function createForOwner(callback) {
-                var createParams = getParams('_integr-test-2');
+            function createForOwnerCurrent(callback) {
+                var createParams = common.getParams('_integr-test-create-2');
                 common.create(path, createParams, function (err, createResult) {
                     var getParams = { user: owner, id: createResult.id };
                     common.get('/user/current/accesskey', getParams, function (err, getResult) {
@@ -178,7 +161,69 @@ describe('REST Access Key', function(){
                 })
             }
 
-            async.series([createForAdmin, createForOwner], done);
+            function createForOwner(callback) {
+                var createParams = common.getParams('_integr-test-create-3');
+                common.create(path, createParams, function (err, createResult) {
+                    var getParams = { user: owner, id: createResult.id };
+                    common.get(path, getParams, function (err, getResult) {
+                        if (err) {
+                            callback(err);
+                        }
+
+                        assert.strictEqual(createResult.id, getResult.id);
+                        assert.strictEqual(createResult.key, getResult.key);
+                        common.expectAccessKey(getResult, createParams.data);
+
+                        callback();
+                    })
+                })
+            }
+
+            async.series([
+                createForAdmin,
+                createForOwnerCurrent,
+                createForOwner
+            ], done);
+        })
+    })
+
+    describe('#Update()', function() {
+        it('should match updated and returned access keys properties', function(done){
+
+            function createAccessKey(callback) {
+                var createParams = common.getParams('_integr-test-update');
+                common.create(path, createParams, callback);
+            }
+
+            function updateForAdmin(createResult, resource, callback) {
+                var updateParams = common.getParams('_integr-test-update-1', new Date(2020, 4, 1),
+                    ['www.devicehive.com'], [3, 4], ['CreateDeviceNotification'], [deviceGuid], ['127.0.0.2'])
+                updateParams.id = createResult.id;
+                common.update(path, updateParams, function (err) {
+
+                    if (err) {
+                        callback(err);
+                    }
+
+                    var getParams = { user: admin, id: createResult.id };
+                    common.get(path, getParams, function (err, getResult) {
+                        if (err) {
+                            callback(err);
+                        }
+
+                        assert.strictEqual(createResult.id, getResult.id);
+                        assert.strictEqual(createResult.key, getResult.key);
+                        common.expectAccessKey(getResult, updateParams.data);
+
+                        callback();
+                    })
+                });
+            }
+
+            async.waterfall([
+                    createAccessKey,
+                    updateForAdmin
+                ], done);
         })
     })
 
@@ -200,6 +245,26 @@ describe('REST Access Key', function(){
 });
 
 var common = {
+
+    getParams: function (label, expDate, domains, networkIds, actions, deviceGuids, subnets) {
+        expDate || (expDate = new Date());
+        expDate.setFullYear(expDate.getFullYear() + 10);
+        return {
+            user: admin,
+            data: {
+                label: label,
+                expirationDate: expDate.toISOString(),
+                permissions: [{
+                    domains: domains || ['www.example.com'],
+                    networkIds: networkIds || [1, 2],
+                    actions: actions || ['GetNetwork', 'GetDevice'],
+                    deviceGuids: deviceGuids || null,
+                    subnets: subnets || ['127.0.0.1']
+                }]
+            }
+        };
+    },
+
     createAccessKey: function (args, cb) {
         var params = {
             user: args.user,
@@ -233,10 +298,11 @@ var common = {
                     return cb(err);
                 }
 
-                resources.push(path + '/' + result.id)
+                var resource = path + '/' + result.id;
+                resources.push(resource)
                 assert.strictEqual(xhr.status, status.EXPECTED_CREATED);
 
-                cb(null, result);
+                cb(null, result, resource);
             });
     },
 
@@ -250,6 +316,19 @@ var common = {
                 assert.strictEqual(xhr.status, status.OK);
 
                 cb(null, result);
+            });
+    },
+
+    update: function (path, params, cb) {
+        new HttpSender(url, path + '/' + params.id)
+            .put(params, function (err, result, xhr) {
+                if (err) {
+                    return cb(err);
+                }
+
+                assert.strictEqual(xhr.status, status.EXPECTED_UPDATED);
+
+                cb(null);
             });
     },
 
