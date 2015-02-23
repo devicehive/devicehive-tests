@@ -1,11 +1,18 @@
 var XMLHttpRequest = require('xhr2');
 var utils = require('../common/utils.js');
 
-function HttpSender(baseUrl, path) {
+var status = {
+    OK: 200,
+    EXPECTED_CREATED: 201,
+    EXPECTED_UPDATED: 204,
+    EXPECTED_DELETED: 204
+};
+
+function Http(baseUrl, path) {
     this.url = [baseUrl, path].join('');
 }
 
-HttpSender.prototype = {
+Http.prototype = {
 
     get: function (params, cb) {
         params.method = 'GET';
@@ -81,4 +88,7 @@ HttpSender.prototype = {
     }
 }
 
-module.exports = HttpSender;
+module.exports = {
+    Http: Http,
+    status: status
+};
