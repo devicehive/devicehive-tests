@@ -31,7 +31,7 @@ module.exports = {
 
     onWsAuthenticate: function (data, sender, callback) {
         if (data.status != 'success') {
-            return sender.onWsError(data, sender);
+            return this.onWsError(void 0, data, sender);
         }
         log.debug('%s auth complete', sender.name);
 
@@ -167,8 +167,12 @@ module.exports = {
     },
 
     onWsError: function (context, err, sender) {
-        context.statistics.errors = true;
-        context.statistics.errorsCount++;
+
+        if (context) {
+            context.statistics.errors = true;
+            context.statistics.errorsCount++;
+        }
+
         log.error('-- Error: ' + JSON.stringify(err));
         sender.socket.close();
         if (sender.intervalId) {
