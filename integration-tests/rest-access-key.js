@@ -4,32 +4,47 @@ var format = require('util').format;
 var utils = require('./common/utils');
 var path = require('./common/path');
 
-//var deviceGuid = "11111111-2222-3333-4444-555555555555";
+describe('Access Key REST API', function () {
 
-//var deviceGuid = "e50d6085-2aba-48e9-b1c3-73c673e414be";
+    //before(function () {
+    //    var userId = 102;
+    //    path.setUserId(userId);
+    //    utils.resources.push(path.get(path.USER, userId));
+    //    utils.resources.push(path.get(path.USER, 103));
+    //    utils.resources.push(path.get(path.USER, 105));
+    //
+    //    var accessKeyIds = [264, 265, 267];
+    //    accessKeyIds.forEach(function (id) {
+    //        utils.resources.push(path.get(path.CURRENT_ACCESS_KEY, id));
+    //    })
+    //})
 
-var accessKey = 'sStsRCchw3pCUeLwyVvhX/Q27CKeJgVFcNcDBvJiB6g=';
-var deviceGuid = "11111111-2222-3333-4444-555555555555";
-var deviceGuid2 = "22222222-3333-4444-5555-666666666666";
+    before(function (done) {
+        utils.createUser(utils.user.login, utils.user.password, 1, 0,
+            function (err, result) {
+                if (err) {
+                    return done(err);
+                }
 
-//var accessKey = utils.getConfig('server:accessKey');
+                path.setUserId(result.id);
+                done();
+            });
+    });
 
-var common = {
-
-    getParams: function (label, user, expDate, domains, networkIds, actions, deviceGuids, subnets) {
+    function getParams(label, user, expDate, domains, networkIds, actions, deviceGuids, subnets) {
 
         expDate || (expDate = new Date());
         expDate.setFullYear(expDate.getFullYear() + 10);
 
-        return this.getParamsObj(label, user, expDate,
+        return getParamsObj(label, user, expDate,
             domains || ['www.example.com'],
             networkIds || [1, 2],
             actions || ['GetNetwork', 'GetDevice'],
-            deviceGuids || [deviceGuid],
+            deviceGuids || ['11111111-2222-3333-4444-555555555555'],
             subnets || ['127.0.0.1']);
-    },
+    }
 
-    getParamsObj: function (label, user, expDate, domains, networkIds, actions, deviceGuids, subnets) {
+    function getParamsObj(label, user, expDate, domains, networkIds, actions, deviceGuids, subnets) {
 
         var permission = {};
 
@@ -69,46 +84,18 @@ var common = {
         }
 
         return params;
-    },
+    }
 
-    expectAccessKey: function (actual, expected) {
+    function expectAccessKey(actual, expected) {
         assert.strictEqual(+new Date(actual.expirationDate), +new Date(expected.expirationDate));
         assert.strictEqual(actual.label, expected.label);
         assert.deepEqual(actual.permissions, expected.permissions);
     }
-};
-
-describe('REST Access Key', function () {
-
-    //before(function () {
-    //    var ownerId = 102;
-    //    path.setOwnerId(ownerId);
-    //    utils.resources.push(path.get(path.USER, ownerId));
-    //    utils.resources.push(path.get(path.USER, 103));
-    //    utils.resources.push(path.get(path.USER, 105));
-    //
-    //    var accessKeyIds = [264, 265, 267];
-    //    accessKeyIds.forEach(function (id) {
-    //        utils.resources.push(path.get(path.CURRENT_ACCESS_KEY, id));
-    //    })
-    //})
-
-    before(function (done) {
-        utils.createUser(utils.owner.login, utils.owner.password, 1, 0,
-            function (err, result) {
-                if (err) {
-                    return done(err);
-                }
-
-                path.setOwnerId(result.id);
-                done();
-            });
-    });
 
     describe('#GetAll', function() {
 
         var adminAccessKey = null;
-        var ownerAccessKey = null;
+        var userAccessKey = null;
 
         before(function (done) {
 
@@ -143,11 +130,11 @@ describe('REST Access Key', function () {
                 })
             }
 
-            function createOwnerKey(callback) {
+            function createUserKey(callback) {
                 var params = {
-                    user: utils.owner,
+                    user: utils.user,
                     data: {
-                        label: '_integr-tests-owner-key',
+                        label: '_integr-tests-user-key',
                         permissions: [{
                             actions: [
                                 'GetNetwork',
@@ -164,19 +151,19 @@ describe('REST Access Key', function () {
                     }
                 };
 
-                utils.create(path.ownerAccessKey, params, function (err, result) {
+                utils.create(path.userAccessKey, params, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
 
-                    ownerAccessKey = result.key;
+                    userAccessKey = result.key;
                     callback();
                 })
             }
 
             async.series([
                 createAdminKey,
-                createOwnerKey,
+                createUserKey,
             ], done);
         })
 
@@ -202,14 +189,14 @@ describe('REST Access Key', function () {
 
         it('should get user keys', function(done){
 
-            var params = { user: utils.owner };
-            utils.get(path.ownerAccessKey, params, function (err, result) {
+            var params = { user: utils.user };
+            utils.get(path.userAccessKey, params, function (err, result) {
                 if (err) {
                     return done(err);
                 }
 
                 function hasOwnerAccessKey(item) {
-                    return item.key === ownerAccessKey;
+                    return item.key === userAccessKey;
                 }
 
                 assert.strictEqual(Array.isArray(result), true);
@@ -221,176 +208,175 @@ describe('REST Access Key', function () {
         })
     });
 
-    describe.only('#Create', function() {
-        it('should match created and returned access key properties', function(done){
+    describe('#Create', function() {
 
-            var testData = [
-                {
-                    createParams: common.getParams('_integr-test-create-1', utils.admin),
-                    createPath: path.ownerAccessKey,
-                    getParams: { user: utils.admin },
-                    getPath: path.ownerAccessKey
-                },
-                {
-                    createParams: common.getParams('_integr-test-create-2', utils.owner),
-                    createPath: path.ownerAccessKey,
-                    getParams: { user: utils.owner },
-                    getPath: path.CURRENT_ACCESS_KEY
-                },
-                {
-                    createParams: common.getParams('_integr-test-create-3', utils.owner),
-                    createPath: path.ownerAccessKey,
-                    getParams: { user: utils.owner },
-                    getPath: path.ownerAccessKey
+        function createTest(testData, callback) {
+            utils.create(testData.createPath, testData.createParams, function (err, createResult) {
+                if (err) {
+                    return callback(err);
                 }
-            ];
 
-            function createTest(callback) {
+                testData.getParams.id = createResult.id;
+                utils.get(testData.getPath, testData.getParams, function (err, getResult) {
+                    if (err) {
+                        return callback(err);
+                    }
 
-                var td = testData.shift();
+                    assert.strictEqual(createResult.id, getResult.id);
+                    assert.strictEqual(createResult.key, getResult.key);
+                    expectAccessKey(getResult, testData.createParams.data);
 
-                var createParams = td.createParams;
-                utils.create(td.createPath, createParams, function (err, createResult) {
-                    td.getParams.id = createResult.id;
-                    utils.get(td.getPath, td.getParams, function (err, getResult) {
-                        if (err) {
-                            callback(err);
-                        }
+                    callback();
+                })
+            })
+        }
 
-                        assert.strictEqual(createResult.id, getResult.id);
-                        assert.strictEqual(createResult.key, getResult.key);
-                        common.expectAccessKey(getResult, createParams.data);
+        it('should allow administrator to create key', function (done) {
+            createTest({
+                createParams: getParams('_integr-test-create-1', utils.admin),
+                createPath: path.userAccessKey,
+                getParams: {user: utils.admin},
+                getPath: path.userAccessKey
+            }, done);
+        })
 
+        it('should allow user to create key', function (done) {
+            createTest({
+                createParams: getParams('_integr-test-create-2', utils.user),
+                createPath: path.userAccessKey,
+                getParams: { user: utils.user },
+                getPath: path.CURRENT_ACCESS_KEY
+            }, done);
+        })
+
+        it('should allow user to create key using same path', function (done) {
+            createTest({
+                createParams: getParams('_integr-test-create-3', utils.user),
+                createPath: path.userAccessKey,
+                getParams: { user: utils.user },
+                getPath: path.userAccessKey
+            }, done);
+        })
+    });
+
+    describe('#Update', function() {
+
+        var accessKeyObj = null;
+
+        before(function (done) {
+            var createParams = getParams('_integr-test-update', utils.admin);
+            utils.create(path.userAccessKey, createParams, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                accessKeyObj = result;
+                done();
+            });
+        })
+
+        function updateTest(testData, callback) {
+            testData.updateParams.id = accessKeyObj.id;
+            utils.update(testData.updatePath, testData.updateParams, function (err) {
+
+                if (err) {
+                    return callback(err);
+                }
+
+                testData.getParams.id = accessKeyObj.id;
+                utils.get(testData.getPath, testData.getParams, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    assert.strictEqual(accessKeyObj.id, result.id);
+                    assert.strictEqual(accessKeyObj.key, result.key);
+                    expectAccessKey(result, testData.updateParams.data);
+
+                    callback();
+                })
+            });
+        }
+
+        it('should allow administrator to update key', function (done) {
+            updateTest({
+                updateParams: getParams('_integr-test-update-1', utils.admin, new Date(2020, 4, 1),
+                    ['www.devicehive.com'], [3, 4], ['CreateDeviceNotification'], void 0, ['127.0.0.2']),
+                updatePath: path.userAccessKey,
+                getParams: { user: utils.admin },
+                getPath: path.userAccessKey
+            }, done);
+        })
+
+        it('should allow user to update key', function (done) {
+            updateTest({
+                updateParams: getParams('_integr-test-update-2', utils.user, new Date(2018, 3, 2),
+                    ['www.integration-tests.com'], [5, 6], ['CreateDeviceCommand'], ['22222222-3333-4444-5555-666666666666'], ['127.0.0.2']),
+                updatePath: path.userAccessKey,
+                getParams: { user: utils.user },
+                getPath: path.CURRENT_ACCESS_KEY
+            }, done);
+        })
+
+        it('should allow user to update key using same path', function (done) {
+            updateTest({
+                updateParams: getParams('_integr-test-update-3', utils.user, new Date(2018, 4, 15),
+                    ['www.devicehive.com'], [3, 4], ['CreateDeviceNotification', 'UpdateDeviceCommand'], void 0, ['127.0.0.2']),
+                updatePath: path.userAccessKey,
+                getParams: { user: utils.user },
+                getPath: path.userAccessKey
+            }, done);
+        })
+    });
+
+    describe('#Delete', function() {
+
+        function deleteTest(testData, callback) {
+            utils.create(testData.createPath, testData.createParams, function (err, createResult) {
+                if (err) {
+                    return callback(err);
+                }
+
+                testData.params.id = createResult.id;
+                utils.delete(testData.path, testData.params, function (err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    utils.get(testData.path, testData.params, function (err) {
+                        assert.strictEqual(!(!err), true, 'Error object created')
+                        assert.strictEqual(err.error, 'DeviceHive server error - Access key not found.');
                         callback();
                     })
                 })
-            }
+            })
+        }
 
-            async.series([
-                createTest,
-                createTest,
-                createTest
-            ], done);
+        it('should allow administrator to delete key', function (done) {
+            deleteTest({
+                createParams: getParams('_integr-test-delete-1', utils.admin),
+                createPath: path.userAccessKey,
+                params: { user: utils.admin },
+                path: path.userAccessKey
+            }, done);
         })
-    });
 
-    describe('#Update()', function() {
-        it('should match updated and returned access keys properties', function(done){
-
-            var testData = [
-                {
-                    updateParams: common.getParams('_integr-test-update-1', utils.admin, new Date(2020, 4, 1),
-                        ['www.devicehive.com'], [3, 4], ['CreateDeviceNotification'], [deviceGuid], ['127.0.0.2']),
-                    updatePath: path.ownerAccessKey,
-                    getParams: { user: utils.admin },
-                    getPath: path.ownerAccessKey
-                },
-                {
-                    updateParams: common.getParams('_integr-test-update-2', utils.owner, new Date(2018, 3, 2),
-                        ['www.integration-tests.com'], [5, 6], ['CreateDeviceCommand'], [deviceGuid2], ['127.0.0.2']),
-                    updatePath: path.ownerAccessKey,
-                    getParams: { user: utils.owner },
-                    getPath: path.CURRENT_ACCESS_KEY
-                },
-                {
-                    updateParams: common.getParams('_integr-test-update-3', utils.owner, new Date(2018, 4, 15),
-                        ['www.devicehive.com'], [3, 4], ['CreateDeviceNotification', 'UpdateDeviceCommand'], [deviceGuid], ['127.0.0.2']),
-                    updatePath: path.ownerAccessKey,
-                    getParams: { user: utils.owner },
-                    getPath: path.ownerAccessKey
-                }
-            ];
-
-            function createAccessKey(callback) {
-                var createParams = common.getParams('_integr-test-update', utils.admin);
-                utils.create(path.ownerAccessKey, createParams, function (err, createResult) {
-                    callback(err, createResult);
-                });
-            }
-
-            function updateTest(createResult, callback) {
-
-                var td = testData.shift();
-                var updateParams = td.updateParams;
-
-                updateParams.id = createResult.id;
-                utils.update(td.updatePath, updateParams, function (err) {
-
-                    if (err) {
-                        callback(err);
-                    }
-
-                    td.getParams.id = createResult.id;
-                    utils.get(td.getPath, td.getParams, function (err, getResult) {
-                        if (err) {
-                            callback(err);
-                        }
-
-                        assert.strictEqual(createResult.id, getResult.id);
-                        assert.strictEqual(createResult.key, getResult.key);
-                        common.expectAccessKey(getResult, updateParams.data);
-
-                        callback(null, createResult);
-                    })
-                });
-            }
-
-
-            async.waterfall([
-                createAccessKey,
-                updateTest,
-                updateTest,
-                updateTest
-            ], done);
+        it('should allow user to delete key', function (done) {
+            deleteTest({
+                createParams: getParams('_integr-test-delete-2', utils.user),
+                createPath: path.userAccessKey,
+                params: { user: utils.user },
+                path: path.CURRENT_ACCESS_KEY
+            }, done);
         })
-    });
 
-    describe('#Delete()', function() {
-        it('should return 404 when try to get delted key', function (done) {
-
-            var testData = [
-                {
-                    createParams: common.getParams('_integr-test-delete-1', utils.admin),
-                    createPath: path.ownerAccessKey,
-                    params: { user: utils.admin },
-                    path: path.ownerAccessKey
-                },
-                {
-                    createParams: common.getParams('_integr-test-delete-2', utils.owner),
-                    createPath: path.ownerAccessKey,
-                    params: { user: utils.owner },
-                    path: path.CURRENT_ACCESS_KEY
-                },
-                {
-                    createParams: common.getParams('_integr-test-delete-3', utils.owner),
-                    createPath: path.ownerAccessKey,
-                    params: { user: utils.owner },
-                    path: path.ownerAccessKey
-                }
-            ];
-
-            function deleteTest(callback) {
-
-                var td = testData.shift();
-
-                var createParams = td.createParams;
-                utils.create(td.createPath, createParams, function (err, createResult) {
-                    td.params.id = createResult.id;
-                    utils.delete(td.path, td.params, function () {
-                        utils.get(td.path, td.params, function (err) {
-                            assert.strictEqual(!(!err), true, 'Error object created')
-                            assert.strictEqual(err.error, 'DeviceHive server error - Access key not found.');
-                            callback();
-                        })
-                    })
-                })
-            }
-
-            async.series([
-                deleteTest,
-                deleteTest,
-                deleteTest
-            ], done);
+        it('should allow user to delete key using user path', function (done) {
+            deleteTest({
+                createParams: getParams('_integr-test-delete-3', utils.user),
+                createPath: path.userAccessKey,
+                params: { user: utils.user },
+                path: path.userAccessKey
+            }, done);
         })
     });
 
@@ -470,7 +456,7 @@ describe('REST Access Key', function () {
 
         it('checks the key authorization works', function (done) {
             authTest({
-                params: common.getParamsObj(
+                params: getParamsObj(
                     '_integr-test-auth-1', user, void 0, void 0, void 0, ['GetNetwork']),
                 onResult: assertResultOk
             }, done);
@@ -478,7 +464,7 @@ describe('REST Access Key', function () {
 
         it('checks the key authorization with explicit network works', function (done) {
             authTest({
-                params: common.getParamsObj(
+                params: getParamsObj(
                     '_integr-test-auth-2', user, void 0, void 0, [networkId], ['GetNetwork']),
                 onResult: assertResultOk
             }, done);
@@ -486,7 +472,7 @@ describe('REST Access Key', function () {
 
         it('checks the key authorization with explicit subnet works', function (done) {
             authTest({
-                params: common.getParamsObj(
+                params: getParamsObj(
                     '_integr-test-auth-3', user, void 0, void 0, void 0, ['GetNetwork'], void 0, ['0.0.0.0/0']),
                 onResult: assertResultOk
             }, done);
@@ -496,7 +482,7 @@ describe('REST Access Key', function () {
             var expDate = new Date();
             expDate.setHours(expDate.getHours() - 1);
             authTest({
-                params: common.getParamsObj(
+                params: getParamsObj(
                     '_integr-test-auth-4', user, expDate, void 0, [networkId], ['GetNetwork']),
                 onResult: assertResultErr1
             }, done);
@@ -504,7 +490,7 @@ describe('REST Access Key', function () {
 
         it('checks the source subnet is validated', function (done) {
             authTest({
-                params: common.getParamsObj(
+                params: getParamsObj(
                     '_integr-test-auth-5', user, void 0, void 0, void 0, ['GetNetwork'], void 0, ['10.10.10.0/24']),
                 onResult: assertResultErr1
             }, done);
@@ -512,7 +498,7 @@ describe('REST Access Key', function () {
 
         it('checks the action is validated', function (done) {
             authTest({
-                params: common.getParamsObj(
+                params: getParamsObj(
                     '_integr-test-auth-6', user, void 0, void 0, void 0, ['UpdateDeviceCommand']),
                 onResult: assertResultErr1
             }, done);
@@ -520,7 +506,7 @@ describe('REST Access Key', function () {
 
         it('checks the network is validated', function (done) {
             authTest({
-                params: common.getParamsObj(
+                params: getParamsObj(
                     '_integr-test-auth-7', user, void 0, void 0, [networkId + 1], ['GetNetwork']),
                 onResult: assertResultErr2
             }, done);
@@ -528,7 +514,7 @@ describe('REST Access Key', function () {
 
         it('checks the network is validated on admin key', function (done) {
             authTest({
-                params: common.getParamsObj(
+                params: getParamsObj(
                     '_integr-test-auth-8', utils.admin, void 0, void 0, [networkId + 1], ['GetNetwork']),
                 onResult: assertResultErr2
             }, done);

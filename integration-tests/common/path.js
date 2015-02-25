@@ -2,12 +2,12 @@ var format = require('util').format;
 
 module.exports = {
     USER: '/user',
-    ownerAccessKey: '/user/%d/accesskey',
+    userAccessKey: '/user/%d/accesskey',
     CURRENT_ACCESS_KEY: '/user/current/accesskey',
     NETWORK: '/network',
 
-    setOwnerId: function (ownerId) {
-        this.ownerAccessKey = format(this.ownerAccessKey, ownerId);
+    setUserId: function (userId) {
+        this.userAccessKey = format(this.userAccessKey, userId);
     },
 
     get: function (path, id) {

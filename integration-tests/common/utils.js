@@ -21,7 +21,7 @@ module.exports = {
     //    password: 'Password1@'
     //},
 
-    owner: {
+    user: {
         login: '_ingegr-test-usr',
         password: consts.NEW_USER_PASSWORD
     },
