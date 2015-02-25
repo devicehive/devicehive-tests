@@ -1,10 +1,8 @@
 var assert = require('assert');
 var async = require('async');
 var format = require('util').format;
-var Http = require('./common/http').Http;
 var utils = require('./common/utils');
 var path = require('./common/path');
-var status = require('./common/http').status;
 
 //var deviceGuid = "11111111-2222-3333-4444-555555555555";
 
@@ -15,7 +13,6 @@ var deviceGuid = "11111111-2222-3333-4444-555555555555";
 var deviceGuid2 = "22222222-3333-4444-5555-666666666666";
 
 //var accessKey = utils.getConfig('server:accessKey');
-var ownerAccessKey = '';
 
 var common = {
 
@@ -74,32 +71,6 @@ var common = {
         return params;
     },
 
-    createAccessKey: function (args, cb) {
-        var params = {
-            user: args.user,
-            data: {
-                label: '_integr-tests-key',
-                permissions: [{
-                    actions: args.actions,
-                    networkIds: args.networkIds,
-                    deviceGuids: args.deviceGuids
-                }]
-            }
-        };
-
-        new Http(utils.url, path.CURRENT_ACCESS_KEY)
-            .post(params, function (err, result, xhr) {
-                if (err) {
-                    return cb(err);
-                }
-
-                utils.resources.push(path.get(path.CURRENT_ACCESS_KEY, result.id));
-                assert.strictEqual(xhr.status, status.EXPECTED_CREATED);
-
-                cb(null, result);
-            });
-    },
-
     expectAccessKey: function (actual, expected) {
         assert.strictEqual(+new Date(actual.expirationDate), +new Date(expected.expirationDate));
         assert.strictEqual(actual.label, expected.label);
@@ -123,61 +94,134 @@ describe('REST Access Key', function () {
     //})
 
     before(function (done) {
+        utils.createUser(utils.owner.login, utils.owner.password, 1, 0,
+            function (err, result) {
+                if (err) {
+                    return done(err);
+                }
 
-        function addUser(callback) {
-            utils.createUser(utils.owner.login, utils.owner.password, 1, 0,
-                function (err, result) {
-                    path.setOwnerId(result.id);
-                    callback();
-                });
-        }
-
-        function addAccessKey(callback) {
-
-            var args = {
-                user: utils.owner,
-                actions: [
-                    'GetNetwork',
-                    'GetDevice',
-                    'GetDeviceState',
-                    'GetDeviceNotification',
-                    'GetDeviceCommand',
-                    'RegisterDevice',
-                    'CreateDeviceNotification',
-                    'CreateDeviceCommand',
-                    'UpdateDeviceCommand'
-                ]
-            };
-            common.createAccessKey(args, function (err, data) {
-                ownerAccessKey = data.key;
-                callback(err);
+                path.setOwnerId(result.id);
+                done();
             });
-        }
-
-        async.series([addUser, addAccessKey], done);
     });
 
-    describe('#GetAll()', function() {
-        it('should return all access keys', function(done){
+    describe('#GetAll', function() {
 
-            var params = { user: utils.admin };
-            new Http(utils.url, path.ownerAccessKey)
-                .get(params, function (err, result, xhr) {
+        var adminAccessKey = null;
+        var ownerAccessKey = null;
+
+        before(function (done) {
+
+            function createAdminKey(callback) {
+                var params = {
+                    user: utils.admin,
+                    data: {
+                        label: '_integr-tests-admin-key',
+                        permissions: [{
+                            actions: [
+                                'GetNetwork',
+                                'GetDevice',
+                                'GetDeviceState',
+                                'GetDeviceNotification',
+                                'GetDeviceCommand',
+                                'RegisterDevice',
+                                'CreateDeviceNotification',
+                                'CreateDeviceCommand',
+                                'UpdateDeviceCommand'
+                            ]
+                        }]
+                    }
+                };
+
+                utils.create(path.CURRENT_ACCESS_KEY, params, function (err, result) {
                     if (err) {
-                        return done(err);
+                        return callback(err);
                     }
 
-                    assert.strictEqual(xhr.status, status.EXPECTED_READ);
-                    assert.strictEqual(Array.isArray(result), true);
-                    assert.equal(result.length > 0, true);
-                    assert.strictEqual(ownerAccessKey, result[0].key);
+                    adminAccessKey = result.key;
+                    callback();
+                })
+            }
 
-                    done();
-                });
+            function createOwnerKey(callback) {
+                var params = {
+                    user: utils.owner,
+                    data: {
+                        label: '_integr-tests-owner-key',
+                        permissions: [{
+                            actions: [
+                                'GetNetwork',
+                                'GetDevice',
+                                'GetDeviceState',
+                                'GetDeviceNotification',
+                                'GetDeviceCommand',
+                                'RegisterDevice',
+                                'CreateDeviceNotification',
+                                'CreateDeviceCommand',
+                                'UpdateDeviceCommand'
+                            ]
+                        }]
+                    }
+                };
+
+                utils.create(path.ownerAccessKey, params, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    ownerAccessKey = result.key;
+                    callback();
+                })
+            }
+
+            async.series([
+                createAdminKey,
+                createOwnerKey,
+            ], done);
+        })
+
+        it('should get administrator keys', function(done){
+
+            var params = { user: utils.admin };
+            utils.get(path.CURRENT_ACCESS_KEY, params, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                function hasAdminAccessKey(item) {
+                    return item.key === adminAccessKey;
+                }
+
+                assert.strictEqual(Array.isArray(result), true);
+                assert.equal(result.length > 0, true);
+                assert.strictEqual(result.some(hasAdminAccessKey), true);
+
+                done();
+            });
+        })
+
+        it('should get user keys', function(done){
+
+            var params = { user: utils.owner };
+            utils.get(path.ownerAccessKey, params, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                function hasOwnerAccessKey(item) {
+                    return item.key === ownerAccessKey;
+                }
+
+                assert.strictEqual(Array.isArray(result), true);
+                assert.equal(result.length > 0, true);
+                assert.strictEqual(result.some(hasOwnerAccessKey), true);
+
+                done();
+            });
         })
     });
 
-    describe('#Create()', function() {
+    describe.only('#Create', function() {
         it('should match created and returned access key properties', function(done){
 
             var testData = [
