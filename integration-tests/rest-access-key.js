@@ -350,95 +350,13 @@ describe('REST Access Key', function () {
         })
     });
 
-    describe('#Authorization()', function() {
-        it('should return network', function (done) {
+    describe('#Authorization', function() {
 
-            var NETWORK_NAME = '_integr-test-network';
+        var NETWORK_NAME = '_integr-test-network';
+        var user = null;
+        var networkId = null;
 
-            function onResultOk(err, result, networkId) {
-                assert.strictEqual(!(!err), false, 'No error object');
-                assert.deepEqual(result.id, networkId);
-                assert.deepEqual(result.name, NETWORK_NAME);
-            }
-
-            function onResultErr1(err) {
-                assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
-            }
-
-            function onResultErr2(err, result, networkId) {
-                assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('DeviceHive server error - Network with id = %d not found', networkId));
-            }
-
-            var testData = [
-                {
-                    // Check the key authorization works
-                    get: function (user) {
-                        return common.getParamsObj(
-                            '_integr-test-auth-1', user, void 0, void 0, void 0, ['GetNetwork']);
-                    },
-                    onResult: onResultOk
-                },
-                {
-                    // Check the key authorization with explicit network works
-                    get: function (user, networkId) {
-                        return common.getParamsObj(
-                            '_integr-test-auth-2', user, void 0, void 0, [networkId], ['GetNetwork']);
-                    },
-                    onResult: onResultOk
-                },
-                {
-                    // Check the key authorization with explicit subnet works
-                    get: function (user) {
-                        return common.getParamsObj(
-                            '_integr-test-auth-3', user, void 0, void 0, void 0, ['GetNetwork'], void 0, ['0.0.0.0/0']);
-                    },
-                    onResult: onResultOk
-                },
-                {
-                    // Check the expiration date is validated
-                    get: function (user, networkId) {
-                        var expDate = new Date();
-                        expDate.setHours(expDate.getHours() - 1);
-                        return common.getParamsObj(
-                            '_integr-test-auth-4', user, expDate, void 0, [networkId], ['GetNetwork']);
-                    },
-                    onResult: onResultErr1
-                },
-                {
-                    // Check the source subnet is validated
-                    get: function (user) {
-                        return common.getParamsObj(
-                            '_integr-test-auth-5', user, void 0, void 0, void 0, ['GetNetwork'], void 0, ['10.10.10.0/24']);
-                    },
-                    onResult: onResultErr1
-                },
-                {
-                    // Check the action is validated
-                    get: function (user) {
-                        return common.getParamsObj(
-                            '_integr-test-auth-6', user, void 0, void 0, void 0, ['UpdateDeviceCommand']);
-                    },
-                    onResult: onResultErr1
-                },
-                {
-                    // Check the network is validated
-                    get: function (user, networkId) {
-                        return common.getParamsObj(
-                            '_integr-test-auth-7', user, void 0, void 0, [networkId + 1], ['GetNetwork']);
-                    },
-                    onResult: onResultErr2
-                },
-                {
-                    // Check the network is validated on admin key
-                    get: function (user, networkId) {
-                        return common.getParamsObj(
-                            '_integr-test-auth-8', utils.admin, void 0, void 0, [networkId + 1], ['GetNetwork']);
-                    },
-                    onResult: onResultErr2
-                },
-            ];
+        before(function (done) {
 
             function createNetwork(callback) {
 
@@ -450,44 +368,126 @@ describe('REST Access Key', function () {
                 };
 
                 utils.create(path.NETWORK, params, function (err, result) {
-                    callback(err, result.id)
-                });
-            }
-
-            function createUser(networkId, callback) {
-                utils.createUser2(1, [networkId], function (err, result) {
-                    callback(err, result.user, networkId);
-                });
-            }
-
-            function authTest(user, networkId, callback) {
-                var td = testData.shift();
-                var params = td.get(user, networkId);
-                utils.create(path.CURRENT_ACCESS_KEY, params, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
 
-                    var params = {accessKey: result.key};
-                    utils.get(path.get(path.NETWORK, networkId), params, function (err, result) {
-                        td.onResult(err, result, networkId);
-                        callback(null, user, networkId);
-                    });
+                    callback(null, result.id)
+                });
+            }
+
+            function createUser($networkId, callback) {
+                utils.createUser2(1, [$networkId], function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    user = result.user;
+                    networkId = $networkId;
+                    callback();
                 });
             }
 
             async.waterfall([
                 createNetwork,
-                createUser,
-                authTest,
-                authTest,
-                authTest,
-                authTest,
-                authTest,
-                authTest,
-                authTest,
-                authTest,
+                createUser
             ], done);
+        })
+
+        function assertResultOk(err, result, networkId) {
+            assert.strictEqual(!(!err), false, 'No error object');
+            assert.deepEqual(result.id, networkId);
+            assert.deepEqual(result.name, NETWORK_NAME);
+        }
+
+        function assertResultErr1(err) {
+            assert.strictEqual(!(!err), true, 'Error object created');
+            assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
+        }
+
+        function assertResultErr2(err, result, networkId) {
+            assert.strictEqual(!(!err), true, 'Error object created');
+            assert.strictEqual(err.error, format('DeviceHive server error - Network with id = %d not found', networkId));
+        }
+
+        function authTest(testData, callback) {
+            utils.create(path.CURRENT_ACCESS_KEY, testData.params, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                var params = {accessKey: result.key};
+                utils.get(path.get(path.NETWORK, networkId), params, function (err, result) {
+                    testData.onResult(err, result, networkId);
+                    callback();
+                });
+            });
+        }
+
+        it('checks the key authorization works', function (done) {
+            authTest({
+                params: common.getParamsObj(
+                    '_integr-test-auth-1', user, void 0, void 0, void 0, ['GetNetwork']),
+                onResult: assertResultOk
+            }, done);
+        })
+
+        it('checks the key authorization with explicit network works', function (done) {
+            authTest({
+                params: common.getParamsObj(
+                    '_integr-test-auth-2', user, void 0, void 0, [networkId], ['GetNetwork']),
+                onResult: assertResultOk
+            }, done);
+        })
+
+        it('checks the key authorization with explicit subnet works', function (done) {
+            authTest({
+                params: common.getParamsObj(
+                    '_integr-test-auth-3', user, void 0, void 0, void 0, ['GetNetwork'], void 0, ['0.0.0.0/0']),
+                onResult: assertResultOk
+            }, done);
+        })
+
+        it('checks the expiration date is validated', function (done) {
+            var expDate = new Date();
+            expDate.setHours(expDate.getHours() - 1);
+            authTest({
+                params: common.getParamsObj(
+                    '_integr-test-auth-4', user, expDate, void 0, [networkId], ['GetNetwork']),
+                onResult: assertResultErr1
+            }, done);
+        })
+
+        it('checks the source subnet is validated', function (done) {
+            authTest({
+                params: common.getParamsObj(
+                    '_integr-test-auth-5', user, void 0, void 0, void 0, ['GetNetwork'], void 0, ['10.10.10.0/24']),
+                onResult: assertResultErr1
+            }, done);
+        })
+
+        it('checks the action is validated', function (done) {
+            authTest({
+                params: common.getParamsObj(
+                    '_integr-test-auth-6', user, void 0, void 0, void 0, ['UpdateDeviceCommand']),
+                onResult: assertResultErr1
+            }, done);
+        })
+
+        it('checks the network is validated', function (done) {
+            authTest({
+                params: common.getParamsObj(
+                    '_integr-test-auth-7', user, void 0, void 0, [networkId + 1], ['GetNetwork']),
+                onResult: assertResultErr2
+            }, done);
+        })
+
+        it('checks the network is validated on admin key', function (done) {
+            authTest({
+                params: common.getParamsObj(
+                    '_integr-test-auth-8', utils.admin, void 0, void 0, [networkId + 1], ['GetNetwork']),
+                onResult: assertResultErr2
+            }, done);
         })
     });
 
