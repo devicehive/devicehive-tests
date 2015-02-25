@@ -1,8 +1,8 @@
 var XMLHttpRequest = require('xhr2');
-var utils = require('../common/utils.js');
+var utils = require('../../common/utils.js');
 
 var status = {
-    OK: 200,
+    EXPECTED_READ: 200,
     EXPECTED_CREATED: 201,
     EXPECTED_UPDATED: 204,
     EXPECTED_DELETED: 204

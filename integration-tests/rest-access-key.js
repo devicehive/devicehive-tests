@@ -1,17 +1,15 @@
 var assert = require('assert');
 var async = require('async');
-var Http = require('./http').Http;
-var utils = require('./utils');
-var path = require('./path');
-var status = require('./http').status;
+var format = require('util').format;
+var Http = require('./common/http').Http;
+var utils = require('./common/utils');
+var path = require('./common/path');
+var status = require('./common/http').status;
 
-//var url = 'http://nn7502.pg.devicehive.com/api';
 //var deviceGuid = "11111111-2222-3333-4444-555555555555";
 
-//var url = 'http://192.168.152.147:8080/dh/rest';
 //var deviceGuid = "e50d6085-2aba-48e9-b1c3-73c673e414be";
 
-var url = 'http://23.253.35.56:8081/DeviceHive/rest';
 var accessKey = 'sStsRCchw3pCUeLwyVvhX/Q27CKeJgVFcNcDBvJiB6g=';
 var deviceGuid = "11111111-2222-3333-4444-555555555555";
 var deviceGuid2 = "22222222-3333-4444-5555-666666666666";
@@ -22,22 +20,58 @@ var ownerAccessKey = '';
 var common = {
 
     getParams: function (label, user, expDate, domains, networkIds, actions, deviceGuids, subnets) {
+
         expDate || (expDate = new Date());
         expDate.setFullYear(expDate.getFullYear() + 10);
-        return {
-            user: user || utils.admin,
+
+        return this.getParamsObj(label, user, expDate,
+            domains || ['www.example.com'],
+            networkIds || [1, 2],
+            actions || ['GetNetwork', 'GetDevice'],
+            deviceGuids || [deviceGuid],
+            subnets || ['127.0.0.1']);
+    },
+
+    getParamsObj: function (label, user, expDate, domains, networkIds, actions, deviceGuids, subnets) {
+
+        var permission = {};
+
+        if (domains) {
+            permission.domains = domains;
+        }
+
+        if (networkIds) {
+            permission.networkIds = networkIds;
+        }
+
+        if (actions) {
+            permission.actions = actions;
+        }
+
+        if (deviceGuids) {
+            permission.deviceGuids = deviceGuids;
+        }
+
+        if (subnets) {
+            permission.subnets = subnets;
+        }
+
+        var params = {
             data: {
                 label: label,
-                expirationDate: expDate.toISOString(),
-                permissions: [{
-                    domains: domains || ['www.example.com'],
-                    networkIds: networkIds || [1, 2],
-                    actions: actions || ['GetNetwork', 'GetDevice'],
-                    deviceGuids: deviceGuids || null,
-                    subnets: subnets || ['127.0.0.1']
-                }]
+                permissions: [permission]
             }
         };
+
+        if (user) {
+            params.user = user;
+        }
+
+        if (expDate) {
+            params.data.expirationDate = expDate.toISOString();
+        }
+
+        return params;
     },
 
     createAccessKey: function (args, cb) {
@@ -53,7 +87,7 @@ var common = {
             }
         };
 
-        new Http(url, path.CURRENT_ACCESS_KEY)
+        new Http(utils.url, path.CURRENT_ACCESS_KEY)
             .post(params, function (err, result, xhr) {
                 if (err) {
                     return cb(err);
@@ -76,36 +110,24 @@ var common = {
 describe('REST Access Key', function () {
 
     //before(function () {
-    //    var ownerId = 74;
+    //    var ownerId = 102;
     //    path.setOwnerId(ownerId);
     //    utils.resources.push(path.get(path.USER, ownerId));
-    //    utils.resources.push(path.get(path.CURRENT_ACCESS_KEY, 181));
-    //    //utils.resources.push(path.get(path.CURRENT_ACCESS_KEY, 47));
+    //    utils.resources.push(path.get(path.USER, 103));
+    //    utils.resources.push(path.get(path.USER, 105));
+    //
+    //    var accessKeyIds = [264, 265, 267];
+    //    accessKeyIds.forEach(function (id) {
+    //        utils.resources.push(path.get(path.CURRENT_ACCESS_KEY, id));
+    //    })
     //})
 
     before(function (done) {
 
         function addUser(callback) {
-
-            var params = {
-                user: utils.admin,
-                data: {
-                    login: utils.owner.login,
-                    password: utils.owner.password,
-                    role: 1,
-                    status: 0
-                }
-            };
-
-            new Http(url, path.USER)
-                .post(params, function (err, result) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    var userId = result.id;
-                    utils.resources.push(path.get(path.USER, userId));
-                    path.setOwnerId(userId);
+            utils.createUser(utils.owner.login, utils.owner.password, 1, 0,
+                function (err, result) {
+                    path.setOwnerId(result.id);
                     callback();
                 });
         }
@@ -139,13 +161,13 @@ describe('REST Access Key', function () {
         it('should return all access keys', function(done){
 
             var params = { user: utils.admin };
-            new Http(url, path.ownerAccessKey)
+            new Http(utils.url, path.ownerAccessKey)
                 .get(params, function (err, result, xhr) {
                     if (err) {
                         return done(err);
                     }
 
-                    assert.strictEqual(xhr.status, status.OK);
+                    assert.strictEqual(xhr.status, status.EXPECTED_READ);
                     assert.strictEqual(Array.isArray(result), true);
                     assert.equal(result.length > 0, true);
                     assert.strictEqual(ownerAccessKey, result[0].key);
@@ -184,9 +206,9 @@ describe('REST Access Key', function () {
                 var td = testData.shift();
 
                 var createParams = td.createParams;
-                utils.create(url, td.createPath, createParams, function (err, createResult) {
+                utils.create(td.createPath, createParams, function (err, createResult) {
                     td.getParams.id = createResult.id;
-                    utils.get(url, td.getPath, td.getParams, function (err, getResult) {
+                    utils.get(td.getPath, td.getParams, function (err, getResult) {
                         if (err) {
                             callback(err);
                         }
@@ -236,8 +258,8 @@ describe('REST Access Key', function () {
             ];
 
             function createAccessKey(callback) {
-                var createParams = common.getParams('_integr-test-update');
-                utils.create(url, path.ownerAccessKey, createParams, function (err, createResult) {
+                var createParams = common.getParams('_integr-test-update', utils.admin);
+                utils.create(path.ownerAccessKey, createParams, function (err, createResult) {
                     callback(err, createResult);
                 });
             }
@@ -248,14 +270,14 @@ describe('REST Access Key', function () {
                 var updateParams = td.updateParams;
 
                 updateParams.id = createResult.id;
-                utils.update(url, td.updatePath, updateParams, function (err) {
+                utils.update(td.updatePath, updateParams, function (err) {
 
                     if (err) {
                         callback(err);
                     }
 
                     td.getParams.id = createResult.id;
-                    utils.get(url, td.getPath, td.getParams, function (err, getResult) {
+                    utils.get(td.getPath, td.getParams, function (err, getResult) {
                         if (err) {
                             callback(err);
                         }
@@ -308,11 +330,11 @@ describe('REST Access Key', function () {
                 var td = testData.shift();
 
                 var createParams = td.createParams;
-                utils.create(url, td.createPath, createParams, function (err, createResult) {
+                utils.create(td.createPath, createParams, function (err, createResult) {
                     td.params.id = createResult.id;
-                    utils.delete(url, td.path, td.params, function () {
-                        utils.get(url, td.path, td.params, function (err) {
-                            assert.strictEqual(!(!err), true);
+                    utils.delete(td.path, td.params, function () {
+                        utils.get(td.path, td.params, function (err) {
+                            assert.strictEqual(!(!err), true, 'Error object created')
                             assert.strictEqual(err.error, 'DeviceHive server error - Access key not found.');
                             callback();
                         })
@@ -328,8 +350,148 @@ describe('REST Access Key', function () {
         })
     });
 
+    describe('#Authorization()', function() {
+        it('should return network', function (done) {
+
+            var NETWORK_NAME = '_integr-test-network';
+
+            function onResultOk(err, result, networkId) {
+                assert.strictEqual(!(!err), false, 'No error object');
+                assert.deepEqual(result.id, networkId);
+                assert.deepEqual(result.name, NETWORK_NAME);
+            }
+
+            function onResultErr1(err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
+            }
+
+            function onResultErr2(err, result, networkId) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, format('DeviceHive server error - Network with id = %d not found', networkId));
+            }
+
+            var testData = [
+                {
+                    // Check the key authorization works
+                    get: function (user) {
+                        return common.getParamsObj(
+                            '_integr-test-auth-1', user, void 0, void 0, void 0, ['GetNetwork']);
+                    },
+                    onResult: onResultOk
+                },
+                {
+                    // Check the key authorization with explicit network works
+                    get: function (user, networkId) {
+                        return common.getParamsObj(
+                            '_integr-test-auth-2', user, void 0, void 0, [networkId], ['GetNetwork']);
+                    },
+                    onResult: onResultOk
+                },
+                {
+                    // Check the key authorization with explicit subnet works
+                    get: function (user) {
+                        return common.getParamsObj(
+                            '_integr-test-auth-3', user, void 0, void 0, void 0, ['GetNetwork'], void 0, ['0.0.0.0/0']);
+                    },
+                    onResult: onResultOk
+                },
+                {
+                    // Check the expiration date is validated
+                    get: function (user, networkId) {
+                        var expDate = new Date();
+                        expDate.setHours(expDate.getHours() - 1);
+                        return common.getParamsObj(
+                            '_integr-test-auth-4', user, expDate, void 0, [networkId], ['GetNetwork']);
+                    },
+                    onResult: onResultErr1
+                },
+                {
+                    // Check the source subnet is validated
+                    get: function (user) {
+                        return common.getParamsObj(
+                            '_integr-test-auth-5', user, void 0, void 0, void 0, ['GetNetwork'], void 0, ['10.10.10.0/24']);
+                    },
+                    onResult: onResultErr1
+                },
+                {
+                    // Check the action is validated
+                    get: function (user) {
+                        return common.getParamsObj(
+                            '_integr-test-auth-6', user, void 0, void 0, void 0, ['UpdateDeviceCommand']);
+                    },
+                    onResult: onResultErr1
+                },
+                {
+                    // Check the network is validated
+                    get: function (user, networkId) {
+                        return common.getParamsObj(
+                            '_integr-test-auth-7', user, void 0, void 0, [networkId + 1], ['GetNetwork']);
+                    },
+                    onResult: onResultErr2
+                },
+                {
+                    // Check the network is validated on admin key
+                    get: function (user, networkId) {
+                        return common.getParamsObj(
+                            '_integr-test-auth-8', utils.admin, void 0, void 0, [networkId + 1], ['GetNetwork']);
+                    },
+                    onResult: onResultErr2
+                },
+            ];
+
+            function createNetwork(callback) {
+
+                var params = {
+                    user: utils.admin,
+                    data: {
+                        name: NETWORK_NAME
+                    }
+                };
+
+                utils.create(path.NETWORK, params, function (err, result) {
+                    callback(err, result.id)
+                });
+            }
+
+            function createUser(networkId, callback) {
+                utils.createUser2(1, [networkId], function (err, result) {
+                    callback(err, result.user, networkId);
+                });
+            }
+
+            function authTest(user, networkId, callback) {
+                var td = testData.shift();
+                var params = td.get(user, networkId);
+                utils.create(path.CURRENT_ACCESS_KEY, params, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    var params = {accessKey: result.key};
+                    utils.get(path.get(path.NETWORK, networkId), params, function (err, result) {
+                        td.onResult(err, result, networkId);
+                        callback(null, user, networkId);
+                    });
+                });
+            }
+
+            async.waterfall([
+                createNetwork,
+                createUser,
+                authTest,
+                authTest,
+                authTest,
+                authTest,
+                authTest,
+                authTest,
+                authTest,
+                authTest,
+            ], done);
+        })
+    });
+
     after(function (done) {
-        utils.clearResources(url, done);
+        utils.clearResources(done);
     })
 });
-
