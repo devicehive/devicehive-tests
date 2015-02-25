@@ -33,6 +33,7 @@ module.exports = {
         new Http(this.url, $path)
             .post(params, function (err, result, xhr) {
                 if (err) {
+                    err.httpStatus = xhr.status;
                     return cb(err);
                 }
 
@@ -48,6 +49,7 @@ module.exports = {
         new Http(this.url, path.get($path, params.id))
             .get(params, function (err, result, xhr) {
                 if (err) {
+                    err.httpStatus = xhr.status;
                     return cb(err);
                 }
 
@@ -61,6 +63,7 @@ module.exports = {
         new Http(this.url, path.get($path, params.id))
             .put(params, function (err, result, xhr) {
                 if (err) {
+                    err.httpStatus = xhr.status;
                     return cb(err);
                 }
 
@@ -74,6 +77,7 @@ module.exports = {
         new Http(this.url, path.get($path, params.id))
             .delete(params, function (err, result, xhr) {
                 if (err) {
+                    err.httpStatus = xhr.status;
                     return cb(err);
                 }
 

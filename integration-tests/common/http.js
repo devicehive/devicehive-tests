@@ -5,7 +5,8 @@ var status = {
     EXPECTED_READ: 200,
     EXPECTED_CREATED: 201,
     EXPECTED_UPDATED: 204,
-    EXPECTED_DELETED: 204
+    EXPECTED_DELETED: 204,
+    BAD_REQUEST: 400
 };
 
 function Http(baseUrl, path) {

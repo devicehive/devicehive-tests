@@ -3,6 +3,7 @@ var async = require('async');
 var format = require('util').format;
 var utils = require('./common/utils');
 var path = require('./common/path');
+var status = require('./common/http').status;
 
 describe('Access Key REST API', function () {
 
@@ -520,6 +521,20 @@ describe('Access Key REST API', function () {
             }, done);
         })
     });
+
+    describe('BadRequest', function () {
+        it('should raise error when trying to create access key without actions', function (done) {
+
+            var params = getParamsObj('_integr-test-bad-request', utils.admin);
+            utils.create(path.userAccessKey, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'DeviceHive server error - Actions are required!');
+                assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
+                done();
+            })
+
+        })
+    })
 
     after(function (done) {
         utils.clearResources(done);
