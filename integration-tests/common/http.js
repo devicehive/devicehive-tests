@@ -6,7 +6,9 @@ var status = {
     EXPECTED_CREATED: 201,
     EXPECTED_UPDATED: 204,
     EXPECTED_DELETED: 204,
-    BAD_REQUEST: 400
+    BAD_REQUEST: 400,
+    NOT_AUTHORIZED: 401,
+    NOT_FOUND: 404
 };
 
 function Http(baseUrl, path) {
@@ -54,6 +56,12 @@ Http.prototype = {
             if (xhr.readyState !== 4) {
                 return;
             }
+
+            /* hack */
+            if (xhr.responseText === '{message:\"Not authorized\"}') {
+                xhr.responseText = '{\"message\":\"Not authorized\"}';
+            }
+            /* hack */
 
             var isSuccess = xhr.status && xhr.status >= 200 && xhr.status < 300 || xhr.status === 304;
             var err = isSuccess ? void 0 : self.serverErrorMessage(xhr);

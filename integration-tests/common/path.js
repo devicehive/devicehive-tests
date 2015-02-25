@@ -11,6 +11,10 @@ module.exports = {
     },
 
     get: function (path, id) {
+        if (!id) {
+            return path;
+        }
+
         return [path, id].join('/');
     },
 
