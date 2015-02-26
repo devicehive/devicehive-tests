@@ -537,17 +537,129 @@ describe('Access Key REST API', function () {
         })
     })
 
-    describe.only('#Unauthorized', function () {
+    describe('#Unauthorized', function () {
 
-        it('should return error when accessing key without authorization', function (done) {
-            var params = {user: null};
-            utils.get(path.userAccessKey, params, function (err) {
-                assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
-                done();
+        describe('no authorization', function () {
+            it('should return error when accessing key without authorization', function (done) {
+                var params = {user: null};
+                utils.get(path.userAccessKey, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            })
+
+            it('should return error when accessing non-existing key without authorization', function (done) {
+                var params = {user: null, id: consts.NON_EXISTING_ID };
+                utils.get(path.userAccessKey, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            })
+
+            it('should return error when creating key without authorization', function (done) {
+                var params = getParamsObj('_integr-test-create-no-auth', null);
+                utils.create(path.userAccessKey, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            })
+
+            it('should return error when updating non-existing key without authorization', function (done) {
+                var params = getParams('_integr-test-update-non-existing', null);
+                params.id = consts.NON_EXISTING_ID;
+                utils.update(path.userAccessKey, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            })
+
+            it('should return error when deleting non-existing key without authorization', function (done) {
+                var params = {user: null, id: consts.NON_EXISTING_ID};
+                utils.delete(path.userAccessKey, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
             })
         })
+
+        describe('another user authorization', function () {
+            var user = null;
+
+            before(function (done) {
+                utils.createUser2(1, [], function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    user = result.user;
+                    done();
+                })
+            })
+
+            it('should return error when accessing key with another user', function (done) {
+                var params = {user: user};
+                utils.get(path.userAccessKey, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            })
+
+            it('should return error when accessing non-existing key', function (done) {
+                var params = {user: user, id: consts.NON_EXISTING_ID};
+                utils.get(path.userAccessKey, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            })
+
+            it('should return error when creating key using wrong user credentials', function (done) {
+                var params = getParamsObj('_integr-test-create-other-user', user);
+                utils.create(path.userAccessKey, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            })
+
+            it('should return error when updating non-existing key', function (done) {
+                var params = getParams('_integr-test-update-non-existing', user);
+                params.id = consts.NON_EXISTING_ID;
+                utils.update(path.userAccessKey, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            })
+
+            it('should return error when deleting non-existing key', function (done) {
+                var params = {user: user, id: consts.NON_EXISTING_ID};
+                utils.delete(path.userAccessKey, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            })
+        })
+    })
+
+    describe('#Not Found', function () {
 
         it('should return error when accessing non-existing key', function (done) {
             var params = {user: utils.admin, id: consts.NON_EXISTING_ID };
@@ -555,16 +667,6 @@ describe('Access Key REST API', function () {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, 'DeviceHive server error - Access key not found.');
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
-                done();
-            })
-        })
-
-        it('should return error when creating key without authorization', function (done) {
-            var params = getParamsObj('_integr-test-create-no-auth', null);
-            utils.create(path.userAccessKey, params, function (err) {
-                assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                 done();
             })
         })
@@ -580,15 +682,14 @@ describe('Access Key REST API', function () {
             })
         })
 
-        //it('should return error when deleting non-existing key', function (done) {
-        //    var params = {user: utils.admin, id: consts.NON_EXISTING_ID};
-        //    utils.delete(path.userAccessKey, params, function (err) {
-        //        assert.strictEqual(!(!err), true, 'Error object created');
-        //        assert.strictEqual(err.error, 'DeviceHive server error - Access key not found');
-        //        assert.strictEqual(err.httpStatus, status.NOT_FOUND);
-        //        done();
-        //    })
-        //})
+        it('should return error when deleting non-existing key', function (done) {
+            var params = {user: utils.admin, id: consts.NON_EXISTING_ID};
+            utils.delete(path.userAccessKey, params, function (err) {
+                assert.strictEqual(!(!err), false, 'No error');
+                done();
+            })
+        })
+
     })
 
     after(function (done) {
