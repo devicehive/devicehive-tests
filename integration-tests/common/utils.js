@@ -4,8 +4,12 @@ var path = require('./path');
 var Http = require('./http').Http;
 var status = require('./http').status;
 var consts = require('./consts');
+var utils = require('./../../common/utils');
+
 
 module.exports = {
+
+    core: utils,
 
     //url: 'http://nn7502.pg.devicehive.com/api',
     //url: 'http://192.168.152.147:8080/dh/rest',

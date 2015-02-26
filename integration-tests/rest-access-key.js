@@ -6,7 +6,7 @@ var path = require('./common/path');
 var status = require('./common/http').status;
 var consts = require('./common/consts');
 
-describe('Access Key REST API', function () {
+describe('REST API Access Key', function () {
 
     before(function (done) {
         utils.createUser(utils.user.login, utils.user.password, 1, 0,
