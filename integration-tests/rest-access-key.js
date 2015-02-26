@@ -8,19 +8,6 @@ var consts = require('./common/consts');
 
 describe('Access Key REST API', function () {
 
-    //before(function () {
-    //    var userId = 195;
-    //    path.setUserId(userId);
-    //    utils.resources.push(path.get(path.USER, userId));
-    //    utils.resources.push(path.get(path.USER, 103));
-    //    utils.resources.push(path.get(path.USER, 105));
-    //
-    //    var accessKeyIds = [264, 265, 267];
-    //    accessKeyIds.forEach(function (id) {
-    //        utils.resources.push(path.get(path.CURRENT_ACCESS_KEY, id));
-    //    })
-    //})
-
     before(function (done) {
         utils.createUser(utils.user.login, utils.user.password, 1, 0,
             function (err, result) {
