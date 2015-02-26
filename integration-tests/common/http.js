@@ -8,6 +8,7 @@ var status = {
     EXPECTED_DELETED: 204,
     BAD_REQUEST: 400,
     NOT_AUTHORIZED: 401,
+    FORBIDDEN: 403,
     NOT_FOUND: 404
 };
 

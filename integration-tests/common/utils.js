@@ -6,7 +6,6 @@ var status = require('./http').status;
 var consts = require('./consts');
 var utils = require('./../../common/utils');
 
-
 module.exports = {
 
     core: utils,
@@ -32,6 +31,111 @@ module.exports = {
 
     resources: [],
 
+    accessKey: {
+
+        getParams: function (label, user, expDate, domains, networkIds, actions, deviceGuids, subnets) {
+
+            expDate || (expDate = new Date());
+            expDate.setFullYear(expDate.getFullYear() + 10);
+
+            return this.getParamsObj(label, user, expDate,
+                domains || ['www.example.com'],
+                networkIds || [1, 2],
+                actions || ['GetNetwork', 'GetDevice'],
+                deviceGuids || ['11111111-2222-3333-4444-555555555555'],
+                subnets || ['127.0.0.1']);
+        },
+
+        getParamsObj: function (label, user, expDate, domains, networkIds, actions, deviceGuids, subnets) {
+
+            var permission = {};
+
+            if (domains) {
+                permission.domains = domains;
+            }
+
+            if (networkIds) {
+                permission.networkIds = networkIds;
+            }
+
+            if (actions) {
+                permission.actions = actions;
+            }
+
+            if (deviceGuids) {
+                permission.deviceGuids = deviceGuids;
+            }
+
+            if (subnets) {
+                permission.subnets = subnets;
+            }
+
+            var params = {
+                data: {
+                    label: label,
+                    permissions: [permission]
+                }
+            };
+
+            if (user) {
+                params.user = user;
+            }
+
+            if (expDate) {
+                params.data.expirationDate = expDate.toISOString();
+            }
+
+            return params;
+        },
+
+        expectAccessKey: function (actual, expected) {
+            assert.strictEqual(+new Date(actual.expirationDate), +new Date(expected.expirationDate));
+            assert.strictEqual(actual.label, expected.label);
+            assert.deepEqual(actual.permissions, expected.permissions);
+        }
+    },
+
+    deviceClass: {
+
+        getParams: function (name, user, version) {
+            return this.getParamsObj(name, user, version, void 0, 3600,
+                {
+                    name: '_integr-tests-eqpmnt',
+                    type: '_integr-tests-type',
+                    code: '_integr-tests-code'
+                });
+        },
+
+        getParamsObj: function (name, user, version, isPermanent, offlineTimeout, equipment, data) {
+
+            var params = {
+                user: user,
+                data: {
+                    name: name,
+                    version: version
+                }
+            };
+
+            if (typeof (isPermanent) === 'boolean') {
+                params.data.isPermanent = isPermanent;
+            }
+
+            if (offlineTimeout) {
+                params.data.offlineTimeout = offlineTimeout;
+            }
+
+            if (equipment) {
+                params.data.equipment = [equipment];
+            }
+
+            if (data) {
+                params.data.data = data;
+            }
+
+            return params;
+        }
+    },
+
     create: function ($path, params, cb) {
         var self = this;
         new Http(this.url, $path)
@@ -42,7 +146,7 @@ module.exports = {
                 }
 
                 var resource = path.get($path, result.id);
-                self.resources.push(resource)
+                self.resources.push(resource);
                 assert.strictEqual(xhr.status, status.EXPECTED_CREATED);
 
                 cb(null, result, resource);
@@ -89,22 +193,6 @@ module.exports = {
 
                 cb(null);
             });
-    },
-
-    clearResources: function (cb) {
-        var self = this;
-        this.resources.reverse();
-        async.eachSeries(this.resources, function(resource, callback) {
-            var params = { user: self.admin };
-            new Http(self.url, resource)
-                .delete(params, function (err, result) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    callback(null, result);
-                });
-        }, cb);
     },
 
     createUser: function (login, password, role, status, callback) {
@@ -162,5 +250,17 @@ module.exports = {
                     callback(null, {user: user});
                 })
         });
+    },
+
+    clearResources: function (done) {
+        var self = this;
+        this.resources.reverse();
+        async.eachSeries(this.resources, function(resource, callback) {
+            new Http(self.url, resource)
+                .delete({ user: self.admin }, function (err, result) {
+                    // Ignore any errors
+                    callback();
+                });
+        }, done);
     }
 }

@@ -6,6 +6,7 @@ module.exports = {
     CURRENT_ACCESS_KEY: '/user/current/accesskey',
     NETWORK: '/network',
     INFO: '/info',
+    DEVICE_CLASS: '/device/class',
 
     setUserId: function (userId) {
         this.userAccessKey = format(this.userAccessKey, userId);
