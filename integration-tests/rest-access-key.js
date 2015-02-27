@@ -6,7 +6,7 @@ var path = require('./common/path');
 var status = require('./common/http').status;
 var consts = require('./common/consts');
 
-describe.only('REST API Access Key', function () {
+describe('REST API Access Key', function () {
 
     var ac = utils.accessKey;
 
@@ -30,65 +30,27 @@ describe.only('REST API Access Key', function () {
         before(function (done) {
 
             function createAdminKey(callback) {
-                var params = {
-                    user: utils.admin,
-                    data: {
-                        label: '_integr-test-admin-key',
-                        permissions: [{
-                            actions: [
-                                'GetNetwork',
-                                'GetDevice',
-                                'GetDeviceState',
-                                'GetDeviceNotification',
-                                'GetDeviceCommand',
-                                'RegisterDevice',
-                                'CreateDeviceNotification',
-                                'CreateDeviceCommand',
-                                'UpdateDeviceCommand'
-                            ]
-                        }]
-                    }
-                };
+                ac.create(utils.admin, '_integr-test-admin-key', 'CreateDeviceNotification', void 0, void 0,
+                    function (err, result) {
+                        if (err) {
+                            return callback(err);
+                        }
 
-                utils.create(path.CURRENT_ACCESS_KEY, params, function (err, result) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    adminAccessKey = result.key;
-                    callback();
-                })
+                        adminAccessKey = result.key;
+                        callback();
+                    });
             }
 
             function createUserKey(callback) {
-                var params = {
-                    user: utils.user,
-                    data: {
-                        label: '_integr-test-user-key',
-                        permissions: [{
-                            actions: [
-                                'GetNetwork',
-                                'GetDevice',
-                                'GetDeviceState',
-                                'GetDeviceNotification',
-                                'GetDeviceCommand',
-                                'RegisterDevice',
-                                'CreateDeviceNotification',
-                                'CreateDeviceCommand',
-                                'UpdateDeviceCommand'
-                            ]
-                        }]
-                    }
-                };
+                ac.create(utils.user, '_integr-test-user-key', 'CreateDeviceNotification', void 0, void 0,
+                    function (err, result) {
+                        if (err) {
+                            return callback(err);
+                        }
 
-                utils.create(path.current, params, function (err, result) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    userAccessKey = result.key;
-                    callback();
-                })
+                        userAccessKey = result.key;
+                        callback();
+                    });
             }
 
             async.series([

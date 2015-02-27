@@ -9,7 +9,8 @@ var status = {
     BAD_REQUEST: 400,
     NOT_AUTHORIZED: 401,
     FORBIDDEN: 403,
-    NOT_FOUND: 404
+    NOT_FOUND: 404,
+    METHOD_NOT_ALLOWED: 405
 };
 
 function Http(baseUrl, path) {

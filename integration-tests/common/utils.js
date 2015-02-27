@@ -4,11 +4,11 @@ var path = require('./path');
 var Http = require('./http').Http;
 var status = require('./http').status;
 var consts = require('./consts');
-var utils = require('./../../common/utils');
+var $utils = require('./../../common/utils');
 
-module.exports = {
+var utils = {
 
-    core: utils,
+    core: $utils,
 
     //url: 'http://nn7502.pg.devicehive.com/api',
     //url: 'http://192.168.152.147:8080/dh/rest',
@@ -32,6 +32,29 @@ module.exports = {
     resources: [],
 
     accessKey: {
+
+        create: function (user, label, actions, deviceIds, networkIds, callback) {
+
+            label || (label = '_integr-test-access-key-' + +new Date());
+
+            if (actions && !Array.isArray(actions)) {
+                actions = [actions];
+            }
+
+            if (deviceIds && !Array.isArray(deviceIds)) {
+                deviceIds = [deviceIds];
+            }
+
+            if (networkIds && !Array.isArray(networkIds)) {
+                networkIds = [networkIds];
+            }
+
+            var expDate = new Date();
+            expDate.setFullYear(expDate.getFullYear() + 10);
+
+            var params = this.getParamsObj(label, user, expDate, void 0, networkIds, actions, deviceIds, void 0);
+            utils.create(path.CURRENT_ACCESS_KEY, params, callback);
+        },
 
         getParams: function (label, user, expDate, domains, networkIds, actions, deviceGuids, subnets) {
 
@@ -100,9 +123,9 @@ module.exports = {
         getParams: function (name, user, version) {
             return this.getParamsObj(name, user, version, void 0, 3600,
                 {
-                    name: '_integr-tests-eqpmnt',
-                    type: '_integr-tests-type',
-                    code: '_integr-tests-code'
+                    name: '_integr-test-eqpmnt',
+                    type: '_integr-test-type',
+                    code: '_integr-test-code'
                 });
         },
 
@@ -132,6 +155,45 @@ module.exports = {
                 params.data.data = data;
             }
 
+            return params;
+        }
+    },
+
+    device: {
+        getParamsObj: function (name, user, key, network, deviceClass) {
+
+            var params = {
+                user: user,
+                data: {
+                    name: name
+                }
+            };
+
+            if (key) {
+                params.data.key = key;
+            }
+
+            if (network) {
+                params.data.network = network;
+            }
+
+            if (deviceClass) {
+                params.data.deviceClass = deviceClass;
+            }
+
+            return params;
+        }
+    },
+
+    notification: {
+        getParamsObj: function (notification, user, parameters) {
+            var params = {
+                user: user,
+                data: {
+                    notification: notification,
+                    parameters: parameters
+                }
+            };
             return params;
         }
     },
@@ -221,6 +283,11 @@ module.exports = {
             password: consts.NEW_USER_PASSWORD
         };
 
+        networkIds || (networkIds = []);
+        if (!Array.isArray(networkIds)) {
+            networkIds = [networkIds];
+        }
+
         this.createUser(user.login, user.password, role, 0, function (err, result) {
             if (err) {
                 return callback(err);
@@ -263,4 +330,6 @@ module.exports = {
                 });
         }, done);
     }
-}
+};
+
+module.exports = utils;
