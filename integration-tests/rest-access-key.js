@@ -6,7 +6,7 @@ var path = require('./common/path');
 var status = require('./common/http').status;
 var consts = require('./common/consts');
 
-describe('REST API Access Key', function () {
+describe.only('REST API Access Key', function () {
 
     var ac = utils.accessKey;
 
@@ -17,7 +17,7 @@ describe('REST API Access Key', function () {
                     return done(err);
                 }
 
-                path.setUserId(result.id);
+                path.current = format('/user/%d/accesskey', result.id);
                 done();
             });
     });
@@ -81,7 +81,7 @@ describe('REST API Access Key', function () {
                     }
                 };
 
-                utils.create(path.userAccessKey, params, function (err, result) {
+                utils.create(path.current, params, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -120,7 +120,7 @@ describe('REST API Access Key', function () {
         it('should get user keys', function(done){
 
             var params = { user: utils.user };
-            utils.get(path.userAccessKey, params, function (err, result) {
+            utils.get(path.current, params, function (err, result) {
                 if (err) {
                     return done(err);
                 }
@@ -164,16 +164,16 @@ describe('REST API Access Key', function () {
         it('should allow administrator to create key', function (done) {
             createTest({
                 createParams: ac.getParams('_integr-test-create-1', utils.admin),
-                createPath: path.userAccessKey,
+                createPath: path.current,
                 getParams: {user: utils.admin},
-                getPath: path.userAccessKey
+                getPath: path.current
             }, done);
         })
 
         it('should allow user to create key', function (done) {
             createTest({
                 createParams: ac.getParams('_integr-test-create-2', utils.user),
-                createPath: path.userAccessKey,
+                createPath: path.current,
                 getParams: { user: utils.user },
                 getPath: path.CURRENT_ACCESS_KEY
             }, done);
@@ -182,9 +182,9 @@ describe('REST API Access Key', function () {
         it('should allow user to create key using same path', function (done) {
             createTest({
                 createParams: ac.getParams('_integr-test-create-3', utils.user),
-                createPath: path.userAccessKey,
+                createPath: path.current,
                 getParams: { user: utils.user },
-                getPath: path.userAccessKey
+                getPath: path.current
             }, done);
         })
     });
@@ -195,7 +195,7 @@ describe('REST API Access Key', function () {
 
         before(function (done) {
             var createParams = ac.getParams('_integr-test-update', utils.admin);
-            utils.create(path.userAccessKey, createParams, function (err, result) {
+            utils.create(path.current, createParams, function (err, result) {
                 if (err) {
                     return done(err);
                 }
@@ -232,9 +232,9 @@ describe('REST API Access Key', function () {
             updateTest({
                 updateParams: ac.getParams('_integr-test-update-1', utils.admin, new Date(2020, 4, 1),
                     ['www.devicehive.com'], [3, 4], ['CreateDeviceNotification'], void 0, ['127.0.0.2']),
-                updatePath: path.userAccessKey,
+                updatePath: path.current,
                 getParams: { user: utils.admin },
-                getPath: path.userAccessKey
+                getPath: path.current
             }, done);
         })
 
@@ -242,7 +242,7 @@ describe('REST API Access Key', function () {
             updateTest({
                 updateParams: ac.getParams('_integr-test-update-2', utils.user, new Date(2018, 3, 2),
                     ['www.integration-tests.com'], [5, 6], ['CreateDeviceCommand'], ['22222222-3333-4444-5555-666666666666'], ['127.0.0.2']),
-                updatePath: path.userAccessKey,
+                updatePath: path.current,
                 getParams: { user: utils.user },
                 getPath: path.CURRENT_ACCESS_KEY
             }, done);
@@ -252,9 +252,9 @@ describe('REST API Access Key', function () {
             updateTest({
                 updateParams: ac.getParams('_integr-test-update-3', utils.user, new Date(2018, 4, 15),
                     ['www.devicehive.com'], [3, 4], ['CreateDeviceNotification', 'UpdateDeviceCommand'], void 0, ['127.0.0.2']),
-                updatePath: path.userAccessKey,
+                updatePath: path.current,
                 getParams: { user: utils.user },
-                getPath: path.userAccessKey
+                getPath: path.current
             }, done);
         })
     });
@@ -285,16 +285,16 @@ describe('REST API Access Key', function () {
         it('should allow administrator to delete key', function (done) {
             deleteTest({
                 createParams: ac.getParams('_integr-test-delete-1', utils.admin),
-                createPath: path.userAccessKey,
+                createPath: path.current,
                 params: { user: utils.admin },
-                path: path.userAccessKey
+                path: path.current
             }, done);
         })
 
         it('should allow user to delete key', function (done) {
             deleteTest({
                 createParams: ac.getParams('_integr-test-delete-2', utils.user),
-                createPath: path.userAccessKey,
+                createPath: path.current,
                 params: { user: utils.user },
                 path: path.CURRENT_ACCESS_KEY
             }, done);
@@ -303,9 +303,9 @@ describe('REST API Access Key', function () {
         it('should allow user to delete key using user path', function (done) {
             deleteTest({
                 createParams: ac.getParams('_integr-test-delete-3', utils.user),
-                createPath: path.userAccessKey,
+                createPath: path.current,
                 params: { user: utils.user },
-                path: path.userAccessKey
+                path: path.current
             }, done);
         })
     });
@@ -455,7 +455,7 @@ describe('REST API Access Key', function () {
         it('should return error 400 when trying to create access key without actions', function (done) {
 
             var params = ac.getParamsObj('_integr-test-bad-request', utils.admin);
-            utils.create(path.userAccessKey, params, function (err) {
+            utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, 'DeviceHive server error - Actions are required!');
                 assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
@@ -470,7 +470,7 @@ describe('REST API Access Key', function () {
         describe('no authorization', function () {
             it('should return error when accessing key without authorization', function (done) {
                 var params = {user: null};
-                utils.get(path.userAccessKey, params, function (err) {
+                utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
@@ -480,7 +480,7 @@ describe('REST API Access Key', function () {
 
             it('should return error when accessing non-existing key without authorization', function (done) {
                 var params = {user: null, id: consts.NON_EXISTING_ID };
-                utils.get(path.userAccessKey, params, function (err) {
+                utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
@@ -490,7 +490,7 @@ describe('REST API Access Key', function () {
 
             it('should return error when creating key without authorization', function (done) {
                 var params = ac.getParamsObj('_integr-test-create-no-auth', null);
-                utils.create(path.userAccessKey, params, function (err) {
+                utils.create(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
@@ -501,7 +501,7 @@ describe('REST API Access Key', function () {
             it('should return error when updating non-existing key without authorization', function (done) {
                 var params = ac.getParams('_integr-test-update-non-existing', null);
                 params.id = consts.NON_EXISTING_ID;
-                utils.update(path.userAccessKey, params, function (err) {
+                utils.update(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
@@ -511,7 +511,7 @@ describe('REST API Access Key', function () {
 
             it('should return error when deleting non-existing key without authorization', function (done) {
                 var params = {user: null, id: consts.NON_EXISTING_ID};
-                utils.delete(path.userAccessKey, params, function (err) {
+                utils.delete(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
@@ -536,7 +536,7 @@ describe('REST API Access Key', function () {
 
             it('should return error when accessing key with another user', function (done) {
                 var params = {user: user};
-                utils.get(path.userAccessKey, params, function (err) {
+                utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
@@ -546,7 +546,7 @@ describe('REST API Access Key', function () {
 
             it('should return error when accessing non-existing key', function (done) {
                 var params = {user: user, id: consts.NON_EXISTING_ID};
-                utils.get(path.userAccessKey, params, function (err) {
+                utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
@@ -556,7 +556,7 @@ describe('REST API Access Key', function () {
 
             it('should return error when creating key using wrong user credentials', function (done) {
                 var params = ac.getParamsObj('_integr-test-create-other-user', user);
-                utils.create(path.userAccessKey, params, function (err) {
+                utils.create(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
@@ -567,7 +567,7 @@ describe('REST API Access Key', function () {
             it('should return error when updating non-existing key', function (done) {
                 var params = ac.getParams('_integr-test-update-non-existing', user);
                 params.id = consts.NON_EXISTING_ID;
-                utils.update(path.userAccessKey, params, function (err) {
+                utils.update(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
@@ -577,7 +577,7 @@ describe('REST API Access Key', function () {
 
             it('should return error when deleting non-existing key', function (done) {
                 var params = {user: user, id: consts.NON_EXISTING_ID};
-                utils.delete(path.userAccessKey, params, function (err) {
+                utils.delete(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
@@ -591,7 +591,7 @@ describe('REST API Access Key', function () {
 
         it('should return error when accessing non-existing key', function (done) {
             var params = {user: utils.admin, id: consts.NON_EXISTING_ID };
-            utils.get(path.userAccessKey, params, function (err) {
+            utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, 'DeviceHive server error - Access key not found.');
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
@@ -602,7 +602,7 @@ describe('REST API Access Key', function () {
         it('should return error when updating non-existing key', function (done) {
             var params = ac.getParams('_integr-test-update-non-existing', utils.admin);
             params.id = consts.NON_EXISTING_ID;
-            utils.update(path.userAccessKey, params, function (err) {
+            utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, 'DeviceHive server error - Access key not found');
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
@@ -612,7 +612,7 @@ describe('REST API Access Key', function () {
 
         it('should not return error when deleting non-existing key', function (done) {
             var params = {user: utils.admin, id: consts.NON_EXISTING_ID};
-            utils.delete(path.userAccessKey, params, function (err) {
+            utils.delete(path.current, params, function (err) {
                 assert.strictEqual(!(!err), false, 'No error');
                 done();
             })

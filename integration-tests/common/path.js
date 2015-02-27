@@ -1,16 +1,12 @@
-var format = require('util').format;
-
 module.exports = {
+
+    current: null,
+
     USER: '/user',
-    userAccessKey: '/user/%d/accesskey',
     CURRENT_ACCESS_KEY: '/user/current/accesskey',
     NETWORK: '/network',
     INFO: '/info',
     DEVICE_CLASS: '/device/class',
-
-    setUserId: function (userId) {
-        this.userAccessKey = format(this.userAccessKey, userId);
-    },
 
     get: function (path, id) {
         if (!id) {
