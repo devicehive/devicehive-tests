@@ -4,9 +4,8 @@ var format = require('util').format;
 var utils = require('./common/utils');
 var path = require('./common/path');
 var status = require('./common/http').status;
-var consts = require('./common/consts');
 
-describe.only('REST API Device Equipment', function () {
+describe('REST API Device Equipment', function () {
 
     var DEVICE_GUID = 'INTEGR-TEST-DEVICE-GUID-12345';
     var EQUIPMENT = '_integr-test-device-eqpmnt';

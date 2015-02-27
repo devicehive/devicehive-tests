@@ -322,13 +322,18 @@ var utils = {
     clearResources: function (done) {
         var self = this;
         this.resources.reverse();
-        async.eachSeries(this.resources, function(resource, callback) {
-            new Http(self.url, resource)
-                .delete({ user: self.admin }, function (err, result) {
-                    // Ignore any errors
-                    callback();
-                });
-        }, done);
+        async.eachSeries(this.resources,
+            function(resource, callback) {
+                new Http(self.url, resource)
+                    .delete({ user: self.admin }, function (err, result) {
+                        // Ignore any errors
+                        callback();
+                    });
+            },
+            function () {
+                self.resources = [];
+                done();
+            });
     }
 };
 
