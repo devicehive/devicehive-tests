@@ -58,5 +58,32 @@ module.exports = {
         return !(!value) &&
             (typeof(value) === 'string') &&
             (value.length > 0);
+    },
+
+    isArrayNonEmpty: function (obj) {
+
+        if (!Array.isArray(obj)) {
+            return false;
+        }
+
+        return obj.length > 0;
+    },
+
+    isArrayOfLength: function (obj, expectedLength) {
+
+        if (!Array.isArray(obj)) {
+            return false;
+        }
+
+        return obj.length === expectedLength;
+    },
+
+    isEmptyArray: function (obj) {
+
+        if (!Array.isArray(obj)) {
+            return false;
+        }
+
+        return obj.length === 0;
     }
 }

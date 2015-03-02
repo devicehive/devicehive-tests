@@ -198,6 +198,23 @@ var utils = {
         }
     },
 
+    command: {
+        getParamsObj: function (command, user, parameters) {
+            var params = {
+                user: user,
+                data: {
+                    command: command
+                }
+            };
+
+            if (parameters) {
+                params.data.parameters = parameters;
+            }
+
+            return params;
+        }
+    },
+
     create: function ($path, params, cb) {
         var self = this;
         new Http(this.url, $path)
@@ -216,7 +233,7 @@ var utils = {
     },
 
     get: function ($path, params, cb) {
-        new Http(this.url, path.get($path, params.id))
+        new Http(this.url, path.get($path, params.id, params.query))
             .get(params, function (err, result, xhr) {
                 if (err) {
                     err.httpStatus = xhr.status;
@@ -230,11 +247,17 @@ var utils = {
     },
 
     update: function ($path, params, cb) {
-        new Http(this.url, path.get($path, params.id))
+        var self = this;
+        var updatePath = path.get($path, params.id, params.query);
+        new Http(this.url, updatePath)
             .put(params, function (err, result, xhr) {
                 if (err) {
                     err.httpStatus = xhr.status;
                     return cb(err);
+                }
+
+                if (self.resources.indexOf(updatePath) === -1) {
+                    self.resources.push(updatePath);
                 }
 
                 assert.strictEqual(xhr.status, status.EXPECTED_UPDATED);
@@ -244,7 +267,7 @@ var utils = {
     },
 
     delete: function ($path, params, cb) {
-        new Http(this.url, path.get($path, params.id))
+        new Http(this.url, path.get($path, params.id, params.query))
             .delete(params, function (err, result, xhr) {
                 if (err) {
                     err.httpStatus = xhr.status;

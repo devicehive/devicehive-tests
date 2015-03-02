@@ -87,7 +87,7 @@ describe('REST API Device Equipment', function () {
         var user2 = null;
 
         before(function (done) {
-            utils.createUser2(1, null, function (err, result) {
+            utils.createUser2(1, void 0, function (err, result) {
                 if (err) {
                     return done(err);
                 }
@@ -118,9 +118,7 @@ describe('REST API Device Equipment', function () {
         it('should not fail when allowed user tries to get equipment', function (done) {
             utils.get(path.current, {user: user2}, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
-                assert.strictEqual(
-                    !(!result) && Array.isArray(result) && (result.length > 0), true, 'Is non-empty array object');
-                assert.strictEqual(result.length, 1);
+                assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
                 assert.strictEqual(result[0].id, equipment.equipment);
                 assert.strictEqual(result[0].parameters.a, equipment.a);
                 assert.strictEqual(new Date(result[0].timestamp).toUTCString(),

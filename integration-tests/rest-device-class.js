@@ -8,14 +8,14 @@ var consts = require('./common/consts');
 
 describe('REST API Device Class', function () {
 
-    var dc = utils.deviceClass;
+    var helper = utils.deviceClass;
 
     describe('#GetAll', function () {
 
         var DEVICE_CLASS = '_integr-test-device-class';
 
         before(function (done) {
-            var params = dc.getParams(DEVICE_CLASS, utils.admin, '1');
+            var params = helper.getParams(DEVICE_CLASS, utils.admin, '1');
             utils.create(path.DEVICE_CLASS, params, function (err, result) {
                 done(err);
             })
@@ -27,12 +27,11 @@ describe('REST API Device Class', function () {
                     return done(err);
                 }
 
+                assert.strictEqual(utils.core.isArrayNonEmpty(result), true);
+
                 function hasDeviceClass(item) {
                     return item.name === DEVICE_CLASS;
                 }
-
-                assert.strictEqual(Array.isArray(result), true);
-                assert.equal(result.length > 0, true);
                 assert.strictEqual(result.some(hasDeviceClass), true);
 
                 done();
@@ -50,7 +49,7 @@ describe('REST API Device Class', function () {
         before(function (done) {
 
             function createUser(callback) {
-                utils.createUser2(1, [], function (err, result) {
+                utils.createUser2(1, void 0, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -61,7 +60,7 @@ describe('REST API Device Class', function () {
             }
 
             function createDeviceClass(callback) {
-                var params = dc.getParams(DEVICE_CLASS, utils.admin, VERSION);
+                var params = helper.getParams(DEVICE_CLASS, utils.admin, VERSION);
                 utils.create(path.DEVICE_CLASS, params, function (err, result) {
                     if (err) {
                         return callback(err);
@@ -116,7 +115,7 @@ describe('REST API Device Class', function () {
             var DEVICE_CLASS = '_integr-test-device-class-2';
             var VERSION = '1';
 
-            var params = dc.getParams(DEVICE_CLASS, utils.admin, VERSION);
+            var params = helper.getParams(DEVICE_CLASS, utils.admin, VERSION);
             utils.create(path.DEVICE_CLASS, params, function (err, result) {
                 if (err) {
                     return done(err);
@@ -136,13 +135,13 @@ describe('REST API Device Class', function () {
             var DEVICE_CLASS = '_integr-test-device-class-3';
             var VERSION = '1';
 
-            var params = dc.getParams(DEVICE_CLASS, utils.admin, VERSION);
+            var params = helper.getParams(DEVICE_CLASS, utils.admin, VERSION);
             utils.create(path.DEVICE_CLASS, params, function (err) {
                 if (err) {
                     return done(err);
                 }
 
-                var params = dc.getParams(DEVICE_CLASS, utils.admin, VERSION);
+                var params = helper.getParams(DEVICE_CLASS, utils.admin, VERSION);
                 utils.create(path.DEVICE_CLASS, params, function (err, result) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - DeviceClass cannot be created. Device class with such name and version already exists');
@@ -172,7 +171,7 @@ describe('REST API Device Class', function () {
         var deviceClassId = null;
 
         before(function (done) {
-            var params = dc.getParamsObj('_integr-test-device-class-4', utils.admin, '1');
+            var params = helper.getParamsObj('_integr-test-device-class-4', utils.admin, '1');
             utils.create(path.DEVICE_CLASS, params, function (err, result) {
                 if (err) {
                     return done(err);
@@ -184,7 +183,7 @@ describe('REST API Device Class', function () {
         })
 
         it('should update using admin authorization', function (done) {
-            var params = dc.getParamsObj('_integr-test-device-class-4-upd-1', utils.admin, '2', true, 3600,
+            var params = helper.getParamsObj('_integr-test-device-class-4-upd-1', utils.admin, '2', true, 3600,
                 {
                     name: '_integr-tests-eqpmnt-1',
                     type: '_integr-tests-type-1',
@@ -205,10 +204,7 @@ describe('REST API Device Class', function () {
                     assert.strictEqual(result.version, update.version);
                     assert.strictEqual(result.isPermanent, update.isPermanent);
                     assert.strictEqual(result.offlineTimeout, update.offlineTimeout);
-                    assert.strictEqual(
-                        !(!result.equipment) &&
-                        Array.isArray(result.equipment) &&
-                        (result.equipment.length > 0), true, 'Is non-empty array object');
+                    assert.strictEqual(utils.core.isArrayOfLength(result.equipment, 1), true, 'Is array of 1 object');
                     assert.strictEqual(result.equipment[0].name, update.equipment[0].name);
                     assert.strictEqual(result.equipment[0].type, update.equipment[0].type);
                     assert.strictEqual(result.equipment[0].code, update.equipment[0].code);
@@ -220,7 +216,7 @@ describe('REST API Device Class', function () {
 
         it('should partially update using admin authorization', function (done) {
 
-            var params = dc.getParamsObj('_integr-test-device-class-4-upd-2', utils.admin, '3', false);
+            var params = helper.getParamsObj('_integr-test-device-class-4-upd-2', utils.admin, '3', false);
             params.id = deviceClassId;
             var update = params.data;
 
@@ -243,7 +239,7 @@ describe('REST API Device Class', function () {
 
     describe('#Delete', function () {
         it('should delete device class using admin authorization', function (done) {
-            var params = dc.getParamsObj('_integr-test-device-class-5', utils.admin, '1');
+            var params = helper.getParamsObj('_integr-test-device-class-5', utils.admin, '1');
             utils.create(path.DEVICE_CLASS, params, function (err, result) {
                 if (err) {
                     return done(err);
@@ -289,7 +285,7 @@ describe('REST API Device Class', function () {
             })
 
             it('should return error when creating device class without authorization', function (done) {
-                var params = dc.getParamsObj('_integr-test-create-no-auth', null, '1');
+                var params = helper.getParamsObj('_integr-test-create-no-auth', null, '1');
                 utils.create(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
@@ -299,7 +295,7 @@ describe('REST API Device Class', function () {
             })
 
             it('should return error when updating non-existing device class without authorization', function (done) {
-                var params = dc.getParamsObj('_integr-test-update-non-existing', null, '2');
+                var params = helper.getParamsObj('_integr-test-update-non-existing', null, '2');
                 params.id = consts.NON_EXISTING_ID;
                 utils.update(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
@@ -324,7 +320,7 @@ describe('REST API Device Class', function () {
             var user = null;
 
             before(function (done) {
-                utils.createUser2(1, [], function (err, result) {
+                utils.createUser2(1, void 0, function (err, result) {
                     if (err) {
                         return done(err);
                     }
@@ -345,7 +341,7 @@ describe('REST API Device Class', function () {
             })
 
             it('should return error when creating device class using wrong user credentials', function (done) {
-                var params = dc.getParamsObj('_integr-test-create-other-user', user);
+                var params = helper.getParamsObj('_integr-test-create-other-user', user);
                 utils.create(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
@@ -355,7 +351,7 @@ describe('REST API Device Class', function () {
             })
 
             it('should return error when updating non-existing device class', function (done) {
-                var params = dc.getParamsObj('_integr-test-update-non-existing', user, '3');
+                var params = helper.getParamsObj('_integr-test-update-non-existing', user, '3');
                 params.id = consts.NON_EXISTING_ID;
                 utils.update(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
@@ -391,7 +387,7 @@ describe('REST API Device Class', function () {
         })
 
         it('should return error when updating non-existing device class', function (done) {
-            var params = dc.getParamsObj('_integr-test-update-non-existing', utils.admin, '1');
+            var params = helper.getParamsObj('_integr-test-update-non-existing', utils.admin, '1');
             params.id = consts.NON_EXISTING_ID;
             utils.update(path.DEVICE_CLASS, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
