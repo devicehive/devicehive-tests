@@ -570,9 +570,6 @@ describe('REST API Device Command', function () {
             var params = helper.getParamsObj(COMMAND, user);
             utils.create(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
-                if (err) {
-                    return done(err);
-                }
 
                 var timestamp = result.timestamp;
                 params.id = result.id;
@@ -638,7 +635,261 @@ describe('REST API Device Command', function () {
         });
     })
 
+    describe('#Update', function () {
+
+        var invalidAccessKey1 = null;
+        var invalidAccessKey2 = null;
+        var invalidAccessKey3 = null;
+        var accessKey = null;
+
+        before(function (done) {
+
+            var params = [
+                {
+                    user: nonNetworkUser,
+                    actions: 'UpdateDeviceCommand'
+                },
+                {
+                    user: user,
+                    actions: 'UpdateDeviceCommand',
+                    networkIds: [0]
+                },
+                {
+                    user: user,
+                    actions: 'UpdateDeviceCommand',
+                    deviceIds: consts.NON_EXISTING_ID
+                },
+                {
+                    user: user,
+                    actions: 'UpdateDeviceCommand'
+                },
+            ];
+
+            utils.accessKey.createMany(params, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                invalidAccessKey1 = result[0];
+                invalidAccessKey2 = result[1];
+                invalidAccessKey3 = result[2];
+                accessKey = result[3];
+
+                var params = helper.getParamsObj(COMMAND, user);
+                utils.create(path.current, params, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    commandId = result.id;
+                    done();
+                })
+            })
+        });
+
+        it('should update command using device authentication', function (done) {
+
+            var commandUpdate = {
+                parameters: { a: 'b' },
+                status: 'Done',
+                result: 'OK'
+            };
+
+            var params = {
+                data: commandUpdate,
+                device: {
+                    id: DEVICE_GUID,
+                    key: DEVICE_KEY
+                }
+            };
+            params.id = commandId;
+            utils.update(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                utils.get(path.current, params, function (err, result) {
+                    assert.strictEqual(result.status, commandUpdate.status);
+                    assert.strictEqual(result.result, commandUpdate.result);
+                    assert.deepEqual(result.parameters, commandUpdate.parameters);
+
+                    done();
+                });
+            });
+        });
+
+        it('should return error when updating command with invalid user', function (done) {
+            var params = helper.getParamsObj(COMMAND, nonNetworkUser);
+            params.id = commandId;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                    DEVICE_GUID));
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+
+                done();
+            })
+        });
+
+        it('should succeed when updating command with allowed user', function (done) {
+            var params = helper.getParamsObj(COMMAND, user);
+            params.id = commandId;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), false, 'No error');
+                done();
+            })
+        });
+
+        it('should fail with 404 #1', function (done) {
+            var params = helper.getParamsObj(COMMAND);
+            params.accessKey = invalidAccessKey1;
+            params.id = commandId;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                    DEVICE_GUID));
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+
+                done();
+            });
+        });
+
+        it('should fail with 404 #2', function (done) {
+            var params = helper.getParamsObj(COMMAND);
+            params.accessKey = invalidAccessKey2;
+            params.id = commandId;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                    DEVICE_GUID));
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+
+                done();
+            });
+        });
+
+        it('should fail with 404 #3', function (done) {
+            var params = helper.getParamsObj(COMMAND);
+            params.accessKey = invalidAccessKey3;
+            params.id = commandId;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                    DEVICE_GUID));
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+
+                done();
+            });
+        });
+
+        it('should succeed when updating using valid access key', function (done) {
+            var params = helper.getParamsObj(COMMAND);
+            params.accessKey = accessKey;
+            params.id = commandId;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), false, 'No error');
+                done();
+            });
+        });
+    });
+
+    describe('#Delete', function () {
+        it('should return error when trying to delete command', function (done) {
+            var params = helper.getParamsObj(COMMAND, utils.admin);
+            params.id = commandId;
+            utils.delete(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'DeviceHive server error - HTTP 405 Method Not Allowed');
+                assert.strictEqual(err.httpStatus, status.METHOD_NOT_ALLOWED);
+                done();
+            });
+        })
+    });
+
+    describe('#Not authorized', function () {
+
+        describe('no authorization', function () {
+            it('should return error when getting commands without authorization', function (done) {
+                utils.get(path.current, {user: null}, function (err, result) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            })
+
+            it('should return error when accessing non-existing command without authorization', function (done) {
+                var params = {user: null, id: consts.NON_EXISTING_ID };
+                utils.get(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            })
+
+            it('should return error when inserting command without authorization', function (done) {
+                var params = helper.getParamsObj('the-command', null);
+                utils.create(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            });
+
+            it('should return error when updating non-existing command without authorization', function (done) {
+                var params = helper.getParamsObj('the-command', null);
+                params.id = consts.NON_EXISTING_ID;
+                utils.update(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            });
+
+            it('should return error when inserting command using device authentication', function (done) {
+
+                var params = helper.getParamsObj('the-command', null);
+                params.device = {
+                    id: DEVICE_GUID,
+                    key: DEVICE_KEY
+                };
+                utils.create(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                });
+            });
+        });
+    });
+
+    describe('#Not Found', function () {
+
+        it('should return error when accessing non-existing command', function (done) {
+            var params = {user: utils.admin, id: consts.NON_EXISTING_ID };
+            utils.get(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, format('DeviceHive server error - Command with id = %d not found',
+                    consts.NON_EXISTING_ID));
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                done();
+            })
+        });
+
+        it('should return error when updating non-existing command', function (done) {
+            var params = helper.getParamsObj('the-command', utils.admin);
+            params.id = consts.NON_EXISTING_ID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, format('DeviceHive server error - Command with id = %d not found',
+                    consts.NON_EXISTING_ID));
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                done();
+            })
+        })
+    });
+
     after(function (done) {
         utils.clearResources(done);
     });
-})
+});
