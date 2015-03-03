@@ -205,60 +205,40 @@ describe('REST API Device Command', function () {
         var accessKey = null;
 
         before(function (done) {
-            function createInvalidAccessKey1(callback) {
-                utils.accessKey.create(nonNetworkUser, void 0, 'GetDeviceCommand', void 0, void 0,
-                    function (err, result) {
-                        if (err) {
-                            return callback(err);
-                        }
 
-                        invalidAccessKey1 = result.key;
-                        callback();
-                    });
-            }
+            var params = [
+                {
+                    user: nonNetworkUser,
+                    actions: 'GetDeviceCommand'
+                },
+                {
+                    user: user,
+                    actions: 'GetDeviceCommand',
+                    networkIds: [0]
+                },
+                {
+                    user: user,
+                    actions: 'GetDeviceCommand',
+                    deviceIds: consts.NON_EXISTING_ID
+                },
+                {
+                    user: user,
+                    actions: 'GetDeviceCommand'
+                },
+            ];
 
-            function createInvalidAccessKey2(callback) {
-                utils.accessKey.create(user, void 0, 'GetDeviceCommand', void 0, [0],
-                    function (err, result) {
-                        if (err) {
-                            return callback(err);
-                        }
+            utils.accessKey.createMany(params, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
 
-                        invalidAccessKey2 = result.key;
-                        callback();
-                    });
-            }
+                invalidAccessKey1 = result[0];
+                invalidAccessKey2 = result[1];
+                invalidAccessKey3 = result[2];
+                accessKey = result[3];
 
-            function createInvalidAccessKey3(callback) {
-                utils.accessKey.create(user, void 0, 'GetDeviceCommand', consts.NON_EXISTING_ID, void 0,
-                    function (err, result) {
-                        if (err) {
-                            return callback(err);
-                        }
-
-                        invalidAccessKey3 = result.key;
-                        callback();
-                    });
-            }
-
-            function createAccessKey(callback) {
-                utils.accessKey.create(user, void 0, 'GetDeviceCommand', void 0, void 0,
-                    function (err, result) {
-                        if (err) {
-                            return callback(err);
-                        }
-
-                        accessKey = result.key;
-                        callback();
-                    });
-            }
-
-            async.series([
-                createInvalidAccessKey1,
-                createInvalidAccessKey2,
-                createInvalidAccessKey3,
-                createAccessKey
-            ], done);
+                done();
+            })
         })
 
         it('should return commands using device authentication', function (done) {
@@ -530,11 +510,133 @@ describe('REST API Device Command', function () {
         })
     });
 
-    //describe('#Create', function () {
-    //    it.only('should... do smth good', function (done) {
-    //        done();
-    //    })
-    //})
+    describe('#Create', function () {
+
+        var invalidAccessKey1 = null;
+        var invalidAccessKey2 = null;
+        var invalidAccessKey3 = null;
+        var accessKey = null;
+
+        before(function (done) {
+
+            var params = [
+                {
+                    user: nonNetworkUser,
+                    actions: 'CreateDeviceCommand'
+                },
+                {
+                    user: user,
+                    actions: 'CreateDeviceCommand',
+                    networkIds: [0]
+                },
+                {
+                    user: user,
+                    actions: 'CreateDeviceCommand',
+                    deviceIds: consts.NON_EXISTING_ID
+                },
+                {
+                    user: user,
+                    actions: 'CreateDeviceCommand'
+                },
+            ];
+
+            utils.accessKey.createMany(params, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                invalidAccessKey1 = result[0];
+                invalidAccessKey2 = result[1];
+                invalidAccessKey3 = result[2];
+                accessKey = result[3];
+
+                done();
+            })
+        });
+
+        it('should return error when creating command with invalid user', function (done) {
+            var params = helper.getParamsObj(COMMAND, nonNetworkUser);
+            utils.create(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                    DEVICE_GUID));
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+
+                done();
+            })
+        });
+
+        it('should succeed when creating command with allowed user', function (done) {
+            var params = helper.getParamsObj(COMMAND, user);
+            utils.create(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                if (err) {
+                    return done(err);
+                }
+
+                var timestamp = result.timestamp;
+                params.id = result.id;
+                utils.get(path.current, params, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    assert.strictEqual(result.command, COMMAND);
+                    assert.strictEqual(result.userId, user.id);
+                    assert.strictEqual(new Date(result.timestamp).toUTCString(),
+                        new Date(timestamp).toUTCString());
+                    done();
+                })
+            })
+        });
+
+        it('should fail with 404 #1', function (done) {
+            var params = helper.getParamsObj(COMMAND);
+            params.accessKey = invalidAccessKey1;
+            utils.create(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                    DEVICE_GUID));
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+
+                done();
+            });
+        });
+
+        it('should fail with 404 #2', function (done) {
+            var params = helper.getParamsObj(COMMAND);
+            params.accessKey = invalidAccessKey2;
+            utils.create(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                    DEVICE_GUID));
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+
+                done();
+            });
+        });
+
+        it('should fail with 404 #3', function (done) {
+            var params = helper.getParamsObj(COMMAND);
+            params.accessKey = invalidAccessKey3;
+            utils.create(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                    DEVICE_GUID));
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+
+                done();
+            });
+        });
+
+        it.only('should succeed when using valid access key', function (done) {
+            var params = helper.getParamsObj(COMMAND);
+            params.accessKey = accessKey;
+            utils.create(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.userId, user.id);
+
+                done();
+            });
+        });
+    })
 
     after(function (done) {
         utils.clearResources(done);

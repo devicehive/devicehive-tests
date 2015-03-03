@@ -33,6 +33,24 @@ var utils = {
 
     accessKey: {
 
+        createMany: function (params, done) {
+
+            function createAccessKey(callback) {
+                var p = params.shift();
+                utils.accessKey.create(p.user, p.label, p.actions, p.deviceIds, p.networkIds,
+                    function (err, result) {
+                        callback(err, result.key);
+                    });
+            }
+
+            var callbacks = [];
+            for (var i = 0; i < params.length; i++) {
+                callbacks.push(createAccessKey);
+            }
+
+            async.series(callbacks, done);
+        },
+
         create: function (user, label, actions, deviceIds, networkIds, callback) {
 
             label || (label = '_integr-test-access-key-' + +new Date());
@@ -316,11 +334,11 @@ var utils = {
                 return callback(err);
             }
 
-            var userId = result.id;
+            user.id = result.id;
             async.eachSeries(networkIds,
                 function (networkId, cb) {
                     var params = { user: self.admin };
-                    var $path = path.combine(path.USER, userId, path.NETWORK, networkId);
+                    var $path = path.combine(path.USER, user.id, path.NETWORK, networkId);
                     new Http(self.url, $path)
                         .put(params, function (err, result, xhr) {
                             if (err) {
