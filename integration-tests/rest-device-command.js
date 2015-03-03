@@ -7,6 +7,7 @@ var status = require('./common/http').status;
 var consts = require('./common/consts');
 
 describe('REST API Device Command', function () {
+    this.timeout(30000);
 
     var helper = utils.command;
 
@@ -623,7 +624,7 @@ describe('REST API Device Command', function () {
             });
         });
 
-        it.only('should succeed when using valid access key', function (done) {
+        it('should succeed when using valid access key', function (done) {
             var params = helper.getParamsObj(COMMAND);
             params.accessKey = accessKey;
             utils.create(path.current, params, function (err, result) {
