@@ -9,20 +9,23 @@ var consts = require('./common/consts');
 describe('REST API Device Command', function () {
 
     var helper = utils.command;
+
     var NETWORK = '_integr-test-network-device-cmd';
     var DEVICE = '_integr-test-device-cmd';
     var DEVICE_GUID = 'INTEGR-TEST-DEVICE-GUID-CMD-12345';
     var DEVICE_KEY = 'INTEGR-TEST-DEVICE-CMD-KEY';
+    var COMMAND = '_integr-test-cmd-1';
+    var COMMAND_2 = '_INTEGR-TEST-CMD-2';
+
     var networkId = null;
     var deviceClassId = null;
     var user = null;
     var nonNetworkUser = null;
-    var COMMAND = '_integr-test-cmd-1';
     var commandId = null;
 
     before(function (done) {
 
-        path.current = path.combine(path.DEVICE, DEVICE_GUID, 'command');
+        path.current = path.combine(path.DEVICE, DEVICE_GUID, path.COMMAND);
 
         function createNetwork(callback) {
             var params = {
@@ -356,6 +359,182 @@ describe('REST API Device Command', function () {
         });
     })
 
+    describe('#Poll', function () {
+        it('should return new command when adding command with specified name', function (done) {
+            var params = {user: user};
+            var $path = path.combine(path.current, path.POLL);
+            params.query = path.query('names', COMMAND);
+            utils.get($path, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
+                assert.strictEqual(result.every(function (item) {
+                    return item.command === COMMAND;
+                }), true);
+                done();
+            })
+
+            setTimeout(function () {
+                var params = helper.getParamsObj(COMMAND_2, user);
+                utils.create(path.current, params, function () {})
+            }, 100);
+
+            setTimeout(function () {
+                var params = helper.getParamsObj(COMMAND, user);
+                utils.create(path.current, params, function () {})
+            }, 100);
+        })
+    });
+
+    describe('#Poll No Wait', function () {
+        it('should return immediately with empty result', function (done) {
+            var params = {user: user};
+            var $path = path.combine(path.current, path.POLL);
+            params.query = path.query('waitTimeout', '0');
+            utils.get($path, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(utils.core.isEmptyArray(result), true);
+                done();
+            })
+        })
+    });
+
+    describe('#Poll Many', function () {
+        it('should return result with deviceGuid', function (done) {
+            var params = {user: user};
+            var $path = path.combine(path.DEVICE, path.COMMAND, path.POLL);
+            params.query = path.query('names', COMMAND, 'deviceGuids', DEVICE_GUID);
+            utils.get($path, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
+                assert.strictEqual(result.every(function (item) {
+                    return item.command.command === COMMAND && item.deviceGuid === DEVICE_GUID;
+                }), true);
+                done();
+            })
+
+            setTimeout(function () {
+                var params = helper.getParamsObj(COMMAND_2, user);
+                utils.create(path.current, params, function () {})
+            }, 100);
+
+            setTimeout(function () {
+                var params = helper.getParamsObj(COMMAND, user);
+                utils.create(path.current, params, function () {})
+            }, 100);
+        })
+    });
+
+    describe('#Poll Many - Other Device', function () {
+
+        var OTHER_NETWORK = '_integr-test-OTHER-network-cmd';
+        var otherNetworkId = null;
+        var OTHER_DEVICE_GUID = 'OTHER-DEVICE-GUID-1234'
+
+        before(function (done) {
+
+            function createNetwork(callback) {
+                var params = {
+                    user: utils.admin,
+                    data: {
+                        name: OTHER_NETWORK
+                    }
+                };
+
+                utils.create(path.NETWORK, params, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    otherNetworkId = result.id;
+                    callback()
+                });
+            }
+
+            function createDevice(callback) {
+                var params = utils.device.getParamsObj('_integr-test-OTHER-device-cmd', utils.admin, DEVICE_KEY,
+                    {name: OTHER_NETWORK}, {name: DEVICE, version: '1'});
+                params.id = OTHER_DEVICE_GUID;
+                utils.update(path.DEVICE, params, function (err) {
+                    callback(err);
+                });
+            }
+
+            async.series([
+                createNetwork,
+                createDevice
+            ], done);
+        });
+
+        it('should return current device command', function (done) {
+            var params = {user: user};
+            var $path = path.combine(path.DEVICE, path.COMMAND, path.POLL);
+            utils.get($path, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
+                assert.strictEqual(result.every(function (item) {
+                    return item.command.command === COMMAND_2 && item.deviceGuid === DEVICE_GUID;
+                }), true);
+                done();
+            })
+
+            setTimeout(function () {
+                var params = helper.getParamsObj(COMMAND_2, utils.admin);
+                var $path = path.combine(path.DEVICE, OTHER_DEVICE_GUID, path.COMMAND);
+                utils.create($path, params, function () {})
+            }, 100);
+
+            setTimeout(function () {
+                var params = helper.getParamsObj(COMMAND_2, utils.admin);
+                utils.create(path.current, params, function () {})
+            }, 100);
+        })
+    });
+
+    describe('#Poll Many No Wait', function () {
+        it('should return immediately with empty result', function (done) {
+            var params = {user: user};
+            var $path = path.combine(path.DEVICE, path.COMMAND, path.POLL);
+            params.query = path.query('waitTimeout', '0');
+            utils.get($path, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(utils.core.isEmptyArray(result), true);
+                done();
+            })
+        })
+    });
+
+    describe('#Poll by id', function () {
+
+        var commandUpdate = {
+            status: 'Done',
+            result: 'OK'
+        };
+
+        it('should return command with updated status/result values', function (done) {
+            var params = {user: user};
+            var $path = path.combine(path.current, commandId, path.POLL);
+            params.query = path.query('names', COMMAND);
+            utils.get($path, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.status, commandUpdate.status);
+                assert.strictEqual(result.result, commandUpdate.result);
+                done();
+            })
+
+            setTimeout(function () {
+                var params = {user: user};
+                params.id = commandId;
+                params.data = commandUpdate;
+                utils.update(path.current, params, function () {})
+            }, 100);
+        })
+    });
+
+    //describe('#Create', function () {
+    //    it.only('should... do smth good', function (done) {
+    //        done();
+    //    })
+    //})
 
     after(function (done) {
         utils.clearResources(done);

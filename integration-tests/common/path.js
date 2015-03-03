@@ -34,6 +34,8 @@ var path = {
             return path.combine(path.DEVICE, deviceGuid, 'notification');
         }
     },
+    COMMAND: '/command',
+    POLL: '/poll',
 
     get: function (path, id, query) {
 
@@ -50,7 +52,7 @@ var path = {
 
     combine: function () {
         var args = Array.prototype.slice.call(arguments);
-        return args.join('/').replace('//', '/');
+        return args.join('/').replace(new RegExp('//', 'g'), '/');
     },
 
     query: function () {
