@@ -4,7 +4,6 @@ var format = require('util').format;
 var utils = require('./common/utils');
 var path = require('./common/path');
 var status = require('./common/http').status;
-var consts = require('./common/consts');
 
 describe('REST API Device Command', function () {
     this.timeout(30000);
@@ -220,7 +219,7 @@ describe('REST API Device Command', function () {
                 {
                     user: user,
                     actions: 'GetDeviceCommand',
-                    deviceIds: consts.NON_EXISTING_ID
+                    deviceIds: utils.NON_EXISTING_ID
                 },
                 {
                     user: user,
@@ -533,7 +532,7 @@ describe('REST API Device Command', function () {
                 {
                     user: user,
                     actions: 'CreateDeviceCommand',
-                    deviceIds: consts.NON_EXISTING_ID
+                    deviceIds: utils.NON_EXISTING_ID
                 },
                 {
                     user: user,
@@ -658,7 +657,7 @@ describe('REST API Device Command', function () {
                 {
                     user: user,
                     actions: 'UpdateDeviceCommand',
-                    deviceIds: consts.NON_EXISTING_ID
+                    deviceIds: utils.NON_EXISTING_ID
                 },
                 {
                     user: user,
@@ -817,7 +816,7 @@ describe('REST API Device Command', function () {
             })
 
             it('should return error when accessing non-existing command without authorization', function (done) {
-                var params = {user: null, id: consts.NON_EXISTING_ID };
+                var params = {user: null, id: utils.NON_EXISTING_ID };
                 utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
@@ -838,7 +837,7 @@ describe('REST API Device Command', function () {
 
             it('should return error when updating non-existing command without authorization', function (done) {
                 var params = helper.getParamsObj('the-command', null);
-                params.id = consts.NON_EXISTING_ID;
+                params.id = utils.NON_EXISTING_ID;
                 utils.update(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
@@ -867,11 +866,11 @@ describe('REST API Device Command', function () {
     describe('#Not Found', function () {
 
         it('should return error when accessing non-existing command', function (done) {
-            var params = {user: utils.admin, id: consts.NON_EXISTING_ID };
+            var params = {user: utils.admin, id: utils.NON_EXISTING_ID };
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, format('DeviceHive server error - Command with id = %d not found',
-                    consts.NON_EXISTING_ID));
+                    utils.NON_EXISTING_ID));
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                 done();
             })
@@ -879,11 +878,11 @@ describe('REST API Device Command', function () {
 
         it('should return error when updating non-existing command', function (done) {
             var params = helper.getParamsObj('the-command', utils.admin);
-            params.id = consts.NON_EXISTING_ID;
+            params.id = utils.NON_EXISTING_ID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, format('DeviceHive server error - Command with id = %d not found',
-                    consts.NON_EXISTING_ID));
+                    utils.NON_EXISTING_ID));
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                 done();
             })

@@ -3,12 +3,13 @@ var assert = require('assert');
 var path = require('./path');
 var Http = require('./http').Http;
 var status = require('./http').status;
-var consts = require('./consts');
 var $utils = require('./../../common/utils');
 
 var utils = {
 
     core: $utils,
+
+    NON_EXISTING_ID: 999999,
 
     //url: 'http://nn7502.pg.devicehive.com/api',
     //url: 'http://192.168.152.147:8080/dh/rest',
@@ -26,7 +27,7 @@ var utils = {
 
     user: {
         login: '_ingegr-test-usr',
-        password: consts.NEW_USER_PASSWORD
+        password: 'ASDF_1234!@#$'
     },
 
     resources: [],
@@ -321,7 +322,7 @@ var utils = {
 
         var user = {
             login: '_integr-test-' + +new Date(),
-            password: consts.NEW_USER_PASSWORD
+            password: 'ASDF_1234!@#$'
         };
 
         networkIds || (networkIds = []);

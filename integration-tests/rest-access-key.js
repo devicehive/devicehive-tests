@@ -4,7 +4,6 @@ var format = require('util').format;
 var utils = require('./common/utils');
 var path = require('./common/path');
 var status = require('./common/http').status;
-var consts = require('./common/consts');
 
 describe('REST API Access Key', function () {
 
@@ -439,7 +438,7 @@ describe('REST API Access Key', function () {
             })
 
             it('should return error when accessing non-existing key without authorization', function (done) {
-                var params = {user: null, id: consts.NON_EXISTING_ID };
+                var params = {user: null, id: utils.NON_EXISTING_ID };
                 utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
@@ -460,7 +459,7 @@ describe('REST API Access Key', function () {
 
             it('should return error when updating non-existing key without authorization', function (done) {
                 var params = helper.getParams('_integr-test-update-non-existing', null);
-                params.id = consts.NON_EXISTING_ID;
+                params.id = utils.NON_EXISTING_ID;
                 utils.update(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
@@ -470,7 +469,7 @@ describe('REST API Access Key', function () {
             })
 
             it('should return error when deleting non-existing key without authorization', function (done) {
-                var params = {user: null, id: consts.NON_EXISTING_ID};
+                var params = {user: null, id: utils.NON_EXISTING_ID};
                 utils.delete(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
@@ -505,7 +504,7 @@ describe('REST API Access Key', function () {
             })
 
             it('should return error when accessing non-existing key', function (done) {
-                var params = {user: user, id: consts.NON_EXISTING_ID};
+                var params = {user: user, id: utils.NON_EXISTING_ID};
                 utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
@@ -526,7 +525,7 @@ describe('REST API Access Key', function () {
 
             it('should return error when updating non-existing key', function (done) {
                 var params = helper.getParams('_integr-test-update-non-existing', user);
-                params.id = consts.NON_EXISTING_ID;
+                params.id = utils.NON_EXISTING_ID;
                 utils.update(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
@@ -536,7 +535,7 @@ describe('REST API Access Key', function () {
             })
 
             it('should return error when deleting non-existing key', function (done) {
-                var params = {user: user, id: consts.NON_EXISTING_ID};
+                var params = {user: user, id: utils.NON_EXISTING_ID};
                 utils.delete(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
@@ -550,7 +549,7 @@ describe('REST API Access Key', function () {
     describe('#Not Found', function () {
 
         it('should return error when accessing non-existing key', function (done) {
-            var params = {user: utils.admin, id: consts.NON_EXISTING_ID };
+            var params = {user: utils.admin, id: utils.NON_EXISTING_ID };
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, 'DeviceHive server error - Access key not found.');
@@ -561,7 +560,7 @@ describe('REST API Access Key', function () {
 
         it('should return error when updating non-existing key', function (done) {
             var params = helper.getParams('_integr-test-update-non-existing', utils.admin);
-            params.id = consts.NON_EXISTING_ID;
+            params.id = utils.NON_EXISTING_ID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, 'DeviceHive server error - Access key not found');
@@ -571,7 +570,7 @@ describe('REST API Access Key', function () {
         })
 
         it('should not return error when deleting non-existing key', function (done) {
-            var params = {user: utils.admin, id: consts.NON_EXISTING_ID};
+            var params = {user: utils.admin, id: utils.NON_EXISTING_ID};
             utils.delete(path.current, params, function (err) {
                 assert.strictEqual(!(!err), false, 'No error');
                 done();

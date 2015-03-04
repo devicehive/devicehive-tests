@@ -4,7 +4,6 @@ var format = require('util').format;
 var utils = require('./common/utils');
 var path = require('./common/path');
 var status = require('./common/http').status;
-var consts = require('./common/consts');
 
 describe('REST API Device Class', function () {
 
@@ -275,7 +274,7 @@ describe('REST API Device Class', function () {
             })
 
             it('should return error when accessing non-existing device class without authorization', function (done) {
-                var params = {user: null, id: consts.NON_EXISTING_ID };
+                var params = {user: null, id: utils.NON_EXISTING_ID };
                 utils.get(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
@@ -296,7 +295,7 @@ describe('REST API Device Class', function () {
 
             it('should return error when updating non-existing device class without authorization', function (done) {
                 var params = helper.getParamsObj('_integr-test-update-non-existing', null, '2');
-                params.id = consts.NON_EXISTING_ID;
+                params.id = utils.NON_EXISTING_ID;
                 utils.update(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
@@ -306,7 +305,7 @@ describe('REST API Device Class', function () {
             })
 
             it('should return error when deleting non-existing device class without authorization', function (done) {
-                var params = {user: null, id: consts.NON_EXISTING_ID};
+                var params = {user: null, id: utils.NON_EXISTING_ID};
                 utils.delete(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
@@ -352,7 +351,7 @@ describe('REST API Device Class', function () {
 
             it('should return error when updating non-existing device class', function (done) {
                 var params = helper.getParamsObj('_integr-test-update-non-existing', user, '3');
-                params.id = consts.NON_EXISTING_ID;
+                params.id = utils.NON_EXISTING_ID;
                 utils.update(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
@@ -362,7 +361,7 @@ describe('REST API Device Class', function () {
             })
 
             it('should return error when deleting non-existing device class', function (done) {
-                var params = {user: user, id: consts.NON_EXISTING_ID};
+                var params = {user: user, id: utils.NON_EXISTING_ID};
                 utils.delete(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
@@ -376,11 +375,11 @@ describe('REST API Device Class', function () {
     describe('#Not Found', function () {
 
         it('should return error when accessing non-existing device class', function (done) {
-            var params = {user: utils.admin, id: consts.NON_EXISTING_ID };
+            var params = {user: utils.admin, id: utils.NON_EXISTING_ID };
             utils.get(path.DEVICE_CLASS, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, format('DeviceHive server error - DeviceClass with id = %d not found',
-                    consts.NON_EXISTING_ID));
+                    utils.NON_EXISTING_ID));
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                 done();
             })
@@ -388,18 +387,18 @@ describe('REST API Device Class', function () {
 
         it('should return error when updating non-existing device class', function (done) {
             var params = helper.getParamsObj('_integr-test-update-non-existing', utils.admin, '1');
-            params.id = consts.NON_EXISTING_ID;
+            params.id = utils.NON_EXISTING_ID;
             utils.update(path.DEVICE_CLASS, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, format('DeviceHive server error - DeviceClass with id = %d not found',
-                    consts.NON_EXISTING_ID));
+                    utils.NON_EXISTING_ID));
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                 done();
             })
         })
 
         it('should not return error when deleting non-existing device class', function (done) {
-            var params = {user: utils.admin, id: consts.NON_EXISTING_ID};
+            var params = {user: utils.admin, id: utils.NON_EXISTING_ID};
             utils.delete(path.DEVICE_CLASS, params, function (err) {
                 assert.strictEqual(!(!err), false, 'No error');
                 done();
