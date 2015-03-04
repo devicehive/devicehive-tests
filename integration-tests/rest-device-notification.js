@@ -15,10 +15,9 @@ describe.only('REST API Device Notification', function () {
     var DEVICE_GUID = 'INTEGR-TEST-DEVICE-GUID-NOTIF-12345';
     var DEVICE_KEY = 'INTEGR-TEST-DEVICE-NOTIF-KEY';
     var NOTIFICATION = '_integr-test-notif-1';
-    //var NOTIFICATION_2 = '_INTEGR-TEST-NOTIF-2';
+    var NOTIFICATION_2 = '_INTEGR-TEST-NOTIF-2';
 
     var networkId = null;
-    //var deviceClassId = null;
     var user = null;
     var nonNetworkUser = null;
     var notificationId = null;
@@ -330,6 +329,162 @@ describe.only('REST API Device Notification', function () {
                 done();
             });
         });
+    });
+
+    describe('#Poll', function () {
+        it('should return new notification when adding notification with specified name', function (done) {
+            var params = {user: user};
+            var $path = path.combine(path.current, path.POLL);
+            params.query = path.query('names', NOTIFICATION);
+            utils.get($path, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
+                assert.strictEqual(result.every(function (item) {
+                    return item.notification === NOTIFICATION;
+                }), true);
+                done();
+            })
+
+            setTimeout(function () {
+                var params = helper.getParamsObj(NOTIFICATION_2, user);
+                utils.create(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                });
+            }, 100);
+
+            setTimeout(function () {
+                var params = helper.getParamsObj(NOTIFICATION, user);
+                utils.create(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                });
+            }, 100);
+        })
+    });
+
+    describe('#Poll No Wait', function () {
+        it('should return immediately with empty result', function (done) {
+            var params = {user: user};
+            var $path = path.combine(path.current, path.POLL);
+            params.query = path.query('waitTimeout', '0');
+            utils.get($path, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(utils.core.isEmptyArray(result), true);
+                done();
+            })
+        })
+    });
+
+    describe('#Poll Many', function () {
+        it('should return result with deviceGuid', function (done) {
+            var params = {user: user};
+            params.query = path.query('names', NOTIFICATION, 'deviceGuids', DEVICE_GUID);
+            utils.get(path.NOTIFICATION.poll(), params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
+                assert.strictEqual(result.every(function (item) {
+                    return item.notification.notification === NOTIFICATION && item.deviceGuid === DEVICE_GUID;
+                }), true);
+                done();
+            })
+
+            setTimeout(function () {
+                var params = helper.getParamsObj(NOTIFICATION_2, user);
+                utils.create(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                });
+            }, 100);
+
+            setTimeout(function () {
+                var params = helper.getParamsObj(NOTIFICATION, user);
+                utils.create(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                });
+            }, 100);
+        })
+    });
+
+    describe('#Poll Many - Other Device', function () {
+
+        var OTHER_NETWORK = '_integr-test-OTHER-network-notif';
+        var otherNetworkId = null;
+        var OTHER_DEVICE_GUID = 'OTHER-DEVICE-NOTIF-GUID-1234'
+
+        before(function (done) {
+
+            function createNetwork(callback) {
+                var params = {
+                    user: utils.admin,
+                    data: {
+                        name: OTHER_NETWORK
+                    }
+                };
+
+                utils.create(path.NETWORK, params, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    otherNetworkId = result.id;
+                    callback()
+                });
+            }
+
+            function createDevice(callback) {
+                var params = utils.device.getParamsObj('_integr-test-OTHER-device-notif', utils.admin, DEVICE_KEY,
+                    {name: OTHER_NETWORK}, {name: DEVICE, version: '1'});
+                params.id = OTHER_DEVICE_GUID;
+                utils.update(path.DEVICE, params, function (err) {
+                    callback(err);
+                });
+            }
+
+            async.series([
+                createNetwork,
+                createDevice
+            ], done);
+        });
+
+        it('should return notification for current device', function (done) {
+            var params = {user: user};
+            utils.get(path.NOTIFICATION.poll(), params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
+                assert.strictEqual(result.every(function (item) {
+                    return item.notification.notification === NOTIFICATION_2 && item.deviceGuid === DEVICE_GUID;
+                }), true);
+                done();
+            })
+
+            setTimeout(function () {
+                var params = helper.getParamsObj(NOTIFICATION_2, null);
+                params.device = {
+                    id: OTHER_DEVICE_GUID,
+                    key: DEVICE_KEY
+                };
+                utils.create(path.NOTIFICATION.get(OTHER_DEVICE_GUID), params, function (err) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                });
+            }, 100);
+
+            setTimeout(function () {
+                var params = helper.getParamsObj(NOTIFICATION_2, utils.admin);
+                utils.create(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                });
+            }, 100);
+        })
+    });
+
+    describe('#Poll Many No Wait', function () {
+        it('should return immediately with empty result', function (done) {
+            var params = {user: user};
+            params.query = path.query('waitTimeout', '0');
+            utils.get(path.NOTIFICATION.poll(), params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(utils.core.isEmptyArray(result), true);
+                done();
+            })
+        })
     });
 
     after(function (done) {

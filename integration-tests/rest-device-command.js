@@ -349,12 +349,16 @@ describe('REST API Device Command', function () {
 
             setTimeout(function () {
                 var params = helper.getParamsObj(COMMAND_2, user);
-                utils.create(path.current, params, function () {})
+                utils.create(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                });
             }, 100);
 
             setTimeout(function () {
                 var params = helper.getParamsObj(COMMAND, user);
-                utils.create(path.current, params, function () {})
+                utils.create(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                })
             }, 100);
         })
     });
@@ -387,12 +391,16 @@ describe('REST API Device Command', function () {
 
             setTimeout(function () {
                 var params = helper.getParamsObj(COMMAND_2, user);
-                utils.create(path.current, params, function () {})
+                utils.create(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                });
             }, 100);
 
             setTimeout(function () {
                 var params = helper.getParamsObj(COMMAND, user);
-                utils.create(path.current, params, function () {})
+                utils.create(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                });
             }, 100);
         })
     });
@@ -451,12 +459,16 @@ describe('REST API Device Command', function () {
 
             setTimeout(function () {
                 var params = helper.getParamsObj(COMMAND_2, utils.admin);
-                utils.create(path.COMMAND.get(OTHER_DEVICE_GUID), params, function () {})
+                utils.create(path.COMMAND.get(OTHER_DEVICE_GUID), params, function (err) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                });
             }, 100);
 
             setTimeout(function () {
                 var params = helper.getParamsObj(COMMAND_2, utils.admin);
-                utils.create(path.current, params, function () {})
+                utils.create(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                });
             }, 100);
         })
     });
