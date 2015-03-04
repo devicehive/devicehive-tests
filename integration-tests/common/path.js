@@ -32,9 +32,19 @@ var path = {
     NOTIFICATION: {
         get: function (deviceGuid) {
             return path.combine(path.DEVICE, deviceGuid, 'notification');
+        },
+        poll: function () {
+            return path.combine(path.DEVICE, 'notification', path.POLL);
         }
     },
-    COMMAND: '/command',
+    COMMAND: {
+        get: function (deviceGuid) {
+            return path.combine(path.DEVICE, deviceGuid, 'command');
+        },
+        poll: function () {
+            return path.combine(path.DEVICE, 'command', path.POLL);
+        }
+    },
     POLL: '/poll',
 
     get: function (path, id, query) {

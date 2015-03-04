@@ -18,14 +18,17 @@ describe('REST API Device Command', function () {
     var COMMAND_2 = '_INTEGR-TEST-CMD-2';
 
     var networkId = null;
-    var deviceClassId = null;
     var user = null;
     var nonNetworkUser = null;
     var commandId = null;
 
+    function hasCommand(item) {
+        return item.id === commandId && item.command === COMMAND;
+    }
+
     before(function (done) {
 
-        path.current = path.combine(path.DEVICE, DEVICE_GUID, path.COMMAND);
+        path.current = path.COMMAND.get(DEVICE_GUID);
 
         function createNetwork(callback) {
             var params = {
@@ -47,13 +50,8 @@ describe('REST API Device Command', function () {
 
         function createDeviceClass(callback) {
             var params = utils.deviceClass.getParamsObj(DEVICE, utils.admin, '1');
-            utils.create(path.DEVICE_CLASS, params, function (err, result) {
-                if (err) {
-                    return callback(err);
-                }
-
-                deviceClassId = result.id;
-                callback();
+            utils.create(path.DEVICE_CLASS, params, function (err) {
+                callback(err);
             });
         }
 
@@ -113,10 +111,6 @@ describe('REST API Device Command', function () {
             createCommand
         ], done);
     });
-
-    function hasCommand(item) {
-        return item.id === commandId && item.command === COMMAND;
-    }
 
     describe('#GetAll', function () {
 
@@ -381,9 +375,8 @@ describe('REST API Device Command', function () {
     describe('#Poll Many', function () {
         it('should return result with deviceGuid', function (done) {
             var params = {user: user};
-            var $path = path.combine(path.DEVICE, path.COMMAND, path.POLL);
             params.query = path.query('names', COMMAND, 'deviceGuids', DEVICE_GUID);
-            utils.get($path, params, function (err, result) {
+            utils.get(path.COMMAND.poll(), params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
                 assert.strictEqual(result.every(function (item) {
@@ -447,8 +440,7 @@ describe('REST API Device Command', function () {
 
         it('should return current device command', function (done) {
             var params = {user: user};
-            var $path = path.combine(path.DEVICE, path.COMMAND, path.POLL);
-            utils.get($path, params, function (err, result) {
+            utils.get(path.COMMAND.poll(), params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
                 assert.strictEqual(result.every(function (item) {
@@ -459,8 +451,7 @@ describe('REST API Device Command', function () {
 
             setTimeout(function () {
                 var params = helper.getParamsObj(COMMAND_2, utils.admin);
-                var $path = path.combine(path.DEVICE, OTHER_DEVICE_GUID, path.COMMAND);
-                utils.create($path, params, function () {})
+                utils.create(path.COMMAND.get(OTHER_DEVICE_GUID), params, function () {})
             }, 100);
 
             setTimeout(function () {
@@ -473,9 +464,8 @@ describe('REST API Device Command', function () {
     describe('#Poll Many No Wait', function () {
         it('should return immediately with empty result', function (done) {
             var params = {user: user};
-            var $path = path.combine(path.DEVICE, path.COMMAND, path.POLL);
             params.query = path.query('waitTimeout', '0');
-            utils.get($path, params, function (err, result) {
+            utils.get(path.COMMAND.poll(), params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isEmptyArray(result), true);
                 done();
