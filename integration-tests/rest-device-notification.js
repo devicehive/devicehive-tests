@@ -487,6 +487,149 @@ describe.only('REST API Device Notification', function () {
         })
     });
 
+    describe('#Create', function () {
+
+        var invalidAccessKey1 = null;
+        var invalidAccessKey2 = null;
+        var invalidAccessKey3 = null;
+        var accessKey = null;
+
+        before(function (done) {
+
+            var params = [
+                {
+                    user: nonNetworkUser,
+                    actions: 'CreateDeviceNotification'
+                },
+                {
+                    user: user,
+                    actions: 'CreateDeviceNotification',
+                    networkIds: [0]
+                },
+                {
+                    user: user,
+                    actions: 'CreateDeviceNotification',
+                    deviceIds: utils.NON_EXISTING_ID
+                },
+                {
+                    user: user,
+                    actions: 'CreateDeviceNotification'
+                },
+            ];
+
+            utils.accessKey.createMany(params, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                invalidAccessKey1 = result[0];
+                invalidAccessKey2 = result[1];
+                invalidAccessKey3 = result[2];
+                accessKey = result[3];
+
+                done();
+            })
+        });
+
+        it('should create notification using device authorization', function (done) {
+            var params = helper.getParamsObj(NOTIFICATION, null);
+            params.device = {
+                id: DEVICE_GUID,
+                key: DEVICE_KEY
+            };
+            utils.create(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                var params = helper.getParamsObj(NOTIFICATION, user);
+                params.id = result.id;
+                var timestamp = result.timestamp;
+                utils.get(path.current, params, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    assert.strictEqual(result.notification, NOTIFICATION);
+                    assert.strictEqual(new Date(result.timestamp).toUTCString(),
+                        new Date(timestamp).toUTCString());
+                    done();
+                })
+            });
+        })
+
+        it('should return error when creating notification with invalid user', function (done) {
+            var params = helper.getParamsObj(NOTIFICATION, nonNetworkUser);
+            utils.create(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                    DEVICE_GUID));
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+
+                done();
+            })
+        });
+
+        it('should succeed when creating notification with allowed user', function (done) {
+            var params = helper.getParamsObj(NOTIFICATION, user);
+            utils.create(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+
+                var timestamp = result.timestamp;
+                params.id = result.id;
+                utils.get(path.current, params, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    assert.strictEqual(result.notification, NOTIFICATION);
+                    assert.strictEqual(new Date(result.timestamp).toUTCString(),
+                        new Date(timestamp).toUTCString());
+                    done();
+                })
+            })
+        });
+
+        it('should fail with 404 #1', function (done) {
+            var params = helper.getParamsObj(NOTIFICATION);
+            params.accessKey = invalidAccessKey1;
+            utils.create(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                    DEVICE_GUID));
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+
+                done();
+            });
+        });
+
+        it('should fail with 404 #2', function (done) {
+            var params = helper.getParamsObj(NOTIFICATION);
+            params.accessKey = invalidAccessKey2;
+            utils.create(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                    DEVICE_GUID));
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+
+                done();
+            });
+        });
+
+        it('should fail with 404 #3', function (done) {
+            var params = helper.getParamsObj(NOTIFICATION);
+            params.accessKey = invalidAccessKey3;
+            utils.create(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                    DEVICE_GUID));
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+
+                done();
+            });
+        });
+
+        it('should succeed when using valid access key', function (done) {
+            var params = helper.getParamsObj(NOTIFICATION);
+            params.accessKey = accessKey;
+            utils.create(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                done();
+            });
+        });
+    })
+
     after(function (done) {
         utils.clearResources(done);
     });
