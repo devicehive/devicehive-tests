@@ -17,7 +17,6 @@ describe('REST API Device Command', function () {
     var COMMAND = '_integr-test-cmd-1';
     var COMMAND_2 = '_INTEGR-TEST-CMD-2';
 
-    var networkId = null;
     var user = null;
     var nonNetworkUser = null;
     var commandId = null;
@@ -29,6 +28,7 @@ describe('REST API Device Command', function () {
     before(function (done) {
 
         path.current = path.COMMAND.get(DEVICE_GUID);
+        var networkId = null;
 
         function createNetwork(callback) {
             var params = {

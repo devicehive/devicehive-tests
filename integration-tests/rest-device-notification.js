@@ -17,7 +17,6 @@ describe('REST API Device Notification', function () {
     var NOTIFICATION = '_integr-test-notif-1';
     var NOTIFICATION_2 = '_INTEGR-TEST-NOTIF-2';
 
-    var networkId = null;
     var user = null;
     var nonNetworkUser = null;
     var notificationId = null;
@@ -29,6 +28,7 @@ describe('REST API Device Notification', function () {
     before(function (done) {
 
         path.current = path.NOTIFICATION.get(DEVICE_GUID);
+        var networkId = null;
 
         function createNetwork(callback) {
             var params = {
@@ -44,7 +44,7 @@ describe('REST API Device Notification', function () {
                 }
 
                 networkId = result.id;
-                callback()
+                callback();
             });
         }
 
