@@ -8,17 +8,18 @@ var status = require('./common/http').status;
 describe('REST API Access Key', function () {
 
     var helper = utils.accessKey;
+    var user = null;
 
     before(function (done) {
-        utils.createUser(utils.user.login, utils.user.password, 1, 0,
-            function (err, result) {
-                if (err) {
-                    return done(err);
-                }
+        utils.createUser2(1, void 0, function (err, result) {
+            if (err) {
+                return done(err);
+            }
 
-                path.current = format('/user/%d/accesskey', result.id);
-                done();
-            });
+            user = result.user;
+            path.current = format('/user/%d/accesskey', user.id);
+            done();
+        });
     });
 
     describe('#GetAll', function() {
@@ -41,7 +42,7 @@ describe('REST API Access Key', function () {
             }
 
             function createUserKey(callback) {
-                helper.create(utils.user, '_integr-test-user-key', 'CreateDeviceNotification', void 0, void 0,
+                helper.create(user, '_integr-test-user-key', 'CreateDeviceNotification', void 0, void 0,
                     function (err, result) {
                         if (err) {
                             return callback(err);
@@ -79,7 +80,7 @@ describe('REST API Access Key', function () {
 
         it('should get user keys', function(done){
 
-            var params = { user: utils.user };
+            var params = { user: user };
             utils.get(path.current, params, function (err, result) {
                 if (err) {
                     return done(err);
@@ -131,18 +132,18 @@ describe('REST API Access Key', function () {
 
         it('should allow user to create key', function (done) {
             createTest({
-                createParams: helper.getParams('_integr-test-create-2', utils.user),
+                createParams: helper.getParams('_integr-test-create-2', user),
                 createPath: path.current,
-                getParams: { user: utils.user },
+                getParams: { user: user },
                 getPath: path.CURRENT_ACCESS_KEY
             }, done);
         })
 
         it('should allow user to create key using same path', function (done) {
             createTest({
-                createParams: helper.getParams('_integr-test-create-3', utils.user),
+                createParams: helper.getParams('_integr-test-create-3', user),
                 createPath: path.current,
-                getParams: { user: utils.user },
+                getParams: { user: user },
                 getPath: path.current
             }, done);
         })
@@ -199,20 +200,20 @@ describe('REST API Access Key', function () {
 
         it('should allow user to update key', function (done) {
             updateTest({
-                updateParams: helper.getParams('_integr-test-update-2', utils.user, new Date(2018, 3, 2),
+                updateParams: helper.getParams('_integr-test-update-2', user, new Date(2018, 3, 2),
                     ['www.integration-tests.com'], [5, 6], ['CreateDeviceCommand'], ['22222222-3333-4444-5555-666666666666'], ['127.0.0.2']),
                 updatePath: path.current,
-                getParams: { user: utils.user },
+                getParams: { user: user },
                 getPath: path.CURRENT_ACCESS_KEY
             }, done);
         })
 
         it('should allow user to update key using same path', function (done) {
             updateTest({
-                updateParams: helper.getParams('_integr-test-update-3', utils.user, new Date(2018, 4, 15),
+                updateParams: helper.getParams('_integr-test-update-3', user, new Date(2018, 4, 15),
                     ['www.devicehive.com'], [3, 4], ['CreateDeviceNotification', 'UpdateDeviceCommand'], void 0, ['127.0.0.2']),
                 updatePath: path.current,
-                getParams: { user: utils.user },
+                getParams: { user: user },
                 getPath: path.current
             }, done);
         })
@@ -252,18 +253,18 @@ describe('REST API Access Key', function () {
 
         it('should allow user to delete key', function (done) {
             deleteTest({
-                createParams: helper.getParams('_integr-test-delete-2', utils.user),
+                createParams: helper.getParams('_integr-test-delete-2', user),
                 createPath: path.current,
-                params: { user: utils.user },
+                params: { user: user },
                 path: path.CURRENT_ACCESS_KEY
             }, done);
         })
 
         it('should allow user to delete key using user path', function (done) {
             deleteTest({
-                createParams: helper.getParams('_integr-test-delete-3', utils.user),
+                createParams: helper.getParams('_integr-test-delete-3', user),
                 createPath: path.current,
-                params: { user: utils.user },
+                params: { user: user },
                 path: path.current
             }, done);
         })

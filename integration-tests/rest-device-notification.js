@@ -5,7 +5,7 @@ var utils = require('./common/utils');
 var path = require('./common/path');
 var status = require('./common/http').status;
 
-describe.only('REST API Device Notification', function () {
+describe('REST API Device Notification', function () {
     this.timeout(30000);
 
     var helper = utils.notification;
@@ -629,6 +629,193 @@ describe.only('REST API Device Notification', function () {
             });
         });
     })
+
+    describe('#Update', function () {
+        it('should return error when trying to update notification', function (done) {
+            var params = {
+                data: {
+                    parameters: { a: 'b' }
+                },
+                device: {
+                    id: DEVICE_GUID,
+                    key: DEVICE_KEY
+                }
+            };
+            params.id = notificationId;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'DeviceHive server error - HTTP 405 Method Not Allowed');
+                assert.strictEqual(err.httpStatus, status.METHOD_NOT_ALLOWED);
+
+                done();
+            });
+        });
+    });
+
+    describe('#Delete', function () {
+        it('should return error when trying to delete command', function (done) {
+            var params = {user: utils.admin};
+            params.id = notificationId;
+            utils.delete(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'DeviceHive server error - HTTP 405 Method Not Allowed');
+                assert.strictEqual(err.httpStatus, status.METHOD_NOT_ALLOWED);
+                done();
+            });
+        })
+    });
+
+    describe('#Bad Request', function () {
+        it('should return error when trying to create notification using invalid format', function (done) {
+            var params = {
+                data: {
+                    notification2: NOTIFICATION
+                }
+            };
+            params.device = {
+                id: DEVICE_GUID,
+                key: DEVICE_KEY
+            }
+            utils.create(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'DeviceHive server error - Invalid request parameters');
+                assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
+                done();
+            });
+        })
+    });
+
+    describe('#Not authorized', function () {
+        describe('No authorization', function () {
+            it('should return error when getting notifications without authorization', function (done) {
+                utils.get(path.current, {user: null}, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            })
+
+            it('should return error when accessing non-existing notification without authorization', function (done) {
+                var params = {user: null };
+                params.id = utils.NON_EXISTING_ID;
+                utils.get(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            })
+
+            it('should return error when inserting notification without authorization', function (done) {
+                var params = helper.getParamsObj('the-notification', null);
+                utils.create(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            });
+
+            it('should return error when polling notifications without authorization #1', function (done) {
+                var $path = path.combine(path.current, path.POLL);
+                utils.get($path, {user: null}, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            });
+
+            it('should return error when polling notifications without authorization #2', function (done) {
+                utils.get(path.NOTIFICATION.poll(), {user: null}, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            });
+        });
+
+        describe('Device authorization', function () {
+            it('should return error when getting notifications using device authorization', function (done) {
+                var params = {
+                    device: {
+                        id: DEVICE_GUID,
+                        key: DEVICE_KEY
+                    }
+                };
+                utils.get(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            });
+
+            it('should return error when accessing non-existing notification using device authorization', function (done) {
+                var params = {
+                    device: {
+                        id: DEVICE_GUID,
+                        key: DEVICE_KEY
+                    }
+                };
+                params.id = utils.NON_EXISTING_ID;
+                utils.get(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            })
+
+            it('should return error when polling notifications using device authorization #1', function (done) {
+                var params = {
+                    device: {
+                        id: DEVICE_GUID,
+                        key: DEVICE_KEY
+                    }
+                };
+                var $path = path.combine(path.current, path.POLL);
+                utils.get($path, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            });
+
+            it('should return error when polling notifications using device authorization #2', function (done) {
+                var params = {
+                    device: {
+                        id: DEVICE_GUID,
+                        key: DEVICE_KEY
+                    }
+                };
+                utils.get(path.NOTIFICATION.poll(), params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            });
+        });
+    });
+
+    describe('#Not Found', function () {
+        it('should return error when accessing non-existing notification', function (done) {
+            var params = {user: utils.admin };
+            params.id = utils.NON_EXISTING_ID;
+            utils.get(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error,
+                    format('DeviceHive server error - No device notifications found from device with guid : %s',
+                    DEVICE_GUID));
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                done();
+            })
+        });
+    });
 
     after(function (done) {
         utils.clearResources(done);

@@ -794,7 +794,7 @@ describe('REST API Device Command', function () {
 
     describe('#Delete', function () {
         it('should return error when trying to delete command', function (done) {
-            var params = helper.getParamsObj(COMMAND, utils.admin);
+            var params = {user: utils.admin};
             params.id = commandId;
             utils.delete(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -809,7 +809,7 @@ describe('REST API Device Command', function () {
 
         describe('no authorization', function () {
             it('should return error when getting commands without authorization', function (done) {
-                utils.get(path.current, {user: null}, function (err, result) {
+                utils.get(path.current, {user: null}, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);

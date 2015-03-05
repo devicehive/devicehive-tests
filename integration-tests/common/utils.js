@@ -5,29 +5,19 @@ var Http = require('./http').Http;
 var status = require('./http').status;
 var $utils = require('./../../common/utils');
 
-var utils = {
 
-    core: $utils,
+var utils = {
 
     NON_EXISTING_ID: 999999,
 
-    //url: 'http://nn7502.pg.devicehive.com/api',
-    //url: 'http://192.168.152.147:8080/dh/rest',
-    url: 'http://23.253.35.56:8081/DeviceHive/rest',
+    core: $utils,
+
+    url: $utils.getConfig('server:restUrl'),
 
     admin: {
         login: 'dhadmin',
         password: 'dhadmin_#911'
-    },
-
-    //admin: {
-    //    login: 'admin',
-    //    password: 'Password1@'
-    //},
-
-    user: {
-        login: '_ingegr-test-usr',
-        password: 'ASDF_1234!@#$'
+        //password: 'Password1@'
     },
 
     resources: [],
