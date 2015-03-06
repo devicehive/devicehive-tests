@@ -5,21 +5,26 @@ var utils = require('./common/utils');
 var path = require('./common/path');
 var status = require('./common/http').status;
 
-describe.only('REST API Device', function () {
+describe('REST API Device Unit', function () {
     this.timeout(30000);
 
     var helper = utils.device;
 
     var NETWORK = '_integr-test-network-device';
     var DEVICE = '_integr-test-device';
+    var DEVICE_CLASS_VERSION = '1';
     var DEVICE_GUID = 'INTEGR-TEST-DEVICE-GUID-12345';
-    //var ANOTHER_DEVICE_GUID = 'INTEGR-TEST-ANOTHER-DEVICE-GUID-54321';
-    var DEVICE_KEY = 'INTEGR-TEST-DEVICE-NOTIF-KEY';
+    var DEVICE_KEY = 'INTEGR-TEST-DEVICE-KEY-1';
 
     var networkId = null;
     var user = null;
     var nonNetworkUser = null;
     var deviceClassId = null;
+    var equipment = {
+        name: "_integr-test-eq",
+        code: "123",
+        type: "_integr-test-type"
+    };
 
     before(function (done) {
 
@@ -44,7 +49,7 @@ describe.only('REST API Device', function () {
         }
 
         function createDeviceClass(callback) {
-            var params = utils.deviceClass.getParamsObj(DEVICE, utils.admin, '1');
+            var params = utils.deviceClass.getParamsObj(DEVICE, utils.admin, DEVICE_CLASS_VERSION, void 0, void 0, equipment);
             utils.create(path.DEVICE_CLASS, params, function (err, result) {
                 if (err) {
                     return callback(err);
@@ -52,6 +57,15 @@ describe.only('REST API Device', function () {
 
                 deviceClassId = result.id;
                 callback();
+            });
+        }
+
+        function createDevice(callback) {
+            var params = helper.getParamsObj(DEVICE, utils.admin, DEVICE_KEY,
+                {name: NETWORK}, {name: DEVICE, version: '1'});
+            params.id = DEVICE_GUID;
+            utils.update(path.DEVICE, params, function (err) {
+                callback(err);
             });
         }
 
@@ -80,6 +94,7 @@ describe.only('REST API Device', function () {
         async.series([
             createNetwork,
             createDeviceClass,
+            createDevice,
             createUser,
             createNonNetworkUser
         ], done);
@@ -91,47 +106,29 @@ describe.only('REST API Device', function () {
         var accessKey2 = null;
 
         before(function (done) {
+            var params = [
+                {
+                    user: user,
+                    actions: 'GetDevice',
+                    networkIds: [0]
+                },
+                {
+                    user: user,
+                    actions: 'GetDevice',
+                    deviceIds: utils.NON_EXISTING_ID
+                }
+            ];
 
-            function createDevice(callback) {
-                var params = helper.getParamsObj(DEVICE, utils.admin, DEVICE_KEY,
-                    {name: NETWORK}, {name: DEVICE, version: '1'});
-                params.id = DEVICE_GUID;
-                utils.update(path.DEVICE, params, function (err) {
-                    callback(err);
-                });
-            }
+            utils.accessKey.createMany(params, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
 
-            function createAccessKeys(callback) {
+                accessKey1 = result[0];
+                accessKey2 = result[1];
 
-                var params = [
-                    {
-                        user: user,
-                        actions: 'GetDevice',
-                        networkIds: [0]
-                    },
-                    {
-                        user: user,
-                        actions: 'GetDevice',
-                        deviceIds: utils.NON_EXISTING_ID
-                    }
-                ];
-
-                utils.accessKey.createMany(params, function (err, result) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    accessKey1 = result[0];
-                    accessKey2 = result[1];
-
-                    callback();
-                });
-            }
-
-            async.series([
-                createDevice,
-                createAccessKeys
-            ], done);
+                done();
+            });
         });
 
         it('should get device by name', function (done) {
@@ -140,10 +137,9 @@ describe.only('REST API Device', function () {
             utils.get(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
-
-                assert.strictEqual(result.some(function (item) {
-                    return item.id === DEVICE_GUID;
-                }), true);
+                utils.matches(result[0], {
+                    id: DEVICE_GUID
+                });
 
                 done();
             })
@@ -155,10 +151,9 @@ describe.only('REST API Device', function () {
             utils.get(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
-
-                assert.strictEqual(result.some(function (item) {
-                    return item.id === DEVICE_GUID;
-                }), true);
+                utils.matches(result[0], {
+                    id: DEVICE_GUID
+                });
 
                 done();
             })
@@ -170,10 +165,9 @@ describe.only('REST API Device', function () {
             utils.get(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
-
-                assert.strictEqual(result.some(function (item) {
-                    return item.id === DEVICE_GUID;
-                }), true);
+                utils.matches(result[0], {
+                    id: DEVICE_GUID
+                });
 
                 done();
             })
@@ -183,10 +177,9 @@ describe.only('REST API Device', function () {
             utils.get(path.current, {user: user}, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
-
-                assert.strictEqual(result.some(function (item) {
-                    return item.id === DEVICE_GUID;
-                }), true);
+                utils.matches(result[0], {
+                    id: DEVICE_GUID
+                });
 
                 done();
             })
@@ -219,57 +212,39 @@ describe.only('REST API Device', function () {
         var accessKey = null;
 
         before(function (done) {
+            var params = [
+                {
+                    user: nonNetworkUser,
+                    actions: 'GetDevice'
+                },
+                {
+                    user: user,
+                    actions: 'GetDevice',
+                    networkIds: [0]
+                },
+                {
+                    user: user,
+                    actions: 'GetDevice',
+                    deviceIds: utils.NON_EXISTING_ID
+                },
+                {
+                    user: user,
+                    actions: 'GetDevice'
+                },
+            ];
 
-            function createDevice(callback) {
-                var params = helper.getParamsObj(DEVICE, utils.admin, DEVICE_KEY,
-                    {name: NETWORK}, {name: DEVICE, version: '1'});
-                params.id = DEVICE_GUID;
-                utils.update(path.DEVICE, params, function (err) {
-                    callback(err);
-                });
-            }
+            utils.accessKey.createMany(params, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
 
-            function createAccessKeys(callback) {
+                invalidAccessKey1 = result[0];
+                invalidAccessKey2 = result[1];
+                invalidAccessKey3 = result[2];
+                accessKey = result[3];
 
-                var params = [
-                    {
-                        user: nonNetworkUser,
-                        actions: 'GetDevice'
-                    },
-                    {
-                        user: user,
-                        actions: 'GetDevice',
-                        networkIds: [0]
-                    },
-                    {
-                        user: user,
-                        actions: 'GetDevice',
-                        deviceIds: utils.NON_EXISTING_ID
-                    },
-                    {
-                        user: user,
-                        actions: 'GetDevice'
-                    },
-                ];
-
-                utils.accessKey.createMany(params, function (err, result) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    invalidAccessKey1 = result[0];
-                    invalidAccessKey2 = result[1];
-                    invalidAccessKey3 = result[2];
-                    accessKey = result[3];
-
-                    callback();
-                });
-            }
-
-            async.series([
-                createDevice,
-                createAccessKeys
-            ], done);
+                done();
+            });
         });
 
         it('should return error when accessing device with wrong user', function (done) {
@@ -346,6 +321,271 @@ describe.only('REST API Device', function () {
                 assert.strictEqual(result.name, DEVICE);
 
                 done();
+            });
+        });
+    });
+
+    describe('#Create', function () {
+
+        var NEW_DEVICE = '_integr-test-new-device';
+        var NEW_DEVICE_GUID = 'INTEGR-TEST-NEW-DEVICE-GUID-12345';
+
+        before(function (done) {
+            var params = helper.getParamsObj(NEW_DEVICE, utils.admin, DEVICE_KEY,
+                {name: NETWORK}, {name: DEVICE, version: '1'});
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                done(err);
+            });
+        });
+
+        it('should return newly created device', function (done) {
+            var params = {user: utils.admin};
+            params.id = NEW_DEVICE_GUID;
+            utils.get(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                utils.matches(result, {
+                    id: NEW_DEVICE_GUID,
+                    name: NEW_DEVICE,
+                    network: {
+                        id: networkId,
+                        name: NETWORK
+                    },
+                    deviceClass: {
+                        name: DEVICE,
+                        version: DEVICE_CLASS_VERSION,
+                        equipment: [
+                            {
+                                name: equipment.name,
+                                code: equipment.code,
+                                type: equipment.type
+                            }
+                        ]
+                    }
+                });
+
+                done();
+            });
+        });
+
+        it('should verify device-add notification', function (done) {
+            utils.get(path.NOTIFICATION.get(NEW_DEVICE_GUID), {user: user}, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
+                utils.matches(result[0], {
+                    notification: '$device-add',
+                    parameters: {
+                        id: NEW_DEVICE_GUID,
+                        name: NEW_DEVICE,
+                        network: {
+                            id: networkId,
+                            name: NETWORK
+                        },
+                        deviceClass: {
+                            id: deviceClassId,
+                            name: DEVICE,
+                            version: DEVICE_CLASS_VERSION
+                        }
+                    }
+                });
+
+                done();
+            });
+        });
+    });
+
+    describe('#Create Client', function () {
+
+        var NEW_DEVICE = '_integr-test-new-device-1';
+        var NEW_DEVICE_GUID = 'INTEGR-TEST-NEW-DEVICE-GUID-12345-1';
+
+        it('should fail device creation for invalid user', function (done) {
+            var params = helper.getParamsObj(NEW_DEVICE, nonNetworkUser, DEVICE_KEY,
+                {name: NETWORK}, {name: DEVICE, version: '1'});
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'DeviceHive server error - No access to network!');
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+                done();
+            });
+        });
+
+        it('should allow device creation for valid user', function (done) {
+            var params = helper.getParamsObj(NEW_DEVICE, user, DEVICE_KEY,
+                {name: NETWORK}, {name: DEVICE, version: '1'});
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), false, 'No error');
+
+                var params = {user: utils.admin};
+                params.id = NEW_DEVICE_GUID;
+                utils.get(path.current, params, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    utils.matches(result, {
+                        id: NEW_DEVICE_GUID,
+                        name: NEW_DEVICE,
+                        network: {
+                            id: networkId,
+                            name: NETWORK
+                        },
+                        deviceClass: {
+                            name: DEVICE,
+                            version: DEVICE_CLASS_VERSION,
+                            equipment: [
+                                {
+                                    name: equipment.name,
+                                    code: equipment.code,
+                                    type: equipment.type
+                                }
+                            ]
+                        }
+                    });
+
+                    done();
+                });
+            });
+        });
+    });
+
+    describe('#Create Network Key', function () {
+
+        var NETWORK_KEY = 'INTEGR-TEST-NETWORK-KEY-12345';
+
+        before(function (done) {
+            // Set a key to the network
+            var params = {
+                user: utils.admin,
+                data: {
+                    key: NETWORK_KEY
+                }
+            };
+            params.id = networkId;
+            utils.update(path.NETWORK, params, function (err, result) {
+                done(err);
+            });
+        });
+
+        it('should fail when referencing network without key', function (done) {
+            var params = helper.getParamsObj(DEVICE, null, DEVICE_KEY,
+                {name: NETWORK}, {name: DEVICE, version: '1'});
+            params.id = DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'DeviceHive server error - Incorrect network key value');
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+                done();
+            });
+        });
+
+        it('should succeed when network key is passed', function (done) {
+            var params = helper.getParamsObj(DEVICE, null, DEVICE_KEY,
+                {name: NETWORK, key: NETWORK_KEY}, {name: DEVICE, version: '1'});
+            params.id = DEVICE_GUID;
+            utils.update(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+
+                var params = {user: utils.admin};
+                params.id = DEVICE_GUID;
+                utils.get(path.current, params, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    utils.matches(result, {
+                        id: DEVICE_GUID,
+                        name: DEVICE,
+                        network: {
+                            id: networkId,
+                            name: NETWORK,
+                            key: NETWORK_KEY
+                        },
+                        deviceClass: {
+                            name: DEVICE,
+                            version: DEVICE_CLASS_VERSION,
+                            equipment: [
+                                {
+                                    name: equipment.name,
+                                    code: equipment.code,
+                                    type: equipment.type
+                                }
+                            ]
+                        }
+                    });
+
+                    done();
+                });
+            });
+        });
+
+        it('should not expose network key to devices', function (done) {
+            var params = {
+                device: {
+                    id: DEVICE_GUID,
+                    key: DEVICE_KEY
+                }
+            };
+            params.id = DEVICE_GUID;
+            utils.get(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(!(!result.network), true);
+                assert.strictEqual(!(!result.network.key), false);
+                done();
+            });
+        });
+    });
+
+    describe('#Create Auto Create (incl. Legacy Equipment)', function () {
+
+        var NEW_DEVICE = '_integr-test-new-device-auto-create';
+        var NEW_DEVICE_CLASS = '_integr-test-new-device-class-auto-create';
+        var NEW_DEVICE_CLASS_VERSION = '2';
+        var DEVICE_GUID = 'INTEGR-TEST-AUTOCREATE-DEVICE-GUID-12345-2';
+        var NEW_NETWORK = '_integr-test-network-autocreate';
+        var equipment = {
+            name: "eq1",
+            code: "eq1_code",
+            type: "eq1_type"
+        };
+
+        it('should auto-create network and device class', function (done) {
+            var params = helper.getParamsObj(NEW_DEVICE, null, DEVICE_KEY,
+                {name: NEW_NETWORK},
+                {
+                    name: NEW_DEVICE_CLASS,
+                    version: NEW_DEVICE_CLASS_VERSION,
+                    equipment: [equipment]
+                });
+            params.id = DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), false, 'No error');
+
+                var params = {user: utils.admin};
+                params.id = DEVICE_GUID;
+                utils.get(path.current, params, function (err, result) {
+
+                    utils.resources.push(path.get(path.NETWORK, result.network.id));
+                    utils.resources.push(path.get(path.DEVICE_CLASS, result.deviceClass.id));
+
+                    assert.strictEqual(!(!err), false, 'No error');
+                    utils.matches(result, {
+                        id: DEVICE_GUID,
+                        name: NEW_DEVICE,
+                        network: {
+                            name: NEW_NETWORK
+                        },
+                        deviceClass: {
+                            name: NEW_DEVICE_CLASS,
+                            version: NEW_DEVICE_CLASS_VERSION,
+                            equipment: [
+                                {
+                                    name: equipment.name,
+                                    code: equipment.code,
+                                    type: equipment.type
+                                }
+                            ]
+                        }
+                    });
+
+                    done();
+                });
             });
         });
     });

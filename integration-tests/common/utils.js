@@ -366,6 +366,34 @@ var utils = {
                 self.resources = [];
                 done();
             });
+    },
+
+    matches: function (actual, expected) {
+
+        var keys = Object.keys(expected);
+        keys.forEach(function (key) {
+
+            var ex = expected[key];
+            var ac = actual[key];
+
+            if (utils.core.isArrayNonEmpty(ex)) {
+                assert.strictEqual(utils.core.isArrayNonEmpty(ex), true);
+                assert.strictEqual(ex.length, ac.length);
+
+                for (var i = 0; i < ex.length; i++) {
+                    utils.matches(ac[i], ex[i]);
+                }
+
+                return;
+            }
+
+            if (typeof (ex) === 'object') {
+                utils.matches(ac, ex);
+                return;
+            }
+
+            assert.strictEqual(ac, ex);
+        });
     }
 };
 
