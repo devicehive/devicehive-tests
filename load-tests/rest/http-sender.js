@@ -29,6 +29,15 @@ HttpSender.prototype = {
                 path: '/device/' + deviceGuid + '/command',
                 data: request.data
             };
+        },
+        poll: function (sender, request) {
+            var deviceGuid = testUtils.getDeviceGuid(sender.context, sender.requestId);
+
+            return {
+                method: request.method,
+                path: '/device/' + deviceGuid + '/command/poll',
+                data: request.data
+            };
         }
     },
 
