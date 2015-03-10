@@ -530,6 +530,20 @@ describe('REST API Device Unit', function () {
                 done();
             });
         });
+
+        after(function (done) {
+            // Remove network key
+            var params = {
+                user: utils.admin,
+                data: {
+                    key: null
+                }
+            };
+            params.id = networkId;
+            utils.update(path.NETWORK, params, function (err) {
+                done(err);
+            });
+        });
     });
 
     describe('#Create Auto Create (incl. Legacy Equipment)', function () {
@@ -583,6 +597,126 @@ describe('REST API Device Unit', function () {
                             ]
                         }
                     });
+
+                    done();
+                });
+            });
+        });
+    });
+
+    describe('#Create Permanent', function () {
+
+        var newEquipment = {
+            name: "eq1",
+            code: "eq1_code",
+            type: "eq1_type"
+        };
+
+        before(function (done) {
+            var params = {
+                data: {
+                    isPermanent: true
+                }
+            };
+            params.user = utils.admin;
+            params.id = deviceClassId;
+            utils.update(path.DEVICE_CLASS, params, function (err, result) {
+                done();
+            });
+        });
+
+        it('should not change permanent device class', function (done) {
+            var params = helper.getParamsObj(DEVICE, null, DEVICE_KEY,
+                {name: NETWORK},
+                {
+                    name: DEVICE,
+                    version: DEVICE_CLASS_VERSION,
+                    offlineTimeout: 10,
+                    equipment: [newEquipment]
+                });
+            params.id = DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), false, 'No error');
+
+                var params = {user: utils.admin};
+                params.id = deviceClassId;
+                utils.get(path.DEVICE_CLASS, params, function (err, result) {
+
+                    assert.strictEqual(!(!err), false, 'No error');
+
+                    utils.matches(result, {
+                        offlineTimeout: null,
+                        equipment: [
+                            {
+                                name: equipment.name,
+                                code: equipment.code,
+                                type: equipment.type
+                            }
+                        ]
+                    });
+
+                    done();
+                });
+            });
+        });
+    });
+
+    describe('#Update', function () {
+
+        var NEW_DEVICE_GUID = 'INTEGR-TEST-UPDATE-DEVICE-GUID-12345-2';
+
+        before(function (done) {
+            var params = helper.getParamsObj('_integr-test-dev-update-0', null, DEVICE_KEY,
+                {name: '_integr-test-network-update-0'},
+                {
+                    name: '_integr-test-dev-update-0',
+                    version: '1'
+                });
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                var params = {user: utils.admin};
+                params.id = NEW_DEVICE_GUID;
+                utils.get(path.current, params, function (err, result) {
+                    if (err) {
+                        done(err);
+                    }
+                    utils.resources.push(path.get(path.NETWORK, result.network.id));
+                    utils.resources.push(path.get(path.DEVICE_CLASS, result.deviceClass.id));
+                    done();
+                });
+            });
+        });
+
+        it.only('should modify device, auto-create new network and device-class', function (done) {
+            var params = helper.getParamsObj('_integr-test-new-device-update', utils.admin, void 0,
+                {
+                    name: '_integr-test-network-update',
+                    description: 'description'
+                },
+                {
+                    name: '_integr-test-new-device-class-update',
+                    version: '2',
+                    equipment: [equipment]
+                });
+            params.data.status = 'updated';
+            params.data.data = {key: 'value'};
+            params.id = NEW_DEVICE_GUID;
+
+            var expected = params.data;
+
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), false, 'No error');
+
+                var params = {user: utils.admin};
+                params.id = NEW_DEVICE_GUID;
+                utils.get(path.current, params, function (err, result) {
+
+                    assert.strictEqual(!(!err), false, 'No error');
+
+                    utils.resources.push(path.get(path.NETWORK, result.network.id));
+                    utils.resources.push(path.get(path.DEVICE_CLASS, result.deviceClass.id));
+
+                    utils.matches(result, expected);
 
                     done();
                 });

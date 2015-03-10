@@ -371,14 +371,17 @@ var utils = {
     matches: function (actual, expected) {
 
         var keys = Object.keys(expected);
+
         keys.forEach(function (key) {
 
-            var ex = expected[key];
-            var ac = actual[key];
+            assert.strictEqual(actual.hasOwnProperty(key), true, 'Expected object should have key \'' + key + '\'');
 
-            if (utils.core.isArrayNonEmpty(ex)) {
-                assert.strictEqual(utils.core.isArrayNonEmpty(ex), true);
-                assert.strictEqual(ex.length, ac.length);
+            var ac = actual[key];
+            var ex = expected[key];
+
+            if (Array.isArray(ex)) {
+                assert.strictEqual(Array.isArray(ac), true, 'Expected object should be array');
+                assert.strictEqual(ac.length, ex.length, 'Expected array length should be \'' + ex.length + '\'');
 
                 for (var i = 0; i < ex.length; i++) {
                     utils.matches(ac[i], ex[i]);
@@ -387,12 +390,12 @@ var utils = {
                 return;
             }
 
-            if (typeof (ex) === 'object') {
+            if (ex && (typeof (ex) === 'object')) {
                 utils.matches(ac, ex);
                 return;
             }
 
-            assert.strictEqual(ac, ex);
+            assert.strictEqual(ac, ex, 'Expected value should be: \'' + ex + '\'');
         });
     }
 };
