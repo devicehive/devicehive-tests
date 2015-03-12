@@ -673,7 +673,7 @@ describe('REST API Device Unit', function () {
                     version: '1'
                 });
             params.id = NEW_DEVICE_GUID;
-            utils.update(path.current, params, function (err) {
+            utils.update(path.current, params, function () {
                 var params = {user: utils.admin};
                 params.id = NEW_DEVICE_GUID;
                 utils.get(path.current, params, function (err, result) {
@@ -687,7 +687,7 @@ describe('REST API Device Unit', function () {
             });
         });
 
-        it.only('should modify device, auto-create new network and device-class', function (done) {
+        it('should modify device, auto-create new network and device-class', function (done) {
             var params = helper.getParamsObj('_integr-test-new-device-update', utils.admin, void 0,
                 {
                     name: '_integr-test-network-update',
@@ -721,6 +721,527 @@ describe('REST API Device Unit', function () {
                     done();
                 });
             });
+        });
+    });
+
+    describe('#Update Partial', function () {
+
+        var NEW_DEVICE_GUID = 'INTEGR-TEST-UPDATE-PARTIAL-DEVICE-GUID-12345';
+
+        before(function (done) {
+            var params = helper.getParamsObj('_integr-test-dev-update-1', null, DEVICE_KEY,
+                {name: NETWORK},
+                {
+                    name: DEVICE,
+                    version: DEVICE_CLASS_VERSION
+                });
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, done);
+        });
+
+        it('should modify device status only', function (done) {
+            var params = {user: utils.admin};
+            params.data = {status: 'modified'};
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), false, 'No error');
+
+                var params = {user: utils.admin};
+                params.id = NEW_DEVICE_GUID;
+                utils.get(path.current, params, function (err, result) {
+
+                    assert.strictEqual(!(!err), false, 'No error');
+
+                    utils.matches(result, {
+                        id: NEW_DEVICE_GUID,
+                        name: '_integr-test-dev-update-1',
+                        status: 'modified',
+                        network: {
+                            name: NETWORK
+                        },
+                        deviceClass: {
+                            name: DEVICE,
+                            version: DEVICE_CLASS_VERSION
+                        }
+                    });
+
+                    done();
+                });
+            });
+        });
+    });
+
+    describe('#Update Device Auth', function () {
+
+        var NEW_DEVICE_GUID = 'INTEGR-TEST-UPDATE-DEVICE-AUTH-DEVICE-GUID-12345';
+
+        before(function (done) {
+            var params = helper.getParamsObj('_integr-test-dev-update-2', null, DEVICE_KEY,
+                {name: NETWORK},
+                {
+                    name: DEVICE,
+                    version: DEVICE_CLASS_VERSION
+                });
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, done);
+        });
+
+        it('should modify device status using device auth', function (done) {
+            var params = {
+                device: {
+                    id: NEW_DEVICE_GUID,
+                    key: DEVICE_KEY
+                }
+            };
+            params.data = {status: 'modified_device_auth'};
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), false, 'No error');
+
+                var params = {user: utils.admin};
+                params.id = NEW_DEVICE_GUID;
+                utils.get(path.current, params, function (err, result) {
+
+                    assert.strictEqual(!(!err), false, 'No error');
+
+                    utils.matches(result, {
+                        id: NEW_DEVICE_GUID,
+                        name: '_integr-test-dev-update-2',
+                        status: 'modified_device_auth',
+                        network: {
+                            name: NETWORK
+                        },
+                        deviceClass: {
+                            name: DEVICE,
+                            version: DEVICE_CLASS_VERSION
+                        }
+                    });
+
+                    done();
+                });
+            });
+        });
+    });
+
+    describe('#Update Client Auth', function () {
+
+
+        var invalidAccessKey1 = null;
+        var invalidAccessKey2 = null;
+        var invalidAccessKey3 = null;
+        var accessKey = null;
+
+        var NEW_DEVICE_GUID = 'INTEGR-TEST-UPDATE-CLIENT-AUTH-GUID-12345';
+
+        before(function (done) {
+
+            var params = [
+                {
+                    user: nonNetworkUser,
+                    actions: 'RegisterDevice'
+                },
+                {
+                    user: user,
+                    actions: 'RegisterDevice',
+                    networkIds: [0]
+                },
+                {
+                    user: user,
+                    actions: 'RegisterDevice',
+                    deviceIds: utils.NON_EXISTING_ID
+                },
+                {
+                    user: user,
+                    actions: 'RegisterDevice'
+                },
+            ];
+
+            utils.accessKey.createMany(params, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                invalidAccessKey1 = result[0];
+                invalidAccessKey2 = result[1];
+                invalidAccessKey3 = result[2];
+                accessKey = result[3];
+
+                createDevice();
+            })
+
+            function createDevice() {
+                var params = helper.getParamsObj('_integr-test-dev-update-3', null, DEVICE_KEY,
+                    {name: NETWORK},
+                    {
+                        name: '_integr-test-dev-update-3',
+                        version: '1'
+                    });
+                params.id = NEW_DEVICE_GUID;
+                utils.update(path.current, params, function () {
+                    var params = {user: utils.admin};
+                    params.id = NEW_DEVICE_GUID;
+                    utils.get(path.current, params, function (err, result) {
+                        if (err) {
+                            done(err);
+                        }
+                        utils.resources.push(path.get(path.DEVICE_CLASS, result.deviceClass.id));
+                        done();
+                    });
+                });
+            }
+        });
+
+        it('should fail with 401 when updating with wrong user', function (done) {
+            var params = {user: nonNetworkUser};
+            params.data = {status: 'modified'};
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+
+                done();
+            });
+        });
+
+        it('should modify device properties when accessing with allowed user', function (done) {
+            var params = {user: user};
+            params.data = {
+                status: 'modified',
+                data: {
+                    par: 'value'
+                },
+                network: {
+                    name: NETWORK
+                },
+                deviceClass: {
+                    name: '_integr-test-dev-update-3',
+                    version: '1',
+                    offlineTimeout: 10
+                }
+            };
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), false, 'No error');
+
+                var params = {user: utils.admin};
+                params.id = NEW_DEVICE_GUID;
+                utils.get(path.current, params, function (err, result) {
+
+                    assert.strictEqual(!(!err), false, 'No error');
+
+                    utils.matches(result, {
+                        id: NEW_DEVICE_GUID,
+                        name: '_integr-test-dev-update-3',
+                        status: 'modified',
+                        data: {
+                            par: 'value'
+                        },
+                        network: {
+                            name: NETWORK
+                        },
+                        deviceClass: {
+                            name: '_integr-test-dev-update-3',
+                            version: '1',
+                            offlineTimeout: 10
+                        }
+                    });
+
+                    done();
+                });
+            });
+        });
+
+        it('should fail with 401 #1', function (done) {
+            var params = {accessKey: invalidAccessKey1};
+            params.data = {status: 'modified_access_key'};
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error,
+                    format('DeviceHive server error - Device with such guid = %s not found', NEW_DEVICE_GUID));
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+
+                done();
+            });
+        });
+
+        it('should fail with 401 #2', function (done) {
+            var params = {accessKey: invalidAccessKey2};
+            params.data = {status: 'modified_access_key'};
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error,
+                    format('DeviceHive server error - Device with such guid = %s not found', NEW_DEVICE_GUID));
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+
+                done();
+            });
+        });
+
+        it('should fail with 401 #3', function (done) {
+            var params = {accessKey: invalidAccessKey3};
+            params.data = {status: 'modified_access_key'};
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error,
+                    format('DeviceHive server error - Device with such guid = %s not found', NEW_DEVICE_GUID));
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+
+                done();
+            });
+        });
+
+        it('should succeed when using valid access key', function (done) {
+            var params = {accessKey: accessKey};
+            params.data = {status: 'modified_access_key'};
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), false, 'No error');
+
+                var params = {user: utils.admin};
+                params.id = NEW_DEVICE_GUID;
+                utils.get(path.current, params, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    utils.matches(result, {
+                        id: NEW_DEVICE_GUID,
+                        name: '_integr-test-dev-update-3',
+                        status: 'modified_access_key',
+                        network: {
+                            name: NETWORK
+                        },
+                        deviceClass: {
+                            name: '_integr-test-dev-update-3',
+                            version: '1'
+                        }
+                    });
+
+                    done();
+                });
+            });
+        });
+    });
+
+    describe('#Delete Client Auth', function () {
+
+        var NEW_DEVICE_GUID = 'INTEGR-TEST-DELETE-DEVICE-GUID-12345';
+
+        before(function (done) {
+            var params = helper.getParamsObj('_integr-test-dev-update-4', null, DEVICE_KEY,
+                {name: NETWORK},
+                {
+                    name: DEVICE,
+                    version: DEVICE_CLASS_VERSION
+                });
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, done);
+        });
+
+        it('should not succeed on deleting without error when using invalid user', function (done) {
+            var params = {user: nonNetworkUser};
+            params.id = NEW_DEVICE_GUID;
+            utils.delete(path.current, params, function (err) {
+                assert.strictEqual(!(!err), false, 'No error');
+
+                var params = {user: utils.admin};
+                params.id = NEW_DEVICE_GUID;
+                utils.get(path.current, params, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    utils.matches(result, {
+                        id: NEW_DEVICE_GUID,
+                        name: '_integr-test-dev-update-4',
+                        network: {
+                            name: NETWORK
+                        },
+                        deviceClass: {
+                            name: DEVICE,
+                            version: DEVICE_CLASS_VERSION
+                        }
+                    });
+
+                    done();
+                });
+            });
+        });
+
+        it('should succeed when deleting with allowed user', function (done) {
+            var params = {user: user};
+            params.id = NEW_DEVICE_GUID;
+            utils.delete(path.current, params, function (err) {
+                assert.strictEqual(!(!err), false, 'No error');
+
+                var params = {user: utils.admin};
+                params.id = NEW_DEVICE_GUID;
+                utils.get(path.current, params, function (err, result) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error,
+                        format('DeviceHive server error - Device with such guid = %s not found', NEW_DEVICE_GUID));
+                    assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+
+                    done();
+                });
+            });
+        });
+    });
+
+    describe.skip('#Delete Device Auth', function () {
+
+        var NEW_DEVICE_GUID = 'INTEGR-TEST-DELETE-DEVICE-AUTH-DEVICE-GUID-12345';
+
+        before(function (done) {
+            var params = helper.getParamsObj('_integr-test-dev-update-4', null, DEVICE_KEY,
+                {name: NETWORK},
+                {
+                    name: DEVICE,
+                    version: DEVICE_CLASS_VERSION
+                });
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, done);
+        });
+
+        it('should succeed when deleting device using device auth', function (done) {
+            var params = {
+                device: {
+                    id: NEW_DEVICE_GUID,
+                    key: DEVICE_KEY
+                }
+            };
+            params.id = NEW_DEVICE_GUID;
+            utils.delete(path.current, params, function (err) {
+                assert.strictEqual(!(!err), false, 'No error');
+
+                var params = {user: utils.admin};
+                params.id = NEW_DEVICE_GUID;
+                utils.get(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error,
+                        format('DeviceHive server error - Device with such guid = %s not found', NEW_DEVICE_GUID));
+                    assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+
+                    done();
+                });
+            });
+        });
+    });
+
+    describe('#Bad Request', function () {
+
+        var NEW_DEVICE_GUID = 'INTEGR-TEST-DEVICE-BAD-REQUEST-GUID-12345';
+
+        it('should fail with 400 when trying to create device with badly formed request #1', function (done) {
+            var params = {user: utils.admin};
+            params.data = {wrongProp: '_integr-test-bad-request'};
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
+
+                done();
+            });
+        });
+
+        it('should fail with 400 when trying to create device with badly formed request #2', function (done) {
+            var params = helper.getParamsObj('_integr-test-bad-request', utils.admin, DEVICE_KEY);
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
+
+                done();
+            });
+        });
+
+        it('should fail with 400 when trying to create device with badly formed request #3', function (done) {
+            var params = helper.getParamsObj('_integr-test-bad-request', utils.admin, DEVICE_KEY, {}, {});
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
+
+                done();
+            });
+        });
+    });
+
+    describe('#Not authorized', function () {
+
+        describe('no authorization', function () {
+            it('should return error when getting devices without authorization', function (done) {
+                utils.get(path.current, {user: null}, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            })
+
+            it('should return error when accessing device without authorization', function (done) {
+                var params = {user: null };
+                params.id = DEVICE_GUID;
+                utils.get(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            })
+
+            it.skip('should return error when updating device without authorization', function (done) {
+                var params = {user: null};
+                params.data = {status: 'modified'};
+                params.id = DEVICE_GUID
+                utils.update(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            });
+
+            it('should return error when deleting device without authorization', function (done) {
+                var params = {user: null};
+                params.id = DEVICE_GUID
+                utils.delete(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            });
+        });
+
+        describe('device authorization', function () {
+            it('should return error when getting devices using device authorization', function (done) {
+                var params = {
+                    device: {
+                        id: DEVICE_GUID,
+                        key: DEVICE_KEY
+                    }
+                };
+                utils.get(path.current, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            });
+        });
+    });
+
+    describe('#Not Found', function () {
+        it('should return error when accessing non-existing device', function (done) {
+            var params = {user: utils.admin };
+            params.id = utils.NON_EXISTING_ID;
+            utils.get(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error,
+                    format('DeviceHive server error - Device with such guid = %s not found',
+                        utils.NON_EXISTING_ID));
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                done();
+            })
         });
     });
 
