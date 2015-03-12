@@ -51,7 +51,7 @@ Message.prototype = {
         testUtils.doneAllSent(this);
     },
 
-    onResponse: function (err, sender, result) {
+    onResponse: function (err, sender) {
 
         if (err) {
             //this.statistics.serverErrorsCount++;
@@ -91,6 +91,6 @@ Message.prototype = {
         this.statistics.errorsCount++;
         log.error('-- Error: ' + JSON.stringify(err));
     }
-}
+};
 
 module.exports = Message;

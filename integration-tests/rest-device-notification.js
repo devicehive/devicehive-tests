@@ -125,7 +125,7 @@ describe('REST API Device Notification', function () {
 
                 done();
             })
-        })
+        });
 
         it('should get notifications having same name when using name query', function (done) {
             var params = {user: user};
@@ -201,7 +201,7 @@ describe('REST API Device Notification', function () {
                 done();
             });
         });
-    })
+    });
 
     describe('#Get', function () {
 
@@ -230,7 +230,7 @@ describe('REST API Device Notification', function () {
                 {
                     user: user,
                     actions: 'GetDeviceNotification'
-                },
+                }
             ];
 
             utils.accessKey.createMany(params, function (err, result) {
@@ -343,20 +343,16 @@ describe('REST API Device Notification', function () {
                     return item.notification === NOTIFICATION;
                 }), true);
                 done();
-            })
+            });
 
             setTimeout(function () {
                 var params = helper.getParamsObj(NOTIFICATION_2, user);
-                utils.create(path.current, params, function (err) {
-                    assert.strictEqual(!(!err), false, 'No error');
-                });
+                utils.create(path.current, params, function () {});
             }, 100);
 
             setTimeout(function () {
                 var params = helper.getParamsObj(NOTIFICATION, user);
-                utils.create(path.current, params, function (err) {
-                    assert.strictEqual(!(!err), false, 'No error');
-                });
+                utils.create(path.current, params, function () {});
             }, 100);
         })
     });
@@ -385,20 +381,16 @@ describe('REST API Device Notification', function () {
                     return item.notification.notification === NOTIFICATION && item.deviceGuid === DEVICE_GUID;
                 }), true);
                 done();
-            })
+            });
 
             setTimeout(function () {
                 var params = helper.getParamsObj(NOTIFICATION_2, user);
-                utils.create(path.current, params, function (err) {
-                    assert.strictEqual(!(!err), false, 'No error');
-                });
+                utils.create(path.current, params, function () {});
             }, 100);
 
             setTimeout(function () {
                 var params = helper.getParamsObj(NOTIFICATION, user);
-                utils.create(path.current, params, function (err) {
-                    assert.strictEqual(!(!err), false, 'No error');
-                });
+                utils.create(path.current, params, function () {});
             }, 100);
         })
     });
@@ -407,7 +399,7 @@ describe('REST API Device Notification', function () {
 
         var OTHER_NETWORK = '_integr-test-OTHER-network-notif';
         var otherNetworkId = null;
-        var OTHER_DEVICE_GUID = 'OTHER-DEVICE-NOTIF-GUID-1234'
+        var OTHER_DEVICE_GUID = 'OTHER-DEVICE-NOTIF-GUID-1234';
 
         before(function (done) {
 
@@ -453,7 +445,7 @@ describe('REST API Device Notification', function () {
                     return item.notification.notification === NOTIFICATION_2 && item.deviceGuid === DEVICE_GUID;
                 }), true);
                 done();
-            })
+            });
 
             setTimeout(function () {
                 var params = helper.getParamsObj(NOTIFICATION_2, null);
@@ -461,16 +453,12 @@ describe('REST API Device Notification', function () {
                     id: OTHER_DEVICE_GUID,
                     key: DEVICE_KEY
                 };
-                utils.create(path.NOTIFICATION.get(OTHER_DEVICE_GUID), params, function (err) {
-                    assert.strictEqual(!(!err), false, 'No error');
-                });
+                utils.create(path.NOTIFICATION.get(OTHER_DEVICE_GUID), params, function () {});
             }, 100);
 
             setTimeout(function () {
                 var params = helper.getParamsObj(NOTIFICATION_2, utils.admin);
-                utils.create(path.current, params, function (err) {
-                    assert.strictEqual(!(!err), false, 'No error');
-                });
+                utils.create(path.current, params, function () {});
             }, 100);
         })
     });
@@ -514,7 +502,7 @@ describe('REST API Device Notification', function () {
                 {
                     user: user,
                     actions: 'CreateDeviceNotification'
-                },
+                }
             ];
 
             utils.accessKey.createMany(params, function (err, result) {
@@ -550,7 +538,7 @@ describe('REST API Device Notification', function () {
                     done();
                 })
             });
-        })
+        });
 
         it('should return error when creating notification with invalid user', function (done) {
             var params = helper.getParamsObj(NOTIFICATION, nonNetworkUser);
@@ -623,12 +611,12 @@ describe('REST API Device Notification', function () {
         it('should succeed when using valid access key', function (done) {
             var params = helper.getParamsObj(NOTIFICATION);
             params.accessKey = accessKey;
-            utils.create(path.current, params, function (err, result) {
+            utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), false, 'No error');
                 done();
             });
         });
-    })
+    });
 
     describe('#Update', function () {
         it('should return error when trying to update notification', function (done) {
@@ -675,7 +663,7 @@ describe('REST API Device Notification', function () {
             params.device = {
                 id: DEVICE_GUID,
                 key: DEVICE_KEY
-            }
+            };
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, 'DeviceHive server error - Invalid request parameters');
@@ -694,7 +682,7 @@ describe('REST API Device Notification', function () {
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
-            })
+            });
 
             it('should return error when accessing non-existing notification without authorization', function (done) {
                 var params = {user: null };
@@ -705,7 +693,7 @@ describe('REST API Device Notification', function () {
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
-            })
+            });
 
             it('should return error when inserting notification without authorization', function (done) {
                 var params = helper.getParamsObj('the-notification', null);
@@ -767,7 +755,7 @@ describe('REST API Device Notification', function () {
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
-            })
+            });
 
             it('should return error when polling notifications using device authorization #1', function (done) {
                 var params = {

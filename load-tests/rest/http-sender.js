@@ -58,7 +58,7 @@ HttpSender.prototype = {
 
         testUtils.substitute(request.data, '{#name}', function () {
             return context.names[self.requestId % context.names.length];
-        })
+        });
 
         testUtils.substitute(request.data, '{#deviceGuid}', function () {
             return testUtils.getDeviceGuid(context, self.requestId);
@@ -99,7 +99,7 @@ HttpSender.prototype = {
 
             var result = xhr.responseText ? JSON.parse(xhr.responseText) : null;
             return cb(err, result);
-        }
+        };
 
         xhr.setRequestHeader('Authorization',
             'Bearer ' + utils.getConfig('server:accessKey'));
@@ -119,6 +119,6 @@ HttpSender.prototype = {
         }
         return {error: errMsg, request: http};
     }
-}
+};
 
 module.exports = HttpSender;

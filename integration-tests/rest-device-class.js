@@ -15,10 +15,10 @@ describe('REST API Device Class', function () {
 
         before(function (done) {
             var params = helper.getParams(DEVICE_CLASS, utils.admin, '1');
-            utils.create(path.DEVICE_CLASS, params, function (err, result) {
+            utils.create(path.DEVICE_CLASS, params, function (err) {
                 done(err);
             })
-        })
+        });
 
         it('should get when using admin authorization', function (done) {
             utils.get(path.DEVICE_CLASS, {user: utils.admin}, function (err, result) {
@@ -36,7 +36,7 @@ describe('REST API Device Class', function () {
                 done();
             })
         })
-    })
+    });
 
     describe('#Get for User', function () {
 
@@ -72,20 +72,18 @@ describe('REST API Device Class', function () {
 
             async.series([
                 createUser,
-                createDeviceClass,
+                createDeviceClass
             ], done);
-        })
+        });
 
         it('should get device class for user', function (done) {
             var params = {user: user, id: deviceClassId};
             utils.get(path.DEVICE_CLASS, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
-                assert.strictEqual(result.name, DEVICE_CLASS);
-                assert.strictEqual(result.version, VERSION);
-
+                utils.matches(result, {name: DEVICE_CLASS, version: VERSION});
                 done();
             })
-        })
+        });
 
         it.skip('should allow access key authorization', function (done) {
             var expDate = new Date();
@@ -100,13 +98,12 @@ describe('REST API Device Class', function () {
                 var params = {accessKey: result.key, id: deviceClassId};
                 utils.get(path.DEVICE_CLASS, params, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
-                    assert.strictEqual(result.name, DEVICE_CLASS);
-                    assert.strictEqual(result.version, VERSION);
+                    utils.matches(result, {name: DEVICE_CLASS, version: VERSION});
                     done();
                 })
             })
         })
-    })
+    });
 
     describe('#Create', function () {
 
@@ -123,12 +120,11 @@ describe('REST API Device Class', function () {
                 var params = {user: utils.admin, id: result.id};
                 utils.get(path.DEVICE_CLASS, params, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
-                    assert.strictEqual(result.name, DEVICE_CLASS);
-                    assert.strictEqual(result.version, VERSION);
+                    utils.matches(result, {name: DEVICE_CLASS, version: VERSION});
                     done();
                 })
             })
-        })
+        });
 
         it('should return error when trying to create existing device class', function (done) {
             var DEVICE_CLASS = '_integr-test-device-class-3';
@@ -141,14 +137,14 @@ describe('REST API Device Class', function () {
                 }
 
                 var params = helper.getParams(DEVICE_CLASS, utils.admin, VERSION);
-                utils.create(path.DEVICE_CLASS, params, function (err, result) {
+                utils.create(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - DeviceClass cannot be created. Device class with such name and version already exists');
                     assert.strictEqual(err.httpStatus, status.FORBIDDEN);
                     done();
                 })
             })
-        })
+        });
 
         it('should return bad request', function (done) {
             var params = {
@@ -163,7 +159,7 @@ describe('REST API Device Class', function () {
                 done();
             })
         })
-    })
+    });
 
     describe('#Update', function () {
 
@@ -179,7 +175,7 @@ describe('REST API Device Class', function () {
                 deviceClassId = result.id;
                 done();
             })
-        })
+        });
 
         it('should update using admin authorization', function (done) {
             var params = helper.getParamsObj('_integr-test-device-class-4-upd-1', utils.admin, '2', true, 3600,
@@ -191,7 +187,7 @@ describe('REST API Device Class', function () {
             params.id = deviceClassId;
             var update = params.data;
 
-            utils.update(path.DEVICE_CLASS, params, function (err, result) {
+            utils.update(path.DEVICE_CLASS, params, function (err) {
                 if (err) {
                     return done(err);
                 }
@@ -199,19 +195,11 @@ describe('REST API Device Class', function () {
                 var params = {user: utils.admin, id: deviceClassId};
                 utils.get(path.DEVICE_CLASS, params, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
-                    assert.strictEqual(result.name, update.name);
-                    assert.strictEqual(result.version, update.version);
-                    assert.strictEqual(result.isPermanent, update.isPermanent);
-                    assert.strictEqual(result.offlineTimeout, update.offlineTimeout);
-                    assert.strictEqual(utils.core.isArrayOfLength(result.equipment, 1), true, 'Is array of 1 object');
-                    assert.strictEqual(result.equipment[0].name, update.equipment[0].name);
-                    assert.strictEqual(result.equipment[0].type, update.equipment[0].type);
-                    assert.strictEqual(result.equipment[0].code, update.equipment[0].code);
-                    assert.deepEqual(result.data, update.data);
+                    utils.matches(result, update);
                     done();
                 })
             });
-        })
+        });
 
         it('should partially update using admin authorization', function (done) {
 
@@ -227,14 +215,12 @@ describe('REST API Device Class', function () {
                 var params = {user: utils.admin, id: deviceClassId};
                 utils.get(path.DEVICE_CLASS, params, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
-                    assert.strictEqual(result.name, update.name);
-                    assert.strictEqual(result.version, update.version);
-                    assert.strictEqual(result.isPermanent, update.isPermanent);
+                    utils.matches(result, update);
                     done();
                 })
             });
         })
-    })
+    });
 
     describe('#Delete', function () {
         it('should delete device class using admin authorization', function (done) {
@@ -249,7 +235,7 @@ describe('REST API Device Class', function () {
                 utils.delete(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), false, 'No error');
 
-                    utils.get(path.DEVICE_CLASS, params, function (err, result) {
+                    utils.get(path.DEVICE_CLASS, params, function (err) {
                         assert.strictEqual(!(!err), true, 'Error object created');
                         assert.strictEqual(err.error, format('DeviceHive server error - DeviceClass with id = %d not found', deviceClassId));
                         assert.strictEqual(err.httpStatus, status.NOT_FOUND);
@@ -258,7 +244,7 @@ describe('REST API Device Class', function () {
                 })
             })
         })
-    })
+    });
 
     describe('#Not authorized', function () {
 
@@ -271,7 +257,7 @@ describe('REST API Device Class', function () {
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
-            })
+            });
 
             it('should return error when accessing non-existing device class without authorization', function (done) {
                 var params = {user: null, id: utils.NON_EXISTING_ID };
@@ -281,7 +267,7 @@ describe('REST API Device Class', function () {
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
-            })
+            });
 
             it('should return error when creating device class without authorization', function (done) {
                 var params = helper.getParamsObj('_integr-test-create-no-auth', null, '1');
@@ -291,7 +277,7 @@ describe('REST API Device Class', function () {
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
-            })
+            });
 
             it('should return error when updating non-existing device class without authorization', function (done) {
                 var params = helper.getParamsObj('_integr-test-update-non-existing', null, '2');
@@ -302,7 +288,7 @@ describe('REST API Device Class', function () {
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
-            })
+            });
 
             it('should return error when deleting non-existing device class without authorization', function (done) {
                 var params = {user: null, id: utils.NON_EXISTING_ID};
@@ -313,7 +299,7 @@ describe('REST API Device Class', function () {
                     done();
                 })
             })
-        })
+        });
 
         describe('another user authorization', function () {
             var user = null;
@@ -327,7 +313,7 @@ describe('REST API Device Class', function () {
                     user = result.user;
                     done();
                 })
-            })
+            });
 
             it('should return error when accessing device class with another user', function (done) {
                 var params = {user: user};
@@ -337,7 +323,7 @@ describe('REST API Device Class', function () {
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
-            })
+            });
 
             it('should return error when creating device class using wrong user credentials', function (done) {
                 var params = helper.getParamsObj('_integr-test-create-other-user', user);
@@ -347,7 +333,7 @@ describe('REST API Device Class', function () {
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
-            })
+            });
 
             it('should return error when updating non-existing device class', function (done) {
                 var params = helper.getParamsObj('_integr-test-update-non-existing', user, '3');
@@ -358,7 +344,7 @@ describe('REST API Device Class', function () {
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
-            })
+            });
 
             it('should return error when deleting non-existing device class', function (done) {
                 var params = {user: user, id: utils.NON_EXISTING_ID};
@@ -370,7 +356,7 @@ describe('REST API Device Class', function () {
                 })
             })
         })
-    })
+    });
 
     describe('#Not Found', function () {
 
@@ -383,7 +369,7 @@ describe('REST API Device Class', function () {
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                 done();
             })
-        })
+        });
 
         it('should return error when updating non-existing device class', function (done) {
             var params = helper.getParamsObj('_integr-test-update-non-existing', utils.admin, '1');
@@ -395,7 +381,7 @@ describe('REST API Device Class', function () {
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                 done();
             })
-        })
+        });
 
         it('should not return error when deleting non-existing device class', function (done) {
             var params = {user: utils.admin, id: utils.NON_EXISTING_ID};
@@ -404,7 +390,7 @@ describe('REST API Device Class', function () {
                 done();
             })
         })
-    })
+    });
 
     after(function (done) {
         utils.clearResources(done);

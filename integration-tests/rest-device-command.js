@@ -189,7 +189,7 @@ describe('REST API Device Command', function () {
                 done();
             });
         });
-    })
+    });
 
     describe('#Get', function () {
 
@@ -218,7 +218,7 @@ describe('REST API Device Command', function () {
                 {
                     user: user,
                     actions: 'GetDeviceCommand'
-                },
+                }
             ];
 
             utils.accessKey.createMany(params, function (err, result) {
@@ -233,7 +233,7 @@ describe('REST API Device Command', function () {
 
                 done();
             })
-        })
+        });
 
         it('should return commands using device authentication', function (done) {
             var params = {
@@ -331,7 +331,7 @@ describe('REST API Device Command', function () {
                 done();
             });
         });
-    })
+    });
 
     describe('#Poll', function () {
         it('should return new command when adding command with specified name', function (done) {
@@ -345,20 +345,16 @@ describe('REST API Device Command', function () {
                     return item.command === COMMAND;
                 }), true);
                 done();
-            })
+            });
 
             setTimeout(function () {
                 var params = helper.getParamsObj(COMMAND_2, user);
-                utils.create(path.current, params, function (err) {
-                    assert.strictEqual(!(!err), false, 'No error');
-                });
+                utils.create(path.current, params, function () {});
             }, 100);
 
             setTimeout(function () {
                 var params = helper.getParamsObj(COMMAND, user);
-                utils.create(path.current, params, function (err) {
-                    assert.strictEqual(!(!err), false, 'No error');
-                })
+                utils.create(path.current, params, function () {});
             }, 100);
         })
     });
@@ -387,20 +383,16 @@ describe('REST API Device Command', function () {
                     return item.command.command === COMMAND && item.deviceGuid === DEVICE_GUID;
                 }), true);
                 done();
-            })
+            });
 
             setTimeout(function () {
                 var params = helper.getParamsObj(COMMAND_2, user);
-                utils.create(path.current, params, function (err) {
-                    assert.strictEqual(!(!err), false, 'No error');
-                });
+                utils.create(path.current, params, function () {});
             }, 100);
 
             setTimeout(function () {
                 var params = helper.getParamsObj(COMMAND, user);
-                utils.create(path.current, params, function (err) {
-                    assert.strictEqual(!(!err), false, 'No error');
-                });
+                utils.create(path.current, params, function () {});
             }, 100);
         })
     });
@@ -409,7 +401,7 @@ describe('REST API Device Command', function () {
 
         var OTHER_NETWORK = '_integr-test-OTHER-network-cmd';
         var otherNetworkId = null;
-        var OTHER_DEVICE_GUID = 'OTHER-DEVICE-GUID-1234'
+        var OTHER_DEVICE_GUID = 'OTHER-DEVICE-GUID-1234';
 
         before(function (done) {
 
@@ -455,20 +447,16 @@ describe('REST API Device Command', function () {
                     return item.command.command === COMMAND_2 && item.deviceGuid === DEVICE_GUID;
                 }), true);
                 done();
-            })
+            });
 
             setTimeout(function () {
                 var params = helper.getParamsObj(COMMAND_2, utils.admin);
-                utils.create(path.COMMAND.get(OTHER_DEVICE_GUID), params, function (err) {
-                    assert.strictEqual(!(!err), false, 'No error');
-                });
+                utils.create(path.COMMAND.get(OTHER_DEVICE_GUID), params, function () {});
             }, 100);
 
             setTimeout(function () {
                 var params = helper.getParamsObj(COMMAND_2, utils.admin);
-                utils.create(path.current, params, function (err) {
-                    assert.strictEqual(!(!err), false, 'No error');
-                });
+                utils.create(path.current, params, function () {});
             }, 100);
         })
     });
@@ -501,13 +489,13 @@ describe('REST API Device Command', function () {
                 assert.strictEqual(result.status, commandUpdate.status);
                 assert.strictEqual(result.result, commandUpdate.result);
                 done();
-            })
+            });
 
             setTimeout(function () {
                 var params = {user: user};
                 params.id = commandId;
                 params.data = commandUpdate;
-                utils.update(path.current, params, function () {})
+                utils.update(path.current, params, function () {});
             }, 100);
         })
     });
@@ -539,7 +527,7 @@ describe('REST API Device Command', function () {
                 {
                     user: user,
                     actions: 'CreateDeviceCommand'
-                },
+                }
             ];
 
             utils.accessKey.createMany(params, function (err, result) {
@@ -577,8 +565,7 @@ describe('REST API Device Command', function () {
                 params.id = result.id;
                 utils.get(path.current, params, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
-                    assert.strictEqual(result.command, COMMAND);
-                    assert.strictEqual(result.userId, user.id);
+                    utils.matches(result, {command: COMMAND, userId: user.id});
                     assert.strictEqual(new Date(result.timestamp).toUTCString(),
                         new Date(timestamp).toUTCString());
                     done();
@@ -635,7 +622,7 @@ describe('REST API Device Command', function () {
                 done();
             });
         });
-    })
+    });
 
     describe('#Update', function () {
 
@@ -664,7 +651,7 @@ describe('REST API Device Command', function () {
                 {
                     user: user,
                     actions: 'UpdateDeviceCommand'
-                },
+                }
             ];
 
             utils.accessKey.createMany(params, function (err, result) {
@@ -705,13 +692,10 @@ describe('REST API Device Command', function () {
                 }
             };
             params.id = commandId;
-            utils.update(path.current, params, function (err, result) {
+            utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), false, 'No error');
                 utils.get(path.current, params, function (err, result) {
-                    assert.strictEqual(result.status, commandUpdate.status);
-                    assert.strictEqual(result.result, commandUpdate.result);
-                    assert.deepEqual(result.parameters, commandUpdate.parameters);
-
+                    utils.matches(result, commandUpdate);
                     done();
                 });
             });
@@ -815,7 +799,7 @@ describe('REST API Device Command', function () {
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
-            })
+            });
 
             it('should return error when accessing non-existing command without authorization', function (done) {
                 var params = {user: null, id: utils.NON_EXISTING_ID };
@@ -825,7 +809,7 @@ describe('REST API Device Command', function () {
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
-            })
+            });
 
             it('should return error when inserting command without authorization', function (done) {
                 var params = helper.getParamsObj('the-command', null);

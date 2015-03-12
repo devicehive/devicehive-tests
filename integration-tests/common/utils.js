@@ -196,14 +196,13 @@ var utils = {
 
     notification: {
         getParamsObj: function (notification, user, parameters) {
-            var params = {
+            return {
                 user: user,
                 data: {
                     notification: notification,
                     parameters: parameters
                 }
             };
-            return params;
         }
     },
 
@@ -357,7 +356,7 @@ var utils = {
         async.eachSeries(this.resources,
             function(resource, callback) {
                 new Http(self.url, resource)
-                    .delete({ user: self.admin }, function (err, result) {
+                    .delete({ user: self.admin }, function () {
                         // Ignore any errors
                         callback();
                     });
@@ -395,7 +394,7 @@ var utils = {
                 return;
             }
 
-            assert.strictEqual(ac, ex, 'Expected value should be: \'' + ex + '\'');
+            assert.strictEqual(ac, ex, 'Expected value for \'' + key + '\' should be: \'' + ex + '\'');
         });
     }
 };

@@ -91,6 +91,6 @@ WsSender.prototype = {
         this.onerror = cb;
         this.errContext = context;
     }
-}
+};
 
 module.exports = WsSender;

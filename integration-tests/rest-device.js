@@ -230,7 +230,7 @@ describe('REST API Device Unit', function () {
                 {
                     user: user,
                     actions: 'GetDevice'
-                },
+                }
             ];
 
             utils.accessKey.createMany(params, function (err, result) {
@@ -461,7 +461,7 @@ describe('REST API Device Unit', function () {
                 }
             };
             params.id = networkId;
-            utils.update(path.NETWORK, params, function (err, result) {
+            utils.update(path.NETWORK, params, function (err) {
                 done(err);
             });
         });
@@ -482,7 +482,7 @@ describe('REST API Device Unit', function () {
             var params = helper.getParamsObj(DEVICE, null, DEVICE_KEY,
                 {name: NETWORK, key: NETWORK_KEY}, {name: DEVICE, version: '1'});
             params.id = DEVICE_GUID;
-            utils.update(path.current, params, function (err, result) {
+            utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), false, 'No error');
 
                 var params = {user: utils.admin};
@@ -620,7 +620,7 @@ describe('REST API Device Unit', function () {
             };
             params.user = utils.admin;
             params.id = deviceClassId;
-            utils.update(path.DEVICE_CLASS, params, function (err, result) {
+            utils.update(path.DEVICE_CLASS, params, function () {
                 done();
             });
         });
@@ -853,7 +853,7 @@ describe('REST API Device Unit', function () {
                 {
                     user: user,
                     actions: 'RegisterDevice'
-                },
+                }
             ];
 
             utils.accessKey.createMany(params, function (err, result) {
@@ -867,7 +867,7 @@ describe('REST API Device Unit', function () {
                 accessKey = result[3];
 
                 createDevice();
-            })
+            });
 
             function createDevice() {
                 var params = helper.getParamsObj('_integr-test-dev-update-3', null, DEVICE_KEY,
@@ -1074,7 +1074,7 @@ describe('REST API Device Unit', function () {
 
                 var params = {user: utils.admin};
                 params.id = NEW_DEVICE_GUID;
-                utils.get(path.current, params, function (err, result) {
+                utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error,
                         format('DeviceHive server error - Device with such guid = %s not found', NEW_DEVICE_GUID));
@@ -1175,7 +1175,7 @@ describe('REST API Device Unit', function () {
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
-            })
+            });
 
             it('should return error when accessing device without authorization', function (done) {
                 var params = {user: null };
@@ -1186,12 +1186,12 @@ describe('REST API Device Unit', function () {
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
-            })
+            });
 
             it.skip('should return error when updating device without authorization', function (done) {
                 var params = {user: null};
                 params.data = {status: 'modified'};
-                params.id = DEVICE_GUID
+                params.id = DEVICE_GUID;
                 utils.update(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
@@ -1202,7 +1202,7 @@ describe('REST API Device Unit', function () {
 
             it('should return error when deleting device without authorization', function (done) {
                 var params = {user: null};
-                params.id = DEVICE_GUID
+                params.id = DEVICE_GUID;
                 utils.delete(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');

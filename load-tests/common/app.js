@@ -56,4 +56,4 @@ var app = {
 
 module.exports = {
     start: app.start
-}
+};

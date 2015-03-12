@@ -185,4 +185,4 @@ module.exports = {
         //    error: err
         //}, context.getResult());
     }
-}
+};

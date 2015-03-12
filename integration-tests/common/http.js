@@ -66,7 +66,7 @@ Http.prototype = {
             /* hack */
 
             if (xhr.responseText) {
-                console.log('response: %s', xhr.responseText);
+                console.log('response at %s: %s\n', new Date().toLocaleTimeString(), xhr.responseText);
             }
 
             var isSuccess = xhr.status && xhr.status >= 200 && xhr.status < 300 || xhr.status === 304;
@@ -74,7 +74,7 @@ Http.prototype = {
 
             var result = xhr.responseText ? JSON.parse(xhr.responseText) : null;
             return cb(err, result, xhr);
-        }
+        };
 
         if (params.accessKey) {
             xhr.setRequestHeader('Authorization', 'Bearer ' + params.accessKey);
@@ -101,7 +101,7 @@ Http.prototype = {
         }
         return {error: errMsg, request: http};
     }
-}
+};
 
 module.exports = {
     Http: Http,

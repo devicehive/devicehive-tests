@@ -79,7 +79,7 @@ describe('REST API Device Equipment', function () {
             createDevice,
             createNotification
         ], done);
-    })
+    });
 
     describe('#GetAll', function () {
 
@@ -113,19 +113,21 @@ describe('REST API Device Equipment', function () {
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                 done();
             });
-        })
+        });
 
         it('should not fail when allowed user tries to get equipment', function (done) {
             utils.get(path.current, {user: user2}, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
-                assert.strictEqual(result[0].id, equipment.equipment);
-                assert.strictEqual(result[0].parameters.a, equipment.a);
+                utils.matches(result[0], {
+                    id: equipment.equipment,
+                    parameters: {a: equipment.a}
+                });
                 assert.strictEqual(new Date(result[0].timestamp).toUTCString(),
                     new Date(timestamp).toUTCString());
                 done();
             });
-        })
+        });
 
         it('should fail with 404 when using access key related to wrong user', function (done) {
             utils.accessKey.create(user1, void 0, 'GetDeviceState', void 0, void 0,
@@ -142,7 +144,7 @@ describe('REST API Device Equipment', function () {
                         done();
                     });
                 });
-        })
+        });
 
         it('should fail with 404 when using access key related to wrong network', function (done) {
             utils.accessKey.create(user2, void 0, 'GetDeviceState', void 0, '1',
@@ -159,7 +161,7 @@ describe('REST API Device Equipment', function () {
                         done();
                     });
                 });
-        })
+        });
 
         it('should fail with 404 when using access key related to wrong deviceGuid', function (done) {
             utils.accessKey.create(user2, void 0, 'GetDeviceState', 'DEVICE-' + +new Date(), void 0,
@@ -176,7 +178,7 @@ describe('REST API Device Equipment', function () {
                         done();
                     });
                 });
-        })
+        });
 
         it('should succeed when using valid user access key', function (done) {
             utils.accessKey.create(user2, void 0, 'GetDeviceState', void 0, void 0,
@@ -192,7 +194,7 @@ describe('REST API Device Equipment', function () {
                     });
                 });
         })
-    })
+    });
 
     describe('#Create/Update/Delete', function () {
 
@@ -212,7 +214,7 @@ describe('REST API Device Equipment', function () {
                 assert.strictEqual(err.httpStatus, status.METHOD_NOT_ALLOWED);
                 done();
             })
-        })
+        });
 
         it('should fail with 405 when trying to update', function (done) {
             params.id = EQUIPMENT;
@@ -222,7 +224,7 @@ describe('REST API Device Equipment', function () {
                 assert.strictEqual(err.httpStatus, status.METHOD_NOT_ALLOWED);
                 done();
             })
-        })
+        });
 
         it('should fail with 405 when trying to delete', function (done) {
             params.id = EQUIPMENT;
@@ -269,4 +271,4 @@ describe('REST API Device Equipment', function () {
     after(function (done) {
         utils.clearResources(done);
     })
-})
+});

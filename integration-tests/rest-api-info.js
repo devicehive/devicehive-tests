@@ -17,4 +17,4 @@ describe('REST API Info', function () {
             done();
         })
     })
-})
+});

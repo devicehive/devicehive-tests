@@ -18,7 +18,7 @@ Query.prototype = {
         });
         return '?' + kv.join('&');
     }
-}
+};
 
 var path = {
     current: null,

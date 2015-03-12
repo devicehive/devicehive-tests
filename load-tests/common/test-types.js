@@ -194,6 +194,6 @@ TestTypes.prototype = {
                 result.messagesReceived);
         }
     }
-}
+};
 
 module.exports = TestTypes;
