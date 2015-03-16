@@ -109,7 +109,7 @@ describe('REST API Device Equipment', function () {
             utils.get(path.current, {user: user1}, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error,
-                    format('DeviceHive server error - Device with such guid = %s not found', DEVICE_GUID));
+                    format('Device with such guid = %s not found', DEVICE_GUID));
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                 done();
             });
@@ -139,7 +139,7 @@ describe('REST API Device Equipment', function () {
                     utils.get(path.current, {accessKey: result.key}, function (err) {
                         assert.strictEqual(!(!err), true, 'Error object created');
                         assert.strictEqual(err.error,
-                            format('DeviceHive server error - Device with such guid = %s not found', DEVICE_GUID));
+                            format('Device with such guid = %s not found', DEVICE_GUID));
                         assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                         done();
                     });
@@ -156,7 +156,7 @@ describe('REST API Device Equipment', function () {
                     utils.get(path.current, {accessKey: result.key}, function (err) {
                         assert.strictEqual(!(!err), true, 'Error object created');
                         assert.strictEqual(err.error,
-                            format('DeviceHive server error - Device with such guid = %s not found', DEVICE_GUID));
+                            format('Device with such guid = %s not found', DEVICE_GUID));
                         assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                         done();
                     });
@@ -173,7 +173,7 @@ describe('REST API Device Equipment', function () {
                     utils.get(path.current, {accessKey: result.key}, function (err) {
                         assert.strictEqual(!(!err), true, 'Error object created');
                         assert.strictEqual(err.error,
-                            format('DeviceHive server error - Device with such guid = %s not found', DEVICE_GUID));
+                            format('Device with such guid = %s not found', DEVICE_GUID));
                         assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                         done();
                     });
@@ -210,7 +210,7 @@ describe('REST API Device Equipment', function () {
         it('should fail with 405 when trying to create', function (done) {
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'DeviceHive server error - HTTP 405 Method Not Allowed');
+                assert.strictEqual(err.error, 'HTTP 405 Method Not Allowed');
                 assert.strictEqual(err.httpStatus, status.METHOD_NOT_ALLOWED);
                 done();
             })
@@ -220,7 +220,7 @@ describe('REST API Device Equipment', function () {
             params.id = EQUIPMENT;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'DeviceHive server error - HTTP 405 Method Not Allowed');
+                assert.strictEqual(err.error, 'HTTP 405 Method Not Allowed');
                 assert.strictEqual(err.httpStatus, status.METHOD_NOT_ALLOWED);
                 done();
             })
@@ -230,7 +230,7 @@ describe('REST API Device Equipment', function () {
             params.id = EQUIPMENT;
             utils.delete(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'DeviceHive server error - HTTP 405 Method Not Allowed');
+                assert.strictEqual(err.error, 'HTTP 405 Method Not Allowed');
                 assert.strictEqual(err.httpStatus, status.METHOD_NOT_ALLOWED);
                 done();
             });
@@ -241,7 +241,7 @@ describe('REST API Device Equipment', function () {
         it('should fail when request not authorized', function () {
             utils.get(path.current, {}, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                assert.strictEqual(err.error, 'Not authorized');
                 assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
             })
         });
@@ -250,7 +250,7 @@ describe('REST API Device Equipment', function () {
             var $path = path.combine(path.DEVICE, 'none', 'equipment');
             utils.get($path, {}, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                assert.strictEqual(err.error, 'Not authorized');
                 assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
             })
         });
@@ -262,7 +262,7 @@ describe('REST API Device Equipment', function () {
             utils.get($path, {user: utils.admin}, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error,
-                    format('DeviceHive server error - Device with such guid = %s not found', 'none'));
+                    format('Device with such guid = %s not found', 'none'));
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
             })
         });

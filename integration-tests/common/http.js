@@ -59,11 +59,10 @@ Http.prototype = {
                 return;
             }
 
-            /* hack */
+            // TODO: JSON hack
             if (xhr.responseText === '{message:\"Not authorized\"}') {
                 xhr.responseText = '{\"message\":\"Not authorized\"}';
             }
-            /* hack */
 
             if (xhr.responseText) {
                 console.log('response at %s: %s\n', new Date().toLocaleTimeString(), xhr.responseText);
@@ -90,16 +89,16 @@ Http.prototype = {
     },
 
     serverErrorMessage: function (http) {
-        var errMsg = 'DeviceHive server error';
+        var errMsg = null;
         if (http.responseText) {
             try {
-                errMsg += ' - ' + JSON.parse(http.responseText).message;
+                errMsg = JSON.parse(http.responseText).message;
             }
             catch (e) {
-                errMsg += ' - ' + http.responseText;
+                errMsg = http.responseText;
             }
         }
-        return {error: errMsg, request: http};
+        return {error: errMsg, message: errMsg, request: http}; // TODO: Remove 'error'
     }
 };
 

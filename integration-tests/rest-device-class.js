@@ -139,7 +139,7 @@ describe('REST API Device Class', function () {
                 var params = helper.getParams(DEVICE_CLASS, utils.admin, VERSION);
                 utils.create(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - DeviceClass cannot be created. Device class with such name and version already exists');
+                    assert.strictEqual(err.error, 'DeviceClass cannot be created. Device class with such name and version already exists');
                     assert.strictEqual(err.httpStatus, status.FORBIDDEN);
                     done();
                 })
@@ -237,7 +237,7 @@ describe('REST API Device Class', function () {
 
                     utils.get(path.DEVICE_CLASS, params, function (err) {
                         assert.strictEqual(!(!err), true, 'Error object created');
-                        assert.strictEqual(err.error, format('DeviceHive server error - DeviceClass with id = %d not found', deviceClassId));
+                        assert.strictEqual(err.error, format('DeviceClass with id = %d not found', deviceClassId));
                         assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                         done();
                     })
@@ -253,7 +253,7 @@ describe('REST API Device Class', function () {
                 var params = {user: null};
                 utils.get(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -263,7 +263,7 @@ describe('REST API Device Class', function () {
                 var params = {user: null, id: utils.NON_EXISTING_ID };
                 utils.get(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -273,7 +273,7 @@ describe('REST API Device Class', function () {
                 var params = helper.getParamsObj('_integr-test-create-no-auth', null, '1');
                 utils.create(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -284,7 +284,7 @@ describe('REST API Device Class', function () {
                 params.id = utils.NON_EXISTING_ID;
                 utils.update(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -294,7 +294,7 @@ describe('REST API Device Class', function () {
                 var params = {user: null, id: utils.NON_EXISTING_ID};
                 utils.delete(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -319,7 +319,7 @@ describe('REST API Device Class', function () {
                 var params = {user: user};
                 utils.get(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -329,7 +329,7 @@ describe('REST API Device Class', function () {
                 var params = helper.getParamsObj('_integr-test-create-other-user', user);
                 utils.create(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -340,7 +340,7 @@ describe('REST API Device Class', function () {
                 params.id = utils.NON_EXISTING_ID;
                 utils.update(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -350,7 +350,7 @@ describe('REST API Device Class', function () {
                 var params = {user: user, id: utils.NON_EXISTING_ID};
                 utils.delete(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -364,7 +364,7 @@ describe('REST API Device Class', function () {
             var params = {user: utils.admin, id: utils.NON_EXISTING_ID };
             utils.get(path.DEVICE_CLASS, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('DeviceHive server error - DeviceClass with id = %d not found',
+                assert.strictEqual(err.error, format('DeviceClass with id = %d not found',
                     utils.NON_EXISTING_ID));
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                 done();
@@ -376,7 +376,7 @@ describe('REST API Device Class', function () {
             params.id = utils.NON_EXISTING_ID;
             utils.update(path.DEVICE_CLASS, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('DeviceHive server error - DeviceClass with id = %d not found',
+                assert.strictEqual(err.error, format('DeviceClass with id = %d not found',
                     utils.NON_EXISTING_ID));
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                 done();

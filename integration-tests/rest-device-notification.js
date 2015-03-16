@@ -264,7 +264,7 @@ describe('REST API Device Notification', function () {
             var params = {user: nonNetworkUser};
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                assert.strictEqual(err.error, format('Device with such guid = %s not found',
                     DEVICE_GUID));
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
 
@@ -287,7 +287,7 @@ describe('REST API Device Notification', function () {
             var params = {accessKey: invalidAccessKey1};
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                assert.strictEqual(err.error, format('Device with such guid = %s not found',
                     DEVICE_GUID));
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
 
@@ -299,7 +299,7 @@ describe('REST API Device Notification', function () {
             var params = {accessKey: invalidAccessKey2};
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                assert.strictEqual(err.error, format('Device with such guid = %s not found',
                     DEVICE_GUID));
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
 
@@ -311,7 +311,7 @@ describe('REST API Device Notification', function () {
             var params = {accessKey: invalidAccessKey3};
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                assert.strictEqual(err.error, format('Device with such guid = %s not found',
                     DEVICE_GUID));
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
 
@@ -544,7 +544,7 @@ describe('REST API Device Notification', function () {
             var params = helper.getParamsObj(NOTIFICATION, nonNetworkUser);
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                assert.strictEqual(err.error, format('Device with such guid = %s not found',
                     DEVICE_GUID));
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
 
@@ -574,7 +574,7 @@ describe('REST API Device Notification', function () {
             params.accessKey = invalidAccessKey1;
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                assert.strictEqual(err.error, format('Device with such guid = %s not found',
                     DEVICE_GUID));
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
 
@@ -587,7 +587,7 @@ describe('REST API Device Notification', function () {
             params.accessKey = invalidAccessKey2;
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                assert.strictEqual(err.error, format('Device with such guid = %s not found',
                     DEVICE_GUID));
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
 
@@ -600,7 +600,7 @@ describe('REST API Device Notification', function () {
             params.accessKey = invalidAccessKey3;
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('DeviceHive server error - Device with such guid = %s not found',
+                assert.strictEqual(err.error, format('Device with such guid = %s not found',
                     DEVICE_GUID));
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
 
@@ -632,7 +632,7 @@ describe('REST API Device Notification', function () {
             params.id = notificationId;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'DeviceHive server error - HTTP 405 Method Not Allowed');
+                assert.strictEqual(err.error, 'HTTP 405 Method Not Allowed');
                 assert.strictEqual(err.httpStatus, status.METHOD_NOT_ALLOWED);
 
                 done();
@@ -646,7 +646,7 @@ describe('REST API Device Notification', function () {
             params.id = notificationId;
             utils.delete(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'DeviceHive server error - HTTP 405 Method Not Allowed');
+                assert.strictEqual(err.error, 'HTTP 405 Method Not Allowed');
                 assert.strictEqual(err.httpStatus, status.METHOD_NOT_ALLOWED);
                 done();
             });
@@ -666,7 +666,7 @@ describe('REST API Device Notification', function () {
             };
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'DeviceHive server error - Invalid request parameters');
+                assert.strictEqual(err.error, 'Invalid request parameters');
                 assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
                 done();
             });
@@ -678,7 +678,7 @@ describe('REST API Device Notification', function () {
             it('should return error when getting notifications without authorization', function (done) {
                 utils.get(path.current, {user: null}, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -689,7 +689,7 @@ describe('REST API Device Notification', function () {
                 params.id = utils.NON_EXISTING_ID;
                 utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -699,7 +699,7 @@ describe('REST API Device Notification', function () {
                 var params = helper.getParamsObj('the-notification', null);
                 utils.create(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -709,7 +709,7 @@ describe('REST API Device Notification', function () {
                 var $path = path.combine(path.current, path.POLL);
                 utils.get($path, {user: null}, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -718,7 +718,7 @@ describe('REST API Device Notification', function () {
             it('should return error when polling notifications without authorization #2', function (done) {
                 utils.get(path.NOTIFICATION.poll(), {user: null}, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -735,7 +735,7 @@ describe('REST API Device Notification', function () {
                 };
                 utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -751,7 +751,7 @@ describe('REST API Device Notification', function () {
                 params.id = utils.NON_EXISTING_ID;
                 utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -767,7 +767,7 @@ describe('REST API Device Notification', function () {
                 var $path = path.combine(path.current, path.POLL);
                 utils.get($path, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -782,7 +782,7 @@ describe('REST API Device Notification', function () {
                 };
                 utils.get(path.NOTIFICATION.poll(), params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -797,7 +797,7 @@ describe('REST API Device Notification', function () {
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error,
-                    format('DeviceHive server error - No device notifications found from device with guid : %s',
+                    format('No device notifications found from device with guid : %s',
                     DEVICE_GUID));
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                 done();

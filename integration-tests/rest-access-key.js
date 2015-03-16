@@ -234,7 +234,7 @@ describe('REST API Access Key', function () {
 
                     utils.get(testData.path, testData.params, function (err) {
                         assert.strictEqual(!(!err), true, 'Error object created');
-                        assert.strictEqual(err.error, 'DeviceHive server error - Access key not found.');
+                        assert.strictEqual(err.error, 'Access key not found.');
                         callback();
                     })
                 })
@@ -321,12 +321,12 @@ describe('REST API Access Key', function () {
 
         function assertResultErr1(err) {
             assert.strictEqual(!(!err), true, 'Error object created');
-            assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
+            assert.strictEqual(err.error, 'Unauthorized');
         }
 
         function assertResultErr2(err, result, networkId) {
             assert.strictEqual(!(!err), true, 'Error object created');
-            assert.strictEqual(err.error, format('DeviceHive server error - Network with id = %d not found', networkId));
+            assert.strictEqual(err.error, format('Network with id = %d not found', networkId));
         }
 
         function runTest(testData, callback) {
@@ -416,7 +416,7 @@ describe('REST API Access Key', function () {
             var params = helper.getParamsObj('_integr-test-bad-request', utils.admin);
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'DeviceHive server error - Actions are required!');
+                assert.strictEqual(err.error, 'Actions are required!');
                 assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
                 done();
             })
@@ -431,7 +431,7 @@ describe('REST API Access Key', function () {
                 var params = {user: null};
                 utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -441,7 +441,7 @@ describe('REST API Access Key', function () {
                 var params = {user: null, id: utils.NON_EXISTING_ID };
                 utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -451,7 +451,7 @@ describe('REST API Access Key', function () {
                 var params = helper.getParamsObj('_integr-test-create-no-auth', null);
                 utils.create(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -462,7 +462,7 @@ describe('REST API Access Key', function () {
                 params.id = utils.NON_EXISTING_ID;
                 utils.update(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -472,7 +472,7 @@ describe('REST API Access Key', function () {
                 var params = {user: null, id: utils.NON_EXISTING_ID};
                 utils.delete(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Not authorized');
+                    assert.strictEqual(err.error, 'Not authorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -497,7 +497,7 @@ describe('REST API Access Key', function () {
                 var params = {user: user};
                 utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -507,7 +507,7 @@ describe('REST API Access Key', function () {
                 var params = {user: user, id: utils.NON_EXISTING_ID};
                 utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -517,7 +517,7 @@ describe('REST API Access Key', function () {
                 var params = helper.getParamsObj('_integr-test-create-other-user', user);
                 utils.create(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -528,7 +528,7 @@ describe('REST API Access Key', function () {
                 params.id = utils.NON_EXISTING_ID;
                 utils.update(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -538,7 +538,7 @@ describe('REST API Access Key', function () {
                 var params = {user: user, id: utils.NON_EXISTING_ID};
                 utils.delete(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'DeviceHive server error - Unauthorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -552,7 +552,7 @@ describe('REST API Access Key', function () {
             var params = {user: utils.admin, id: utils.NON_EXISTING_ID };
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'DeviceHive server error - Access key not found.');
+                assert.strictEqual(err.error, 'Access key not found.');
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                 done();
             })
@@ -563,7 +563,7 @@ describe('REST API Access Key', function () {
             params.id = utils.NON_EXISTING_ID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'DeviceHive server error - Access key not found');
+                assert.strictEqual(err.error, 'Access key not found');
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                 done();
             })
