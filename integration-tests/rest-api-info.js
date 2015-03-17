@@ -4,7 +4,7 @@ var path = require('./common/path');
 
 describe('REST API Info', function () {
 
-    it('should return info', function (done) {
+    it('should return api info', function (done) {
         utils.get(path.INFO, {}, function (err, result) {
             if (err) {
                 done(err);

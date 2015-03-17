@@ -19,7 +19,8 @@ var request = {
 
         this.context = {
             action: action,
-            path: path
+            path: path,
+            params: {}
         };
 
         return this;

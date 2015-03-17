@@ -80,7 +80,7 @@ describe('REST API Network', function () {
         ], done);
     });
 
-    describe('#GetAll', function () {
+    describe('#Get All', function () {
 
         var accessKey1 = null;
         var accessKey2 = null;
@@ -497,8 +497,8 @@ describe('REST API Network', function () {
         });
     });
 
-    describe('#Not authorized', function () {
-        describe('#No authorization', function () {
+    describe('#Not Authorized', function () {
+        describe('#No Authorization', function () {
             it('should fail with 401 if auth parameters omitted', function (done) {
                 req.get(path.current)
                     .params({user: null})
@@ -535,7 +535,7 @@ describe('REST API Network', function () {
             });
         });
 
-        describe('#User authorization', function () {
+        describe('#User Authorization', function () {
             it('should fail with 401 when creating network with invalid user', function (done) {
                 req.create(path.current)
                     .params({user: nonNetworkUser, data: {name: 'not-authorized'}})
@@ -558,7 +558,7 @@ describe('REST API Network', function () {
             });
         });
 
-        describe('#Dummy access key authorization', function () {
+        describe('#Dummy Access Key Authorization', function () {
 
             var accessKey = null;
 
@@ -613,7 +613,7 @@ describe('REST API Network', function () {
         });
     });
 
-    describe('#Not found', function () {
+    describe('#Not Found', function () {
 
         it('should fail with 404 when selecting network by non-existing id', function (done) {
             req.get(path.current)

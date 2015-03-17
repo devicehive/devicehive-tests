@@ -22,7 +22,7 @@ describe('REST API Access Key', function () {
         });
     });
 
-    describe('#GetAll', function() {
+    describe('#Get All', function() {
 
         var adminAccessKey = null;
         var userAccessKey = null;
@@ -410,7 +410,7 @@ describe('REST API Access Key', function () {
         })
     });
 
-    describe('#BadRequest', function () {
+    describe('#Bad Request', function () {
         it('should return error 400 when trying to create access key without actions', function (done) {
 
             var params = helper.getParamsObj('_integr-test-bad-request', utils.admin);
@@ -424,9 +424,9 @@ describe('REST API Access Key', function () {
         })
     });
 
-    describe('#Not authorized', function () {
+    describe('#Not Authorized', function () {
 
-        describe('no authorization', function () {
+        describe('#No Authorization', function () {
             it('should return error when accessing key without authorization', function (done) {
                 var params = {user: null};
                 utils.get(path.current, params, function (err) {
@@ -479,7 +479,7 @@ describe('REST API Access Key', function () {
             })
         });
 
-        describe('another user authorization', function () {
+        describe('#Another User Authorization', function () {
             var user = null;
 
             before(function (done) {

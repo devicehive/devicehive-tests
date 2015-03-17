@@ -490,22 +490,8 @@ describe('REST API User', function () {
         });
     });
 
-    describe('#Not authorized', function () {
-
-        var nonNetworkUser = null;
-
-        before(function (done) {
-            utils.createUser2(1, void 0, function (err, result) {
-                if (err) {
-                    return done(err);
-                }
-
-                nonNetworkUser = result.user;
-                done();
-            });
-        });
-
-        describe('#No authorization', function () {
+    describe('#Not Authorized', function () {
+        describe('#No Authorization', function () {
             it('should fail with 401 if auth parameters omitted', function (done) {
                 req.get(path.current)
                     .params({user: null})
@@ -556,7 +542,21 @@ describe('REST API User', function () {
             });
         });
 
-        describe('#User authorization', function () {
+        describe('#User Authorization', function () {
+
+            var nonNetworkUser = null;
+
+            before(function (done) {
+                utils.createUser2(1, void 0, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    nonNetworkUser = result.user;
+                    done();
+                });
+            });
+
             it('should fail with 401 when selecting users with invalid user', function (done) {
                 req.get(path.current)
                     .params({user: nonNetworkUser})
@@ -593,7 +593,7 @@ describe('REST API User', function () {
             });
         });
 
-        describe('#Dummy access key authorization', function () {
+        describe('#Dummy Access Key Authorization', function () {
 
             var accessKey = null;
 
@@ -647,7 +647,7 @@ describe('REST API User', function () {
         });
     });
 
-    describe('#Not found', function () {
+    describe('#Not Found', function () {
 
         it('should fail with 404 when selecting user by non-existing id', function (done) {
             req.get(path.current)

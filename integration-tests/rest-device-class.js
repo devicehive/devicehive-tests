@@ -9,7 +9,7 @@ describe('REST API Device Class', function () {
 
     var helper = utils.deviceClass;
 
-    describe('#GetAll', function () {
+    describe('#Get All', function () {
 
         var DEVICE_CLASS = '_integr-test-device-class';
 
@@ -246,9 +246,9 @@ describe('REST API Device Class', function () {
         })
     });
 
-    describe('#Not authorized', function () {
+    describe('#Not Authorized', function () {
 
-        describe('no authorization', function () {
+        describe('#No Authorization', function () {
             it('should return error when accessing device class without authorization', function (done) {
                 var params = {user: null};
                 utils.get(path.DEVICE_CLASS, params, function (err) {
@@ -301,7 +301,7 @@ describe('REST API Device Class', function () {
             })
         });
 
-        describe('another user authorization', function () {
+        describe('#Another User Authorization', function () {
             var user = null;
 
             before(function (done) {

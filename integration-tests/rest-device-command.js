@@ -112,7 +112,7 @@ describe('REST API Device Command', function () {
         ], done);
     });
 
-    describe('#GetAll', function () {
+    describe('#Get All', function () {
 
         it('should get all two commands for user', function (done) {
             utils.get(path.current, {user: user}, function (err, result) {
@@ -473,7 +473,7 @@ describe('REST API Device Command', function () {
         })
     });
 
-    describe('#Poll by id', function () {
+    describe('#Poll by Id', function () {
 
         var commandUpdate = {
             status: 'Done',
@@ -789,9 +789,9 @@ describe('REST API Device Command', function () {
         })
     });
 
-    describe('#Not authorized', function () {
+    describe('#Not Authorized', function () {
 
-        describe('no authorization', function () {
+        describe('#No Authorization', function () {
             it('should return error when getting commands without authorization', function (done) {
                 utils.get(path.current, {user: null}, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');

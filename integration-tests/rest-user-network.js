@@ -44,27 +44,6 @@ describe('REST API User Network', function () {
         ], done);
     });
 
-    //describe('#Create', function () {
-    //    it('should create user network', function (done) {
-    //        var network = {
-    //            name: '_integr-tests-user-network-2',
-    //            description: 'lorem ipsum dolor sit amet'
-    //        };
-    //        req.create(path.current)
-    //            .params({user: utils.admin, data: network})
-    //            .send(function (err, result) {
-    //                if (err) {
-    //                    return done(err);
-    //                }
-    //
-    //                req.get(path.current)
-    //                    .params({user: utils.admin, id: result.id})
-    //                    .expect(network)
-    //                    .send(done);
-    //            });
-    //    });
-    //});
-
     describe('#Update', function () {
         it('should update user network', function (done) {
             req.update(path.current)
@@ -105,7 +84,7 @@ describe('REST API User Network', function () {
         });
     });
 
-    describe('#Not authorized', function () {
+    describe('#Not Authorized', function () {
 
         var nonNetworkUser = null;
 
@@ -120,7 +99,7 @@ describe('REST API User Network', function () {
             });
         });
 
-        describe('#No authorization', function () {
+        describe('#No Authorization', function () {
             it('should fail with 401 when selecting user network by id, auth parameters omitted', function (done) {
                 req.get(path.current)
                     .params({user: null, id: utils.NON_EXISTING_ID})
@@ -143,7 +122,7 @@ describe('REST API User Network', function () {
             });
         });
 
-        describe('#User authorization', function () {
+        describe('#User Authorization', function () {
             it('should fail with 401 when creating user network with invalid user', function (done) {
                 req.get(path.current)
                     .params({user: nonNetworkUser, id: utils.NON_EXISTING_ID})
@@ -166,7 +145,7 @@ describe('REST API User Network', function () {
             });
         });
 
-        describe('#Dummy access key authorization', function () {
+        describe('#Dummy Access Key Authorization', function () {
 
             var accessKey = null;
 
@@ -207,7 +186,7 @@ describe('REST API User Network', function () {
         });
     });
 
-    describe('#Not found', function () {
+    describe('#Not Found', function () {
 
         it.skip('should fail with 404 when selecting user network by non-existing id', function (done) {
             req.get(path.current)

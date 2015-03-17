@@ -100,7 +100,7 @@ describe('REST API Device Unit', function () {
         ], done);
     });
 
-    describe('#GetAll', function () {
+    describe('#Get All', function () {
 
         var accessKey1 = null;
         var accessKey2 = null;
@@ -1165,9 +1165,9 @@ describe('REST API Device Unit', function () {
         });
     });
 
-    describe('#Not authorized', function () {
+    describe('#Not Authorized', function () {
 
-        describe('no authorization', function () {
+        describe('#No Authorization', function () {
             it('should return error when getting devices without authorization', function (done) {
                 utils.get(path.current, {user: null}, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
@@ -1212,7 +1212,7 @@ describe('REST API Device Unit', function () {
             });
         });
 
-        describe('device authorization', function () {
+        describe('#Device Authorization', function () {
             it('should return error when getting devices using device authorization', function (done) {
                 var params = {
                     device: {

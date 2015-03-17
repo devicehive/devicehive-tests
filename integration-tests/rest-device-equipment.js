@@ -81,7 +81,7 @@ describe('REST API Device Equipment', function () {
         ], done);
     });
 
-    describe('#GetAll', function () {
+    describe('#Get All', function () {
 
         var user1 = null;
         var user2 = null;
@@ -237,7 +237,7 @@ describe('REST API Device Equipment', function () {
         });
     });
 
-    describe('#Not authorized', function () {
+    describe('#Not Authorized', function () {
         it('should fail when request not authorized', function () {
             utils.get(path.current, {}, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -256,7 +256,7 @@ describe('REST API Device Equipment', function () {
         });
     });
 
-    describe('#Not found', function () {
+    describe('#Not Found', function () {
         it('should fail when no equipment was found', function () {
             var $path = path.combine(path.DEVICE, 'none', 'equipment');
             utils.get($path, {user: utils.admin}, function (err) {

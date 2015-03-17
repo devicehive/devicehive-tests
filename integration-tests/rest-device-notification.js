@@ -95,7 +95,7 @@ describe('REST API Device Notification', function () {
         ], done);
     });
 
-    describe('#GetAll', function () {
+    describe('#Get All', function () {
 
         before(function (done) {
             var params = helper.getParamsObj(NOTIFICATION, user);
@@ -673,8 +673,8 @@ describe('REST API Device Notification', function () {
         })
     });
 
-    describe('#Not authorized', function () {
-        describe('no authorization', function () {
+    describe('#Not Authorized', function () {
+        describe('#No Authorization', function () {
             it('should return error when getting notifications without authorization', function (done) {
                 utils.get(path.current, {user: null}, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
@@ -725,7 +725,7 @@ describe('REST API Device Notification', function () {
             });
         });
 
-        describe('device authorization', function () {
+        describe('#Device Authorization', function () {
             it('should return error when getting notifications using device authorization', function (done) {
                 var params = {
                     device: {
