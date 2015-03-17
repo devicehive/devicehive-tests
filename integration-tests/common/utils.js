@@ -9,6 +9,7 @@ var $utils = require('./../../common/utils');
 var utils = {
 
     NON_EXISTING_ID: 999999,
+    NEW_USER_PASSWORD: 'new_user_password',
 
     core: $utils,
 
@@ -311,7 +312,7 @@ var utils = {
 
         var user = {
             login: '_integr-test-' + +new Date(),
-            password: 'ASDF_1234!@#$'
+            password: this.NEW_USER_PASSWORD
         };
 
         networkIds || (networkIds = []);

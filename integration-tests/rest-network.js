@@ -1,4 +1,3 @@
-var assert = require('assert');
 var async = require('async');
 var format = require('util').format;
 var utils = require('./common/utils');
@@ -412,7 +411,7 @@ describe('REST API Network', function () {
                 name:'_integr-test-network-4-UPDATE',
                 key: NETWORK_KEY,
                 description: 'lorem ipsum dolor sit amet'
-            }
+            };
             req.update(path.current)
                 .params({user: utils.admin, id: networkId, data: update})
                 .send(function (err) {
@@ -523,7 +522,7 @@ describe('REST API Network', function () {
 
             it('should fail with 401 when updating network with no auth parameters', function (done) {
                 req.update(path.current)
-                    .params({user: null, id: utils.NON_EXISTING_ID})
+                    .params({user: null, id: utils.NON_EXISTING_ID, data: {name: 'not-authorized'}})
                     .expectError(status.NOT_AUTHORIZED, 'Not authorized')
                     .send(done);
             });
@@ -546,7 +545,7 @@ describe('REST API Network', function () {
 
             it('should fail with 401 when updating network with invalid user', function (done) {
                 req.update(path.current)
-                    .params({user: nonNetworkUser, id: utils.NON_EXISTING_ID})
+                    .params({user: nonNetworkUser, id: utils.NON_EXISTING_ID, data: {name: 'not-authorized'}})
                     .expectError(status.NOT_AUTHORIZED, 'Not authorized')
                     .send(done);
             });
@@ -600,7 +599,7 @@ describe('REST API Network', function () {
 
             it('should fail with 401 when updating network using invalid access key', function (done) {
                 req.update(path.current)
-                    .params({accessKey: accessKey, id: utils.NON_EXISTING_ID})
+                    .params({accessKey: accessKey, id: utils.NON_EXISTING_ID, data: {name: 'not-authorized'}})
                     .expectError(status.NOT_AUTHORIZED, 'Not authorized')
                     .send(done);
             });
@@ -630,10 +629,9 @@ describe('REST API Network', function () {
                 .send(done);
         });
 
-        it('should fail with 404 when deleting network by non-existing id', function (done) {
+        it('should succeed when deleting network by non-existing id', function (done) {
             req.delete(path.current)
                 .params({user: utils.admin, id: utils.NON_EXISTING_ID})
-                .expectError(status.NOT_FOUND, format('Network with id = %s not found', utils.NON_EXISTING_ID))
                 .send(done);
         });
     });

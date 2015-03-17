@@ -64,9 +64,8 @@ Http.prototype = {
                 xhr.responseText = '{\"message\":\"Not authorized\"}';
             }
 
-            if (xhr.responseText) {
-                console.log('response at %s: %s\n', new Date().toLocaleTimeString(), xhr.responseText);
-            }
+            console.log('response at %s: %s\n', new Date().toLocaleTimeString(),
+                (xhr.responseText) ? xhr.responseText : '\'\'');
 
             var isSuccess = xhr.status && xhr.status >= 200 && xhr.status < 300 || xhr.status === 304;
             var err = isSuccess ? void 0 : self.serverErrorMessage(xhr);

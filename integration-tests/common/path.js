@@ -24,6 +24,7 @@ var path = {
     current: null,
 
     USER: '/user',
+    CURRENT: '/current',
     CURRENT_ACCESS_KEY: '/user/current/accesskey',
     NETWORK: '/network',
     INFO: '/info',

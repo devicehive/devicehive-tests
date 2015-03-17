@@ -83,14 +83,13 @@ var request = {
         var runner = utils[ctx.action];
         runner.call(utils, ctx.path, ctx.params, function (err, result) {
 
-            if (err) {
-                if (ctx.expectError) {
-                    err.error = err.httpStatus; // TODO: Use 'error' instead of 'httpStatus'
-                    utils.matches(err, ctx.expectError);
-                    return done(null, err);
-                } else {
-                    return done (err);
-                }
+            if (ctx.expectError) {
+                assert.strictEqual(!(!err), true, 'Error expected');
+                err.error = err.httpStatus; // TODO: Use 'error' instead of 'httpStatus'
+                utils.matches(err, ctx.expectError);
+                return done(null, err);
+            } else if (err) {
+                return done(err);
             }
 
             assert.strictEqual(!(!err), false, 'No error');
