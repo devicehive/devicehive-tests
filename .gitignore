@@ -18,3 +18,5 @@
 /big_config.json
 /config-server-alive.json
 /config-tanya-server-alive.json
+/config-poll-cmd.json
+/config-poll-wotio.json
