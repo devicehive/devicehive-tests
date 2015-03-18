@@ -4,17 +4,11 @@
 
 Integration tests require [mocha](http://mochajs.org/) framework.
 
-* Install mocha globally
+* Install mocha globally: *$ npm install -g mocha*
 
-*$ npm install -g mocha*
+* cd to root directory: *$ cd devicehive-tests*
 
-* cd to root directory
-
-*$ cd devicehive-tests*
-
-* When running specify tests directory 'integration-tests'
-
-*$ mocha integration-tests*
+* When running specify tests directory 'integration-tests': *$ mocha integration-tests*
 
 Another easy way to run tests is to use [WebStorm](https://www.youtube.com/watch?v=4mKiGkokyx8)
 
@@ -22,3 +16,9 @@ Another easy way to run tests is to use [WebStorm](https://www.youtube.com/watch
 
 * *describe()* closure defines a group of tests
 * *it()* defines a single test
+
+Use *only()* predecate to run separate test or group of tests. This can be helpful to run the failed test:
+
+*        it.only('should pass but failed', function (done) {
+            // some code here...
+        });*
