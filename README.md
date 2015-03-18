@@ -6,7 +6,7 @@ Integration tests require [mocha](http://mochajs.org/) framework.
 
 * Install mocha globally: **$ npm install -g mocha**
 
-* cd to root directory: **$ cd devicehive-tests**
+* cd to project root directory: **$ cd devicehive-tests**
 
 * When running specify tests directory 'integration-tests': **$ mocha integration-tests**
 
