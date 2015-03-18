@@ -1,29 +1,21 @@
-# README #
+# Integration tests #
 
-This README would normally document whatever steps are necessary to get your application up and running.
+### Prepare running environment ###
 
-### What is this repository for? ###
+Integration tests require [mocha](http://mochajs.org/) framework.
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+* Install mocha globally
+*$ npm install -g mocha*
 
-### How do I get set up? ###
+* cd to root directory
+*$ cd devicehive-tests*
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+* When running specify tests directory 'integration-tests'
+*$ mocha integration-tests*
 
-### Contribution guidelines ###
+Another easy way to run tests is to use [WebStorm](https://www.youtube.com/watch?v=4mKiGkokyx8)
 
-* Writing tests
-* Code review
-* Other guidelines
+### Tests structure, dealing with failures ###
 
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
+* *describe()* closure defines a group of tests
+* *it()* defines a single test
