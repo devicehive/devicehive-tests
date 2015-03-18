@@ -25,7 +25,7 @@ Another easy way to run tests is to use [WebStorm](https://www.youtube.com/watch
 
 ![only2.png](https://bitbucket.org/repo/M6o9ee/images/2871072169-only2.png)
 
-Following code will only execute '#Group of Tests' group of tests:
+Following code will only execute '#Group of Tests' group:
 
 ![only1.png](https://bitbucket.org/repo/M6o9ee/images/3914931187-only1.png)
 
