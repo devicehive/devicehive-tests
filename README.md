@@ -19,6 +19,12 @@ Another easy way to run tests is to use [WebStorm](https://www.youtube.com/watch
 
 Use *only()* predecate to run separate test or group of tests. This can be helpful to run the failed test:
 
-*        it.only('should pass but failed', function (done) {
-            // some code here...
-        });*
+![only2.png](https://bitbucket.org/repo/M6o9ee/images/2871072169-only2.png)
+
+Following code separates a group of tests:
+
+![only1.png](https://bitbucket.org/repo/M6o9ee/images/3914931187-only1.png)
+
+To ignore test use *skip()* predicate:
+
+![skip.png](https://bitbucket.org/repo/M6o9ee/images/1689287093-skip.png)
