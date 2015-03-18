@@ -269,9 +269,13 @@ var utils = {
                     self.resources.push(updatePath);
                 }
 
-                assert.strictEqual(xhr.status, status.EXPECTED_UPDATED);
+                if (result) {
+                    assert.strictEqual(xhr.status, status.EXPECTED_READ);
+                } else {
+                    assert.strictEqual(xhr.status, status.EXPECTED_UPDATED);
+                }
 
-                cb(null);
+                cb(null, result);
             });
     },
 
