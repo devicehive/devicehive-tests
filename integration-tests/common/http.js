@@ -64,7 +64,7 @@ Http.prototype = {
                 xhr.responseText = '{\"message\":\"Not authorized\"}';
             }
 
-            console.log('response at %s: %s\n', new Date().toLocaleTimeString(),
+            console.log('<- reply at %s: %s', new Date().toLocaleTimeString(),
                 (xhr.responseText) ? xhr.responseText : '\'\'');
 
             var isSuccess = xhr.status && xhr.status >= 200 && xhr.status < 300 || xhr.status === 304;
@@ -74,16 +74,24 @@ Http.prototype = {
             return cb(err, result, xhr);
         };
 
+        console.log('-> %s %s', params.method, this.url);
+
         if (params.accessKey) {
+            console.log('-> accessKey: \'%s\'', params.accessKey);
             xhr.setRequestHeader('Authorization', 'Bearer ' + params.accessKey);
         } else if (params.user) {
+            console.log('-> user: \'%s\'', JSON.stringify(params.user));
             xhr.setRequestHeader('Authorization',
                 'Basic ' + utils.encodeBase64(params.user.login + ':' + params.user.password));
         } else if (params.device) {
+            console.log('-> device: \'%s\'', JSON.stringify(params.device));
             xhr.setRequestHeader('Auth-DeviceID', params.device.id);
             xhr.setRequestHeader('Auth-DeviceKey', params.device.key);
         }
 
+        if (jsonData) {
+            console.log('-> data: \'%s\'', jsonData);
+        }
         xhr.send(jsonData);
     },
 

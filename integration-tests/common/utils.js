@@ -382,11 +382,7 @@ var utils = {
             if (Array.isArray(ex)) {
                 assert.strictEqual(Array.isArray(ac), true, 'Expected object should be array');
                 assert.strictEqual(ac.length, ex.length, 'Expected array length should be \'' + ex.length + '\'');
-
-                for (var i = 0; i < ex.length; i++) {
-                    utils.matches(ac[i], ex[i]);
-                }
-
+                utils.matches(ac, ex);
                 return;
             }
 
