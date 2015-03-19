@@ -375,7 +375,15 @@ var utils = {
             });
     },
 
+    oldEntitiesCleared: false,
+
     clearOldEntities: function (done) {
+
+        if (this.oldEntitiesCleared) {
+            return done();
+        }
+
+        this.oldEntitiesCleared = true;
 
         var IT1 = '_it';
         var IT2 = '_integr';
