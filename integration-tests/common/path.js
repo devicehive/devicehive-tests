@@ -1,24 +1,5 @@
 var format = require('util').format;
-
-function Query() {
-    this.params = {};
-}
-
-Query.prototype = {
-    add: function (key, value) {
-        this.params[key] = value;
-        return this;
-    },
-
-    build: function () {
-        var self = this;
-        var keys = Object.keys(this.params);
-        var kv = keys.map(function (key) {
-            return format('%s=%s', key, self.params[key]);
-        });
-        return '?' + kv.join('&');
-    }
-};
+var qs = require('querystring');
 
 var path = {
     current: null,
@@ -55,7 +36,7 @@ var path = {
         }
 
         if (query) {
-            path += query.build();
+            path += '?' + qs.stringify(query);
         }
 
         return path;
@@ -67,10 +48,10 @@ var path = {
     },
 
     query: function () {
-        var query = new Query();
+        var query = {};
         var args = Array.prototype.slice.call(arguments);
         for (var i = 0; i < args.length; i += 2) {
-            query.add(args[i], args[i + 1]);
+            query[args[i]] = args[i + 1];
         }
         return query;
     }
