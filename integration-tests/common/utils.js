@@ -310,12 +310,16 @@ var utils = {
         });
     },
 
+    getName: function ($for) {
+        return ['_it-', $for, '-', (+new Date() + '').substr(7)].join('');
+    },
+
     createUser2: function (role, networkIds, callback) {
 
         var self = this;
 
         var user = {
-            login: '_integr-test-' + +new Date(),
+            login: this.getName('user'),
             password: this.NEW_USER_PASSWORD
         };
 

@@ -7,9 +7,9 @@ var req = require('./common/request');
 
 describe('REST API Network', function () {
 
-    var NETWORK_1 = '_integr-test-network-1';
-    var NETWORK_2 = '_integr-test-network-2';
-    var NETWORK_KEY = '_integr-test-network-key';
+    var NETWORK_1 = utils.getName('network-1');
+    var NETWORK_2 = utils.getName('network-2');
+    var NETWORK_KEY = utils.getName('network-key');
     var networkId1 = null;
     var networkId2 = null;
     var user = null;
@@ -248,7 +248,7 @@ describe('REST API Network', function () {
 
     describe('#Create', function () {
         it('should create network using admin authentication', function (done) {
-            var network = {name: '_integr-test-network-3', key: NETWORK_KEY};
+            var network = {name: utils.getName('network-3'), key: NETWORK_KEY};
 
             req.create(path.current)
                 .params({user: utils.admin, data: network})
@@ -276,10 +276,10 @@ describe('REST API Network', function () {
 
     describe('#Create Devices', function () {
 
-        var DEVICE = '_integr-test-network-device';
+        var DEVICE = utils.getName('network-device');
         var DEVICE_CLASS_VERSION = '1';
-        var DEVICE_GUID = 'INTEGR-TEST-NETWORK-DEVICE-GUID-12345';
-        var DEVICE_KEY = 'INTEGR-TEST-NETWORK-DEVICE-KEY-1';
+        var DEVICE_GUID = utils.getName('NETWORK-GUID');
+        var DEVICE_KEY = utils.getName('NETWORK-KEY');
 
         var deviceClassId = null;
 
@@ -394,7 +394,7 @@ describe('REST API Network', function () {
             req.create(path.current)
                 .params({
                     user: utils.admin,
-                    data: { name: '_integr-test-network-4', key: NETWORK_KEY }
+                    data: { name: utils.getName('network-4'), key: NETWORK_KEY }
                 })
                 .send(function (err, result) {
                     if (err) {
@@ -408,7 +408,7 @@ describe('REST API Network', function () {
 
         it('should update with admin authorization', function (done) {
             var update = {
-                name:'_integr-test-network-4-UPDATE',
+                name:utils.getName('network-4-UPDATE'),
                 key: NETWORK_KEY,
                 description: 'lorem ipsum dolor sit amet'
             };
@@ -456,7 +456,7 @@ describe('REST API Network', function () {
             req.create(path.current)
                 .params({
                     user: utils.admin,
-                    data: {name: '_integr-test-network-5'}
+                    data: {name: utils.getName('network-5')}
                 })
                 .send(function (err, result) {
                     if (err) {
@@ -490,7 +490,7 @@ describe('REST API Network', function () {
             req.create(path.current)
                 .params({
                     user: utils.admin,
-                    data: {invalidProp: '_integr-test-network-invalid'}
+                    data: {invalidProp: utils.getName('network-invalid')}
                 })
                 .expectError(status.BAD_REQUEST)
                 .send(done);
@@ -564,7 +564,7 @@ describe('REST API Network', function () {
 
             before(function (done) {
                 req.create(path.CURRENT_ACCESS_KEY)
-                    .params(utils.accessKey.getParamsObj('_integr-tests-dummy-access-key', utils.admin, void 0, void 0, void 0, ['RegisterDevice']))
+                    .params(utils.accessKey.getParamsObj(utils.getName('dummy-access-key'), utils.admin, void 0, void 0, void 0, ['RegisterDevice']))
                     .send(function (err, result) {
                         if (err) {
                             return done(err);

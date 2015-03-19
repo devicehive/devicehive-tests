@@ -11,7 +11,7 @@ describe('REST API Device Class', function () {
 
     describe('#Get All', function () {
 
-        var DEVICE_CLASS = '_integr-test-device-class';
+        var DEVICE_CLASS = utils.getName('device-class');
 
         before(function (done) {
             var params = helper.getParams(DEVICE_CLASS, utils.admin, '1');
@@ -40,7 +40,7 @@ describe('REST API Device Class', function () {
 
     describe('#Get for User', function () {
 
-        var DEVICE_CLASS = '_integr-test-device-class-1';
+        var DEVICE_CLASS = utils.getName('device-class-1');
         var VERSION = '1';
         var user = null;
         var deviceClassId = null;
@@ -89,7 +89,7 @@ describe('REST API Device Class', function () {
             var expDate = new Date();
             expDate.setFullYear(expDate.getFullYear() + 10);
             var params = utils.accessKey.getParamsObj(
-                '_integr-test-device-class-access-key', user, expDate, void 0, void 0, ['GetDevice']);
+                utils.getName('device-class-ak'), user, expDate, void 0, void 0, ['GetDevice']);
             utils.create(path.CURRENT_ACCESS_KEY, params, function (err, result) {
                 if (err) {
                     return done(err);
@@ -108,7 +108,7 @@ describe('REST API Device Class', function () {
     describe('#Create', function () {
 
         it('should create device class with user credentials', function (done) {
-            var DEVICE_CLASS = '_integr-test-device-class-2';
+            var DEVICE_CLASS = utils.getName('device-class-2');
             var VERSION = '1';
 
             var params = helper.getParams(DEVICE_CLASS, utils.admin, VERSION);
@@ -127,7 +127,7 @@ describe('REST API Device Class', function () {
         });
 
         it('should return error when trying to create existing device class', function (done) {
-            var DEVICE_CLASS = '_integr-test-device-class-3';
+            var DEVICE_CLASS = utils.getName('device-class-3');
             var VERSION = '1';
 
             var params = helper.getParams(DEVICE_CLASS, utils.admin, VERSION);
@@ -150,7 +150,7 @@ describe('REST API Device Class', function () {
             var params = {
                 user: utils.admin,
                 data: {
-                    name: '_integr-test-device-class-bad-request'
+                    name: utils.getName('device-class-br')
                 }
             };
             utils.create(path.DEVICE_CLASS, params, function (err) {
@@ -166,7 +166,7 @@ describe('REST API Device Class', function () {
         var deviceClassId = null;
 
         before(function (done) {
-            var params = helper.getParamsObj('_integr-test-device-class-4', utils.admin, '1');
+            var params = helper.getParamsObj(utils.getName('device-class-4'), utils.admin, '1');
             utils.create(path.DEVICE_CLASS, params, function (err, result) {
                 if (err) {
                     return done(err);
@@ -178,11 +178,11 @@ describe('REST API Device Class', function () {
         });
 
         it('should update using admin authorization', function (done) {
-            var params = helper.getParamsObj('_integr-test-device-class-4-upd-1', utils.admin, '2', true, 3600,
+            var params = helper.getParamsObj(utils.getName('device-class-4-upd-1'), utils.admin, '2', true, 3600,
                 {
-                    name: '_integr-tests-eqpmnt-1',
-                    type: '_integr-tests-type-1',
-                    code: '_integr-tests-code-1'
+                    name: utils.getName('eqpmnt-1'),
+                    type: utils.getName('type-1'),
+                    code: utils.getName('code-1')
                 }, { a: 'b' });
             params.id = deviceClassId;
             var update = params.data;
@@ -203,7 +203,7 @@ describe('REST API Device Class', function () {
 
         it('should partially update using admin authorization', function (done) {
 
-            var params = helper.getParamsObj('_integr-test-device-class-4-upd-2', utils.admin, '3', false);
+            var params = helper.getParamsObj(utils.getName('device-class-4-upd-2'), utils.admin, '3', false);
             params.id = deviceClassId;
             var update = params.data;
 
@@ -224,7 +224,7 @@ describe('REST API Device Class', function () {
 
     describe('#Delete', function () {
         it('should delete device class using admin authorization', function (done) {
-            var params = helper.getParamsObj('_integr-test-device-class-5', utils.admin, '1');
+            var params = helper.getParamsObj(utils.getName('device-class-5'), utils.admin, '1');
             utils.create(path.DEVICE_CLASS, params, function (err, result) {
                 if (err) {
                     return done(err);
@@ -270,7 +270,7 @@ describe('REST API Device Class', function () {
             });
 
             it('should return error when creating device class without authorization', function (done) {
-                var params = helper.getParamsObj('_integr-test-create-no-auth', null, '1');
+                var params = helper.getParamsObj(utils.getName('create-no-auth'), null, '1');
                 utils.create(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'Not authorized');
@@ -280,7 +280,7 @@ describe('REST API Device Class', function () {
             });
 
             it('should return error when updating non-existing device class without authorization', function (done) {
-                var params = helper.getParamsObj('_integr-test-update-non-existing', null, '2');
+                var params = helper.getParamsObj(utils.getName('update-non-existing'), null, '2');
                 params.id = utils.NON_EXISTING_ID;
                 utils.update(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
@@ -326,7 +326,7 @@ describe('REST API Device Class', function () {
             });
 
             it('should return error when creating device class using wrong user credentials', function (done) {
-                var params = helper.getParamsObj('_integr-test-create-other-user', user);
+                var params = helper.getParamsObj(utils.getName('create-other-user'), user);
                 utils.create(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'Not authorized');
@@ -336,7 +336,7 @@ describe('REST API Device Class', function () {
             });
 
             it('should return error when updating non-existing device class', function (done) {
-                var params = helper.getParamsObj('_integr-test-update-non-existing', user, '3');
+                var params = helper.getParamsObj(utils.getName('update-non-existing'), user, '3');
                 params.id = utils.NON_EXISTING_ID;
                 utils.update(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
@@ -372,7 +372,7 @@ describe('REST API Device Class', function () {
         });
 
         it('should return error when updating non-existing device class', function (done) {
-            var params = helper.getParamsObj('_integr-test-update-non-existing', utils.admin, '1');
+            var params = helper.getParamsObj(utils.getName('update-non-existing'), utils.admin, '1');
             params.id = utils.NON_EXISTING_ID;
             utils.update(path.DEVICE_CLASS, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');

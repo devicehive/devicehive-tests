@@ -122,7 +122,7 @@ describe('REST API User', function () {
     describe('#Create OAuth', function () {
 
         var user = {
-            login: '_integr-tests-oauth-usr-1',
+            login: utils.getName('oauth-usr-1'),
             password: utils.NEW_USER_PASSWORD
         };
 
@@ -164,12 +164,14 @@ describe('REST API User', function () {
 
     describe('#Create Existing', function () {
 
+        var LOGIN = utils.getName('oauth-usr-2');
+
         before(function (done) {
             req.create(path.current)
                 .params({
                     user: utils.admin,
                     data: {
-                        login: '_integr-tests-oauth-usr-2',
+                        login: LOGIN,
                         password: utils.NEW_USER_PASSWORD,
                         facebookLogin: 'facebook-2',
                         role: 0,
@@ -183,7 +185,7 @@ describe('REST API User', function () {
                 .params({
                     user: utils.admin,
                     data: {
-                        login: '_integr-tests-oauth-usr-2',
+                        login: LOGIN,
                         password: utils.NEW_USER_PASSWORD,
                         role: 0,
                         status: 0 }
@@ -197,7 +199,7 @@ describe('REST API User', function () {
                 .params({
                     user: utils.admin,
                     data: {
-                        login: '_integr-tests-oauth-usr-2-1',
+                        login: utils.getName('oauth-usr-2-1'),
                         password: utils.NEW_USER_PASSWORD,
                         facebookLogin: 'facebook-2', // TODO: No fail when using same oauth login 'facebook-2'
                         role: 0,
@@ -211,10 +213,10 @@ describe('REST API User', function () {
     describe('#Create User Networks', function () {
 
         var user = {
-            login: '_integr-tests-usr-3',
+            login: utils.getName('usr-3'),
             password: utils.NEW_USER_PASSWORD
         };
-        var NETWORK = '_integr-tests-usr-network-3';
+        var NETWORK = utils.getName('usr-network-3');
         var networkId = null;
 
         before(function (done) {
@@ -280,7 +282,7 @@ describe('REST API User', function () {
     describe('#Update', function () {
 
         var user = {
-            login: '_integr-tests-usr-4',
+            login: utils.getName('usr-4'),
             password: utils.NEW_USER_PASSWORD
         };
 
@@ -311,7 +313,7 @@ describe('REST API User', function () {
         it.skip('should update user account', function (done) { // TODO: Oauth logins don't return (googleLogin, facebookLogin etc.)
 
             var update = {
-                login: '_integr-tests-usr-4-upd',
+                login: utils.getName('usr-4-upd'),
                 googleLogin: 'google-4-upd',
                 facebookLogin: 'facebook-4-upd',
                 githubLogin: 'github-4-upd',
@@ -375,7 +377,7 @@ describe('REST API User', function () {
     describe('#Update Current', function () {
 
         var user = {
-            login: '_integr-tests-usr-5',
+            login: utils.getName('usr-5'),
             password: utils.NEW_USER_PASSWORD
         };
 
@@ -406,7 +408,7 @@ describe('REST API User', function () {
         it.skip('should update user account at \'/current\' path', function (done) { // TODO: Oauth logins don't return (googleLogin, facebookLogin etc.)
 
             var update = {
-                login: '_integr-tests-usr-5-upd',
+                login: utils.getName('usr-5-upd'),
                 password: utils.NEW_USER_PASSWORD + '*',
                 googleLogin: 'google-5-upd',
                 facebookLogin: 'facebook-5-upd',
@@ -432,7 +434,7 @@ describe('REST API User', function () {
                 req.get(path.current)
                     .params({user: utils.admin, id: user.id})
                     .expect({
-                        login: '_integr-tests-usr-5-upd',
+                        login: utils.getName('usr-5-upd'),
                         googleLogin: 'google-5-upd',
                         facebookLogin: 'facebook-5-upd',
                         githubLogin: 'github-5-upd',
@@ -599,7 +601,7 @@ describe('REST API User', function () {
 
             before(function (done) {
                 req.create(path.CURRENT_ACCESS_KEY)
-                    .params(utils.accessKey.getParamsObj('_integr-tests-user-dummy-access-key', utils.admin, void 0, void 0, void 0, ['RegisterDevice']))
+                    .params(utils.accessKey.getParamsObj(utils.getName('user-dummy-access-key'), utils.admin, void 0, void 0, void 0, ['RegisterDevice']))
                     .send(function (err, result) {
                         if (err) {
                             return done(err);

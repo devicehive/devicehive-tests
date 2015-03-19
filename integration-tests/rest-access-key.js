@@ -30,7 +30,7 @@ describe('REST API Access Key', function () {
         before(function (done) {
 
             function createAdminKey(callback) {
-                helper.create(utils.admin, '_integr-test-admin-key', 'CreateDeviceNotification', void 0, void 0,
+                helper.create(utils.admin, utils.getName('admin-key'), 'CreateDeviceNotification', void 0, void 0,
                     function (err, result) {
                         if (err) {
                             return callback(err);
@@ -42,7 +42,7 @@ describe('REST API Access Key', function () {
             }
 
             function createUserKey(callback) {
-                helper.create(user, '_integr-test-user-key', 'CreateDeviceNotification', void 0, void 0,
+                helper.create(user, utils.getName('user-key'), 'CreateDeviceNotification', void 0, void 0,
                     function (err, result) {
                         if (err) {
                             return callback(err);
@@ -123,7 +123,7 @@ describe('REST API Access Key', function () {
 
         it('should allow administrator to create key', function (done) {
             runTest({
-                createParams: helper.getParams('_integr-test-create-1', utils.admin),
+                createParams: helper.getParams(utils.getName('create-1'), utils.admin),
                 createPath: path.current,
                 getParams: {user: utils.admin},
                 getPath: path.current
@@ -132,7 +132,7 @@ describe('REST API Access Key', function () {
 
         it('should allow user to create key', function (done) {
             runTest({
-                createParams: helper.getParams('_integr-test-create-2', user),
+                createParams: helper.getParams(utils.getName('create-2'), user),
                 createPath: path.current,
                 getParams: { user: user },
                 getPath: path.CURRENT_ACCESS_KEY
@@ -141,7 +141,7 @@ describe('REST API Access Key', function () {
 
         it('should allow user to create key using same path', function (done) {
             runTest({
-                createParams: helper.getParams('_integr-test-create-3', user),
+                createParams: helper.getParams(utils.getName('create-3'), user),
                 createPath: path.current,
                 getParams: { user: user },
                 getPath: path.current
@@ -154,7 +154,7 @@ describe('REST API Access Key', function () {
         var accessKeyObj = null;
 
         before(function (done) {
-            var createParams = helper.getParams('_integr-test-update', utils.admin);
+            var createParams = helper.getParams(utils.getName('update'), utils.admin);
             utils.create(path.current, createParams, function (err, result) {
                 if (err) {
                     return done(err);
@@ -189,7 +189,7 @@ describe('REST API Access Key', function () {
 
         it('should allow administrator to update key', function (done) {
             runTest({
-                updateParams: helper.getParams('_integr-test-update-1', utils.admin, new Date(2020, 4, 1),
+                updateParams: helper.getParams(utils.getName('update-1'), utils.admin, new Date(2020, 4, 1),
                     ['www.devicehive.com'], [3, 4], ['CreateDeviceNotification'], void 0, ['127.0.0.2']),
                 updatePath: path.current,
                 getParams: { user: utils.admin },
@@ -199,7 +199,7 @@ describe('REST API Access Key', function () {
 
         it('should allow user to update key', function (done) {
             runTest({
-                updateParams: helper.getParams('_integr-test-update-2', user, new Date(2018, 3, 2),
+                updateParams: helper.getParams(utils.getName('update-2'), user, new Date(2018, 3, 2),
                     ['www.integration-tests.com'], [5, 6], ['CreateDeviceCommand'], ['22222222-3333-4444-5555-666666666666'], ['127.0.0.2']),
                 updatePath: path.current,
                 getParams: { user: user },
@@ -209,7 +209,7 @@ describe('REST API Access Key', function () {
 
         it('should allow user to update key using same path', function (done) {
             runTest({
-                updateParams: helper.getParams('_integr-test-update-3', user, new Date(2018, 4, 15),
+                updateParams: helper.getParams(utils.getName('update-3'), user, new Date(2018, 4, 15),
                     ['www.devicehive.com'], [3, 4], ['CreateDeviceNotification', 'UpdateDeviceCommand'], void 0, ['127.0.0.2']),
                 updatePath: path.current,
                 getParams: { user: user },
@@ -243,7 +243,7 @@ describe('REST API Access Key', function () {
 
         it('should allow administrator to delete key', function (done) {
             runTest({
-                createParams: helper.getParams('_integr-test-delete-1', utils.admin),
+                createParams: helper.getParams(utils.getName('delete-1'), utils.admin),
                 createPath: path.current,
                 params: { user: utils.admin },
                 path: path.current
@@ -252,7 +252,7 @@ describe('REST API Access Key', function () {
 
         it('should allow user to delete key', function (done) {
             runTest({
-                createParams: helper.getParams('_integr-test-delete-2', user),
+                createParams: helper.getParams(utils.getName('delete-2'), user),
                 createPath: path.current,
                 params: { user: user },
                 path: path.CURRENT_ACCESS_KEY
@@ -261,7 +261,7 @@ describe('REST API Access Key', function () {
 
         it('should allow user to delete key using user path', function (done) {
             runTest({
-                createParams: helper.getParams('_integr-test-delete-3', user),
+                createParams: helper.getParams(utils.getName('delete-3'), user),
                 createPath: path.current,
                 params: { user: user },
                 path: path.current
@@ -271,7 +271,7 @@ describe('REST API Access Key', function () {
 
     describe('#Authorization', function() {
 
-        var NETWORK_NAME = '_integr-test-network';
+        var NETWORK_NAME = utils.getName('network');
         var user = null;
         var networkId = null;
 
@@ -346,7 +346,7 @@ describe('REST API Access Key', function () {
         it('checks the key authorization works', function (done) {
             runTest({
                 params: helper.getParamsObj(
-                    '_integr-test-auth-1', user, void 0, void 0, void 0, ['GetNetwork']),
+                    utils.getName('auth-1'), user, void 0, void 0, void 0, ['GetNetwork']),
                 onResult: assertResultOk
             }, done);
         });
@@ -354,7 +354,7 @@ describe('REST API Access Key', function () {
         it('checks the key authorization with explicit network works', function (done) {
             runTest({
                 params: helper.getParamsObj(
-                    '_integr-test-auth-2', user, void 0, void 0, [networkId], ['GetNetwork']),
+                    utils.getName('auth-2'), user, void 0, void 0, [networkId], ['GetNetwork']),
                 onResult: assertResultOk
             }, done);
         });
@@ -362,7 +362,7 @@ describe('REST API Access Key', function () {
         it('checks the key authorization with explicit subnet works', function (done) {
             runTest({
                 params: helper.getParamsObj(
-                    '_integr-test-auth-3', user, void 0, void 0, void 0, ['GetNetwork'], void 0, ['0.0.0.0/0']),
+                    utils.getName('auth-3'), user, void 0, void 0, void 0, ['GetNetwork'], void 0, ['0.0.0.0/0']),
                 onResult: assertResultOk
             }, done);
         });
@@ -372,7 +372,7 @@ describe('REST API Access Key', function () {
             expDate.setHours(expDate.getHours() - 1);
             runTest({
                 params: helper.getParamsObj(
-                    '_integr-test-auth-4', user, expDate, void 0, [networkId], ['GetNetwork']),
+                    utils.getName('auth-4'), user, expDate, void 0, [networkId], ['GetNetwork']),
                 onResult: assertResultErr1
             }, done);
         });
@@ -380,7 +380,7 @@ describe('REST API Access Key', function () {
         it('checks the source subnet is validated', function (done) {
             runTest({
                 params: helper.getParamsObj(
-                    '_integr-test-auth-5', user, void 0, void 0, void 0, ['GetNetwork'], void 0, ['10.10.10.0/24']),
+                    utils.getName('auth-5'), user, void 0, void 0, void 0, ['GetNetwork'], void 0, ['10.10.10.0/24']),
                 onResult: assertResultErr1
             }, done);
         });
@@ -388,7 +388,7 @@ describe('REST API Access Key', function () {
         it('checks the action is validated', function (done) {
             runTest({
                 params: helper.getParamsObj(
-                    '_integr-test-auth-6', user, void 0, void 0, void 0, ['UpdateDeviceCommand']),
+                    utils.getName('auth-6'), user, void 0, void 0, void 0, ['UpdateDeviceCommand']),
                 onResult: assertResultErr1
             }, done);
         });
@@ -396,7 +396,7 @@ describe('REST API Access Key', function () {
         it('checks the network is validated', function (done) {
             runTest({
                 params: helper.getParamsObj(
-                    '_integr-test-auth-7', user, void 0, void 0, [networkId + 1], ['GetNetwork']),
+                    utils.getName('auth-7'), user, void 0, void 0, [networkId + 1], ['GetNetwork']),
                 onResult: assertResultErr2
             }, done);
         });
@@ -404,7 +404,7 @@ describe('REST API Access Key', function () {
         it('checks the network is validated on admin key', function (done) {
             runTest({
                 params: helper.getParamsObj(
-                    '_integr-test-auth-8', utils.admin, void 0, void 0, [networkId + 1], ['GetNetwork']),
+                    utils.getName('auth-8'), utils.admin, void 0, void 0, [networkId + 1], ['GetNetwork']),
                 onResult: assertResultErr2
             }, done);
         })
@@ -413,7 +413,7 @@ describe('REST API Access Key', function () {
     describe('#Bad Request', function () {
         it('should return error 400 when trying to create access key without actions', function (done) {
 
-            var params = helper.getParamsObj('_integr-test-bad-request', utils.admin);
+            var params = helper.getParamsObj(utils.getName('bad-request'), utils.admin);
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, 'Actions are required!');
@@ -448,7 +448,7 @@ describe('REST API Access Key', function () {
             });
 
             it('should return error when creating key without authorization', function (done) {
-                var params = helper.getParamsObj('_integr-test-create-no-auth', null);
+                var params = helper.getParamsObj(utils.getName('create-no-auth'), null);
                 utils.create(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'Not authorized');
@@ -458,7 +458,7 @@ describe('REST API Access Key', function () {
             });
 
             it('should return error when updating non-existing key without authorization', function (done) {
-                var params = helper.getParams('_integr-test-update-non-existing', null);
+                var params = helper.getParams(utils.getName('update-non-existing'), null);
                 params.id = utils.NON_EXISTING_ID;
                 utils.update(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
@@ -514,7 +514,7 @@ describe('REST API Access Key', function () {
             });
 
             it('should return error when creating key using wrong user credentials', function (done) {
-                var params = helper.getParamsObj('_integr-test-create-other-user', user);
+                var params = helper.getParamsObj(utils.getName('create-other-user'), user);
                 utils.create(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'Unauthorized');
@@ -524,7 +524,7 @@ describe('REST API Access Key', function () {
             });
 
             it('should return error when updating non-existing key', function (done) {
-                var params = helper.getParams('_integr-test-update-non-existing', user);
+                var params = helper.getParams(utils.getName('update-non-existing'), user);
                 params.id = utils.NON_EXISTING_ID;
                 utils.update(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
@@ -559,7 +559,7 @@ describe('REST API Access Key', function () {
         });
 
         it('should return error when updating non-existing key', function (done) {
-            var params = helper.getParams('_integr-test-update-non-existing', utils.admin);
+            var params = helper.getParams(utils.getName('update-non-existing'), utils.admin);
             params.id = utils.NON_EXISTING_ID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');

@@ -10,7 +10,7 @@ describe('REST API OAuth Grant', function () {
 
     var user = null;
     var client = {
-        name: '_integr-tests-oauth-grant',
+        name: utils.getName('oauth-grant'),
         oauthId: '_oauth-oauth-grant-id',
         domain: '_domain-oauth-grant.com',
         redirectUri: '_domain-oauth-grant.com',
@@ -54,7 +54,7 @@ describe('REST API OAuth Grant', function () {
     describe('#Get All', function () {
 
         var anotherClient = {
-            name: '_integr-tests-oauth-grant-another',
+            name: utils.getName('oauth-grant-another'),
             oauthId: '_oauth-oauth-grant-another-id',
             domain: '_domain-oauth-grant-another.com',
             redirectUri: '_domain-oauth-grant-another.com'
@@ -504,7 +504,7 @@ describe('REST API OAuth Grant', function () {
             req.create(path.current)
                 .params({
                     user: user,
-                    data: { invalidProp: '_integr-test-client-invalid' }
+                    data: { invalidProp: utils.getName('client-invalid') }
                 })
                 .expectError(status.BAD_REQUEST)
                 .send(done);
@@ -611,7 +611,7 @@ describe('REST API OAuth Grant', function () {
 
             before(function (done) {
                 req.create(path.CURRENT_ACCESS_KEY)
-                    .params(utils.accessKey.getParamsObj('_integr-tests-user-dummy-access-key', utils.admin, void 0, void 0, void 0, ['RegisterDevice']))
+                    .params(utils.accessKey.getParamsObj(utils.getName('user-dummy-access-key'), utils.admin, void 0, void 0, void 0, ['RegisterDevice']))
                     .send(function (err, result) {
                         if (err) {
                             return done(err);

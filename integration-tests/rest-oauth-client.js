@@ -14,13 +14,13 @@ describe('REST API OAuth Client', function () {
     describe('#Get All', function () {
 
         var client1 = {
-            name: '_integr-tests-client-1',
+            name: utils.getName('client-1'),
             oauthId: '_oauth-id-1',
             domain: '_domain-1.com',
             redirectUri: '_domain-1.com'
         };
         var client2 = {
-            name: '_integr-tests-client-2',
+            name: utils.getName('client-2'),
             oauthId: '_oauth-id-2',
             domain: '_domain-2.com',
             redirectUri: '_domain-2.com'
@@ -91,7 +91,7 @@ describe('REST API OAuth Client', function () {
     describe('#Get', function () {
 
         var client = {
-            name: '_integr-tests-client-3',
+            name: utils.getName('client-3'),
             oauthId: '_oauth-id-3',
             domain: '_domain-3.com',
             redirectUri: '_domain-3.com'
@@ -120,7 +120,7 @@ describe('REST API OAuth Client', function () {
     describe('#Create', function () {
 
         var client = {
-            name: '_integr-tests-client-4',
+            name: utils.getName('client-4'),
             oauthId: '_oauth-id-4',
             domain: '_domain-4.com',
             redirectUri: '_domain-4.com'
@@ -146,7 +146,7 @@ describe('REST API OAuth Client', function () {
     describe('#Create Existing', function () {
 
         var client = {
-            name: '_integr-tests-client-5',
+            name: utils.getName('client-5'),
             oauthId: '_oauth-id-5',
             domain: '_domain-5.com',
             redirectUri: '_domain-5.com'
@@ -167,7 +167,7 @@ describe('REST API OAuth Client', function () {
         it('should fail with 403 when creating existing OAuth client', function (done) {
 
             var client = {
-                name: '_integr-tests-client-5-other',
+                name: utils.getName('client-5-other'),
                 oauthId: '_oauth-id-5', // same
                 domain: '_domain-5-other.com',
                 redirectUri: '_domain-5-other.com'
@@ -183,7 +183,7 @@ describe('REST API OAuth Client', function () {
     describe('#Update', function () {
 
         var client = {
-            name: '_integr-tests-client-6',
+            name: utils.getName('client-6'),
             oauthId: '_oauth-id-6',
             domain: '_domain-6.com',
             redirectUri: '_domain-6.com'
@@ -203,7 +203,7 @@ describe('REST API OAuth Client', function () {
 
         it('should update existing client', function (done) {
             var update = {
-                name: '_integr-tests-client-6-update',
+                name: utils.getName('client-6-update'),
                 oauthId: '_oauth-id-6-update',
                 domain: '_domain-6-update.com',
                 redirectUri: '_domain-6-update.com'
@@ -226,7 +226,7 @@ describe('REST API OAuth Client', function () {
     describe('#Update Partial', function () {
 
         var client = {
-            name: '_integr-tests-client-7',
+            name: utils.getName('client-7'),
             oauthId: '_oauth-id-7',
             domain: '_domain-7.com',
             redirectUri: '_domain-7.com'
@@ -264,7 +264,7 @@ describe('REST API OAuth Client', function () {
     describe('#Delete', function () {
 
         var client = {
-            name: '_integr-tests-client-8',
+            name: utils.getName('client-8'),
             oauthId: '_oauth-id-8',
             domain: '_domain-8.com',
             redirectUri: '_domain-8.com'
@@ -303,7 +303,7 @@ describe('REST API OAuth Client', function () {
             req.create(path.current)
                 .params({
                     user: utils.admin,
-                    data: { invalidProp: '_integr-test-client-invalid' }
+                    data: { invalidProp: utils.getName('client-invalid') }
                 })
                 .expectError(status.BAD_REQUEST)
                 .send(done);
@@ -313,7 +313,7 @@ describe('REST API OAuth Client', function () {
     describe('#Not Authorized', function () {
 
         var client = {
-            name: '_integr-tests-fail',
+            name: utils.getName('fail'),
             oauthId: '_oauth-id-fail',
             domain: '_domain-fail.com',
             redirectUri: '_domain-fail.com'
@@ -385,7 +385,7 @@ describe('REST API OAuth Client', function () {
 
             before(function (done) {
                 req.create(path.CURRENT_ACCESS_KEY)
-                    .params(utils.accessKey.getParamsObj('_integr-tests-user-dummy-access-key', utils.admin, void 0, void 0, void 0, ['RegisterDevice']))
+                    .params(utils.accessKey.getParamsObj(utils.getName('user-dummy-access-key'), utils.admin, void 0, void 0, void 0, ['RegisterDevice']))
                     .send(function (err, result) {
                         if (err) {
                             return done(err);

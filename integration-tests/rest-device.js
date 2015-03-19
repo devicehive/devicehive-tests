@@ -10,11 +10,11 @@ describe('REST API Device Unit', function () {
 
     var helper = utils.device;
 
-    var NETWORK = '_integr-test-network-device';
-    var DEVICE = '_integr-test-device';
+    var NETWORK = utils.getName('network-device');
+    var DEVICE = utils.getName('device');
     var DEVICE_CLASS_VERSION = '1';
-    var DEVICE_GUID = 'INTEGR-TEST-DEVICE-GUID-12345';
-    var DEVICE_KEY = 'INTEGR-TEST-DEVICE-KEY-1';
+    var DEVICE_GUID = utils.getName('GUID-111');
+    var DEVICE_KEY = utils.getName('DEVICE-KEY-1');
 
     var networkId = null;
     var user = null;
@@ -327,8 +327,8 @@ describe('REST API Device Unit', function () {
 
     describe('#Create', function () {
 
-        var NEW_DEVICE = '_integr-test-new-device';
-        var NEW_DEVICE_GUID = 'INTEGR-TEST-NEW-DEVICE-GUID-12345';
+        var NEW_DEVICE = utils.getName('new-device');
+        var NEW_DEVICE_GUID = utils.getName('GUID-222');
 
         before(function (done) {
             var params = helper.getParamsObj(NEW_DEVICE, utils.admin, DEVICE_KEY,
@@ -396,8 +396,8 @@ describe('REST API Device Unit', function () {
 
     describe('#Create Client', function () {
 
-        var NEW_DEVICE = '_integr-test-new-device-1';
-        var NEW_DEVICE_GUID = 'INTEGR-TEST-NEW-DEVICE-GUID-12345-1';
+        var NEW_DEVICE = utils.getName('new-device-1');
+        var NEW_DEVICE_GUID = utils.getName('GUID-333');
 
         it('should fail device creation for invalid user', function (done) {
             var params = helper.getParamsObj(NEW_DEVICE, nonNetworkUser, DEVICE_KEY,
@@ -450,7 +450,7 @@ describe('REST API Device Unit', function () {
 
     describe('#Create Network Key', function () {
 
-        var NETWORK_KEY = 'INTEGR-TEST-NETWORK-KEY-12345';
+        var NETWORK_KEY = utils.getName('NETWORK-KEY');
 
         before(function (done) {
             // Set a key to the network
@@ -548,11 +548,11 @@ describe('REST API Device Unit', function () {
 
     describe('#Create Auto Create (incl. Legacy Equipment)', function () {
 
-        var NEW_DEVICE = '_integr-test-new-device-auto-create';
-        var NEW_DEVICE_CLASS = '_integr-test-new-device-class-auto-create';
+        var NEW_DEVICE = utils.getName('new-device-auto-create');
+        var NEW_DEVICE_CLASS = utils.getName('new-device-class-auto-create');
         var NEW_DEVICE_CLASS_VERSION = '2';
-        var DEVICE_GUID = 'INTEGR-TEST-AUTOCREATE-DEVICE-GUID-12345-2';
-        var NEW_NETWORK = '_integr-test-network-autocreate';
+        var DEVICE_GUID = utils.getName('GUID-444');
+        var NEW_NETWORK = utils.getName('network-autocreate');
         var equipment = {
             name: "eq1",
             code: "eq1_code",
@@ -663,13 +663,13 @@ describe('REST API Device Unit', function () {
 
     describe('#Update', function () {
 
-        var NEW_DEVICE_GUID = 'INTEGR-TEST-UPDATE-DEVICE-GUID-12345-2';
+        var NEW_DEVICE_GUID = utils.getName('GUID-555');
 
         before(function (done) {
-            var params = helper.getParamsObj('_integr-test-dev-update-0', null, DEVICE_KEY,
-                {name: '_integr-test-network-update-0'},
+            var params = helper.getParamsObj(utils.getName('dev-update-0'), null, DEVICE_KEY,
+                {name: utils.getName('network-update-0')},
                 {
-                    name: '_integr-test-dev-update-0',
+                    name: utils.getName('dev-update-0'),
                     version: '1'
                 });
             params.id = NEW_DEVICE_GUID;
@@ -688,13 +688,13 @@ describe('REST API Device Unit', function () {
         });
 
         it('should modify device, auto-create new network and device-class', function (done) {
-            var params = helper.getParamsObj('_integr-test-new-device-update', utils.admin, void 0,
+            var params = helper.getParamsObj(utils.getName('new-device-update'), utils.admin, void 0,
                 {
-                    name: '_integr-test-network-update',
+                    name: utils.getName('network-update'),
                     description: 'description'
                 },
                 {
-                    name: '_integr-test-new-device-class-update',
+                    name: utils.getName('new-device-class-update'),
                     version: '2',
                     equipment: [equipment]
                 });
@@ -726,10 +726,11 @@ describe('REST API Device Unit', function () {
 
     describe('#Update Partial', function () {
 
-        var NEW_DEVICE_GUID = 'INTEGR-TEST-UPDATE-PARTIAL-DEVICE-GUID-12345';
+        var NEW_DEVICE_GUID = utils.getName('GUID-666');
+        var NEW_DEVICE = utils.getName('dev-update-1');
 
         before(function (done) {
-            var params = helper.getParamsObj('_integr-test-dev-update-1', null, DEVICE_KEY,
+            var params = helper.getParamsObj(NEW_DEVICE, null, DEVICE_KEY,
                 {name: NETWORK},
                 {
                     name: DEVICE,
@@ -754,7 +755,7 @@ describe('REST API Device Unit', function () {
 
                     utils.matches(result, {
                         id: NEW_DEVICE_GUID,
-                        name: '_integr-test-dev-update-1',
+                        name: NEW_DEVICE,
                         status: 'modified',
                         network: {
                             name: NETWORK
@@ -773,10 +774,11 @@ describe('REST API Device Unit', function () {
 
     describe('#Update Device Auth', function () {
 
-        var NEW_DEVICE_GUID = 'INTEGR-TEST-UPDATE-DEVICE-AUTH-DEVICE-GUID-12345';
+        var NEW_DEVICE_GUID = utils.getName('GUID-777');
+        var NEW_DEVICE = utils.getName('dev-update-2');
 
         before(function (done) {
-            var params = helper.getParamsObj('_integr-test-dev-update-2', null, DEVICE_KEY,
+            var params = helper.getParamsObj(NEW_DEVICE, null, DEVICE_KEY,
                 {name: NETWORK},
                 {
                     name: DEVICE,
@@ -806,7 +808,7 @@ describe('REST API Device Unit', function () {
 
                     utils.matches(result, {
                         id: NEW_DEVICE_GUID,
-                        name: '_integr-test-dev-update-2',
+                        name: NEW_DEVICE,
                         status: 'modified_device_auth',
                         network: {
                             name: NETWORK
@@ -831,7 +833,8 @@ describe('REST API Device Unit', function () {
         var invalidAccessKey3 = null;
         var accessKey = null;
 
-        var NEW_DEVICE_GUID = 'INTEGR-TEST-UPDATE-CLIENT-AUTH-GUID-12345';
+        var NEW_DEVICE_GUID = utils.getName('GUID-888');
+        var NEW_DEVICE = utils.getName('dev-update-3');
 
         before(function (done) {
 
@@ -870,10 +873,10 @@ describe('REST API Device Unit', function () {
             });
 
             function createDevice() {
-                var params = helper.getParamsObj('_integr-test-dev-update-3', null, DEVICE_KEY,
+                var params = helper.getParamsObj(NEW_DEVICE, null, DEVICE_KEY,
                     {name: NETWORK},
                     {
-                        name: '_integr-test-dev-update-3',
+                        name: NEW_DEVICE,
                         version: '1'
                     });
                 params.id = NEW_DEVICE_GUID;
@@ -915,7 +918,7 @@ describe('REST API Device Unit', function () {
                     name: NETWORK
                 },
                 deviceClass: {
-                    name: '_integr-test-dev-update-3',
+                    name: NEW_DEVICE,
                     version: '1',
                     offlineTimeout: 10
                 }
@@ -932,7 +935,7 @@ describe('REST API Device Unit', function () {
 
                     utils.matches(result, {
                         id: NEW_DEVICE_GUID,
-                        name: '_integr-test-dev-update-3',
+                        name: NEW_DEVICE,
                         status: 'modified',
                         data: {
                             par: 'value'
@@ -941,7 +944,7 @@ describe('REST API Device Unit', function () {
                             name: NETWORK
                         },
                         deviceClass: {
-                            name: '_integr-test-dev-update-3',
+                            name: NEW_DEVICE,
                             version: '1',
                             offlineTimeout: 10
                         }
@@ -1007,13 +1010,13 @@ describe('REST API Device Unit', function () {
                     assert.strictEqual(!(!err), false, 'No error');
                     utils.matches(result, {
                         id: NEW_DEVICE_GUID,
-                        name: '_integr-test-dev-update-3',
+                        name: NEW_DEVICE,
                         status: 'modified_access_key',
                         network: {
                             name: NETWORK
                         },
                         deviceClass: {
-                            name: '_integr-test-dev-update-3',
+                            name: NEW_DEVICE,
                             version: '1'
                         }
                     });
@@ -1026,10 +1029,11 @@ describe('REST API Device Unit', function () {
 
     describe('#Delete Client Auth', function () {
 
-        var NEW_DEVICE_GUID = 'INTEGR-TEST-DELETE-DEVICE-GUID-12345';
+        var NEW_DEVICE_GUID = utils.getName('GUID-999');
+        var NEW_DEVICE = utils.getName('dev-update-4');
 
         before(function (done) {
-            var params = helper.getParamsObj('_integr-test-dev-update-4', null, DEVICE_KEY,
+            var params = helper.getParamsObj(NEW_DEVICE, null, DEVICE_KEY,
                 {name: NETWORK},
                 {
                     name: DEVICE,
@@ -1051,7 +1055,7 @@ describe('REST API Device Unit', function () {
                     assert.strictEqual(!(!err), false, 'No error');
                     utils.matches(result, {
                         id: NEW_DEVICE_GUID,
-                        name: '_integr-test-dev-update-4',
+                        name: NEW_DEVICE,
                         network: {
                             name: NETWORK
                         },
@@ -1088,10 +1092,10 @@ describe('REST API Device Unit', function () {
 
     describe.skip('#Delete Device Auth', function () {
 
-        var NEW_DEVICE_GUID = 'INTEGR-TEST-DELETE-DEVICE-AUTH-DEVICE-GUID-12345';
+        var NEW_DEVICE_GUID = utils.getName('GUID-1010');
 
         before(function (done) {
-            var params = helper.getParamsObj('_integr-test-dev-update-4', null, DEVICE_KEY,
+            var params = helper.getParamsObj(utils.getName('dev-update-4'), null, DEVICE_KEY,
                 {name: NETWORK},
                 {
                     name: DEVICE,
@@ -1128,11 +1132,11 @@ describe('REST API Device Unit', function () {
 
     describe('#Bad Request', function () {
 
-        var NEW_DEVICE_GUID = 'INTEGR-TEST-DEVICE-BAD-REQUEST-GUID-12345';
+        var NEW_DEVICE_GUID = utils.getName('GUID-1111');
 
         it('should fail with 400 when trying to create device with badly formed request #1', function (done) {
             var params = {user: utils.admin};
-            params.data = {wrongProp: '_integr-test-bad-request'};
+            params.data = {wrongProp: utils.getName('bad-request')};
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -1143,7 +1147,7 @@ describe('REST API Device Unit', function () {
         });
 
         it('should fail with 400 when trying to create device with badly formed request #2', function (done) {
-            var params = helper.getParamsObj('_integr-test-bad-request', utils.admin, DEVICE_KEY);
+            var params = helper.getParamsObj(utils.getName('bad-request'), utils.admin, DEVICE_KEY);
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -1154,7 +1158,7 @@ describe('REST API Device Unit', function () {
         });
 
         it('should fail with 400 when trying to create device with badly formed request #3', function (done) {
-            var params = helper.getParamsObj('_integr-test-bad-request', utils.admin, DEVICE_KEY, {}, {});
+            var params = helper.getParamsObj(utils.getName('bad-request'), utils.admin, DEVICE_KEY, {}, {});
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');

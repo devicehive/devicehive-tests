@@ -10,12 +10,12 @@ describe('REST API Device Notification', function () {
 
     var helper = utils.notification;
 
-    var NETWORK = '_integr-test-network-device-notif';
-    var DEVICE = '_integr-test-device-notif';
-    var DEVICE_GUID = 'INTEGR-TEST-DEVICE-GUID-NOTIF-12345';
-    var DEVICE_KEY = 'INTEGR-TEST-DEVICE-NOTIF-KEY';
-    var NOTIFICATION = '_integr-test-notif-1';
-    var NOTIFICATION_2 = '_INTEGR-TEST-NOTIF-2';
+    var NETWORK = utils.getName('network-device-notif');
+    var DEVICE = utils.getName('device-notif');
+    var DEVICE_GUID = utils.getName('GUID-NOTIF-12345');
+    var DEVICE_KEY = utils.getName('DEVICE-NOTIF-KEY');
+    var NOTIFICATION = utils.getName('notif-1');
+    var NOTIFICATION_2 = utils.getName('NOTIF-2');
 
     var user = null;
     var nonNetworkUser = null;
@@ -397,7 +397,7 @@ describe('REST API Device Notification', function () {
 
     describe('#Poll Many - Other Device', function () {
 
-        var OTHER_NETWORK = '_integr-test-OTHER-network-notif';
+        var OTHER_NETWORK = utils.getName('OTHER-network-notif');
         var otherNetworkId = null;
         var OTHER_DEVICE_GUID = 'OTHER-DEVICE-NOTIF-GUID-1234';
 
@@ -422,7 +422,7 @@ describe('REST API Device Notification', function () {
             }
 
             function createDevice(callback) {
-                var params = utils.device.getParamsObj('_integr-test-OTHER-device-notif', utils.admin, DEVICE_KEY,
+                var params = utils.device.getParamsObj(utils.getName('OTHER-device-notif'), utils.admin, DEVICE_KEY,
                     {name: OTHER_NETWORK}, {name: DEVICE, version: '1'});
                 params.id = OTHER_DEVICE_GUID;
                 utils.update(path.DEVICE, params, function (err) {

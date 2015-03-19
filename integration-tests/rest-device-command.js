@@ -10,12 +10,12 @@ describe('REST API Device Command', function () {
 
     var helper = utils.command;
 
-    var NETWORK = '_integr-test-network-device-cmd';
-    var DEVICE = '_integr-test-device-cmd';
-    var DEVICE_GUID = 'INTEGR-TEST-DEVICE-GUID-CMD-12345';
-    var DEVICE_KEY = 'INTEGR-TEST-DEVICE-CMD-KEY';
-    var COMMAND = '_integr-test-cmd-1';
-    var COMMAND_2 = '_INTEGR-TEST-CMD-2';
+    var NETWORK = utils.getName('network-device-cmd');
+    var DEVICE = utils.getName('device-cmd');
+    var DEVICE_GUID = utils.getName('GUID-CMD-12345');
+    var DEVICE_KEY = utils.getName('DEVICE-CMD-KEY');
+    var COMMAND = utils.getName('cmd-1');
+    var COMMAND_2 = utils.getName('CMD-2');
 
     var user = null;
     var nonNetworkUser = null;
@@ -95,7 +95,7 @@ describe('REST API Device Command', function () {
 
                 commandId = result.id;
 
-                var params = helper.getParamsObj('_integr-test-cmd-2', user);
+                var params = helper.getParamsObj(utils.getName('cmd-2'), user);
                 utils.create(path.current, params, function (err) {
                     callback(err);
                 })
@@ -399,7 +399,7 @@ describe('REST API Device Command', function () {
 
     describe('#Poll Many - Other Device', function () {
 
-        var OTHER_NETWORK = '_integr-test-OTHER-network-cmd';
+        var OTHER_NETWORK = utils.getName('OTHER-network-cmd');
         var otherNetworkId = null;
         var OTHER_DEVICE_GUID = 'OTHER-DEVICE-GUID-1234';
 
@@ -424,7 +424,7 @@ describe('REST API Device Command', function () {
             }
 
             function createDevice(callback) {
-                var params = utils.device.getParamsObj('_integr-test-OTHER-device-cmd', utils.admin, DEVICE_KEY,
+                var params = utils.device.getParamsObj(utils.getName('OTHER-device-cmd'), utils.admin, DEVICE_KEY,
                     {name: OTHER_NETWORK}, {name: DEVICE, version: '1'});
                 params.id = OTHER_DEVICE_GUID;
                 utils.update(path.DEVICE, params, function (err) {

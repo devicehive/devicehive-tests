@@ -7,8 +7,8 @@ var status = require('./common/http').status;
 
 describe('REST API Device Equipment', function () {
 
-    var DEVICE_GUID = 'INTEGR-TEST-DEVICE-GUID-12345';
-    var EQUIPMENT = '_integr-test-device-eqpmnt';
+    var DEVICE_GUID = utils.getName('DEVICE-GUID-12345');
+    var EQUIPMENT = utils.getName('device-eqpmnt');
     var networkId = null;
     var equipment = {equipment: EQUIPMENT, a: 'some value'};
     var deviceClassId = null;
@@ -18,9 +18,9 @@ describe('REST API Device Equipment', function () {
 
         path.current = path.combine(path.DEVICE, DEVICE_GUID, 'equipment');
 
-        var NETWORK = '_integr-test-network-device-eqpmnt';
-        var DEVICE = '_integr-test-device-eqpmnt';
-        var DEVICE_KEY = 'INTEGR-TEST-DEVICE-KEY';
+        var NETWORK = utils.getName('network-device-eqpmnt');
+        var DEVICE = utils.getName('device-eqpmnt');
+        var DEVICE_KEY = utils.getName('DEVICE-KEY');
 
         function createNetwork(callback) {
             var params = {

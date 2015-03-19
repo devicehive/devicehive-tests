@@ -5,9 +5,9 @@ var path = require('./common/path');
 var status = require('./common/http').status;
 var req = require('./common/request');
 
-describe('REST API User Network', function () {
+describe.only('REST API User Network', function () {
 
-    var NETWORK = '_integr-tests-user-network';
+    var NETWORK = utils.getName('user-network');
     var networkId = null;
     var userId = null;
 
@@ -151,7 +151,7 @@ describe('REST API User Network', function () {
 
             before(function (done) {
                 req.create(path.CURRENT_ACCESS_KEY)
-                    .params(utils.accessKey.getParamsObj('_integr-tests-user-network-dummy-access-key',
+                    .params(utils.accessKey.getParamsObj(utils.getName('user-network-dummy-access-key'),
                         utils.admin, void 0, void 0, void 0, ['RegisterDevice']))
                     .send(function (err, result) {
                         if (err) {
