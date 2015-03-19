@@ -18,6 +18,12 @@ describe('REST API OAuth Grant', function () {
     };
 
     before(function (done) {
+        utils.clearOldEntities(function () {
+            init(done);
+        });
+    });
+
+    function init(done) {
 
         function createUser(callback) {
             utils.createUser2(1, void 0,
@@ -49,7 +55,7 @@ describe('REST API OAuth Grant', function () {
             createUser,
             createClient
         ], done);
-    });
+    }
 
     describe('#Get All', function () {
 

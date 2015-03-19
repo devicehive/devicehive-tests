@@ -5,7 +5,6 @@ var Http = require('./http').Http;
 var status = require('./http').status;
 var $utils = require('./../../common/utils');
 
-
 var utils = {
 
     NON_EXISTING_ID: 999999,
@@ -45,7 +44,7 @@ var utils = {
 
         create: function (user, label, actions, deviceIds, networkIds, callback) {
 
-            label || (label = '_integr-test-access-key-' + +new Date());
+            label || (label = utils.getName('access-key'));
 
             if (actions && !Array.isArray(actions)) {
                 actions = [actions];
@@ -133,9 +132,9 @@ var utils = {
         getParams: function (name, user, version) {
             return this.getParamsObj(name, user, version, void 0, 3600,
                 {
-                    name: '_integr-test-eqpmnt',
-                    type: '_integr-test-type',
-                    code: '_integr-test-code'
+                    name: utils.getName('eqpmnt'),
+                    type: utils.getName('type'),
+                    code: utils.getName('code')
                 });
         },
 
@@ -374,6 +373,61 @@ var utils = {
                 self.resources = [];
                 done();
             });
+    },
+
+    clearOldEntities: function (done) {
+
+        var IT1 = '_it';
+        var IT2 = '_integr';
+
+        function clearEntities(path, name, callback) {
+            utils.get(path, {user: utils.admin}, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                async.eachSeries(result, function (item, cb) {
+                    if ((item[name].indexOf(IT1) < 0) && (item[name].indexOf(IT2) < 0)) {
+                        return cb();
+                    }
+
+                    utils.delete(path, {user: utils.admin, id: item.id}, cb);
+                }, callback)
+            });
+        }
+
+        function clearAccessKeys(callback) {
+            clearEntities(path.CURRENT_ACCESS_KEY, 'label', callback);
+        }
+
+        function clearUsers(callback) {
+            clearEntities(path.USER, 'login', callback);
+        }
+
+        function clearDevices(callback) {
+            clearEntities(path.DEVICE, 'name', callback);
+        }
+
+        function clearDeviceClasses(callback) {
+            clearEntities(path.DEVICE_CLASS, 'name', callback);
+        }
+
+        function clearNetworks(callback) {
+            clearEntities(path.NETWORK, 'name', callback);
+        }
+
+        function clearOAuthClients(callback) {
+            clearEntities(path.combine('/', 'oauth', 'client'), 'name', callback);
+        }
+
+        async.series([
+            clearAccessKeys,
+            clearUsers,
+            clearDevices,
+            clearDeviceClasses,
+            clearNetworks,
+            clearOAuthClients
+        ], done);
     },
 
     matches: function (actual, expected) {

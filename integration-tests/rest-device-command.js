@@ -26,7 +26,12 @@ describe('REST API Device Command', function () {
     }
 
     before(function (done) {
+        utils.clearOldEntities(function () {
+            init(done);
+        });
+    });
 
+    function init(done) {
         path.current = path.COMMAND.get(DEVICE_GUID);
         var networkId = null;
 
@@ -110,7 +115,7 @@ describe('REST API Device Command', function () {
             createNonNetworkUser,
             createCommand
         ], done);
-    });
+    }
 
     describe('#Get All', function () {
 

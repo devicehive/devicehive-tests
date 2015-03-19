@@ -7,12 +7,18 @@ var req = require('./common/request');
 
 describe('REST API User', function () {
 
-    before(function () {
-        path.current = path.USER;
+    before(function (done) {
+        utils.clearOldEntities(function () {
+            init(done);
+        });
     });
 
-    describe('#Get All', function () {
+    function init(done) {
+        path.current = path.USER;
+        done();
+    }
 
+    describe('#Get All', function () {
         var user = null;
 
         before(function (done) {

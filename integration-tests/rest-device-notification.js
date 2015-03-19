@@ -26,6 +26,12 @@ describe('REST API Device Notification', function () {
     }
 
     before(function (done) {
+        utils.clearOldEntities(function () {
+            init(done);
+        });
+    });
+
+    function init(done) {
 
         path.current = path.NOTIFICATION.get(DEVICE_GUID);
         var networkId = null;
@@ -93,7 +99,7 @@ describe('REST API Device Notification', function () {
             createUser,
             createNonNetworkUser
         ], done);
-    });
+    }
 
     describe('#Get All', function () {
 
@@ -641,7 +647,7 @@ describe('REST API Device Notification', function () {
     });
 
     describe('#Delete', function () {
-        it('should return error when trying to delete command', function (done) {
+        it('should return error when trying to delete notification', function (done) {
             var params = {user: utils.admin};
             params.id = notificationId;
             utils.delete(path.current, params, function (err) {

@@ -12,6 +12,13 @@ describe('REST API User Network', function () {
     var userId = null;
 
     before(function (done) {
+        utils.clearOldEntities(function () {
+            init(done);
+        });
+    });
+
+    function init(done) {
+
         function createUser(callback) {
             utils.createUser2(0, void 0,
                 function (err, result) {
@@ -42,7 +49,7 @@ describe('REST API User Network', function () {
             createUser,
             createNetwork
         ], done);
-    });
+    }
 
     describe('#Update', function () {
         it('should update user network', function (done) {

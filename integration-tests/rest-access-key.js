@@ -11,6 +11,12 @@ describe('REST API Access Key', function () {
     var user = null;
 
     before(function (done) {
+        utils.clearOldEntities(function () {
+            init(done);
+        });
+    });
+
+    function init(done) {
         utils.createUser2(1, void 0, function (err, result) {
             if (err) {
                 return done(err);
@@ -20,7 +26,7 @@ describe('REST API Access Key', function () {
             path.current = format('/user/%d/accesskey', user.id);
             done();
         });
-    });
+    }
 
     describe('#Get All', function() {
 

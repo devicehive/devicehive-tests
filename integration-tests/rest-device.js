@@ -27,6 +27,12 @@ describe('REST API Device Unit', function () {
     };
 
     before(function (done) {
+        utils.clearOldEntities(function () {
+            init(done);
+        });
+    });
+
+    function init(done) {
 
         path.current = path.DEVICE;
 
@@ -98,7 +104,7 @@ describe('REST API Device Unit', function () {
             createUser,
             createNonNetworkUser
         ], done);
-    });
+    }
 
     describe('#Get All', function () {
 
@@ -253,8 +259,7 @@ describe('REST API Device Unit', function () {
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error,
-                    format('Device with such guid = %s not found',
-                    DEVICE_GUID));
+                    format('Device with such guid = %s not found', DEVICE_GUID));
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
 
                 done();
@@ -1182,7 +1187,7 @@ describe('REST API Device Unit', function () {
             });
 
             it('should return error when accessing device without authorization', function (done) {
-                var params = {user: null };
+                var params = {user: null};
                 params.id = DEVICE_GUID;
                 utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
@@ -1236,7 +1241,7 @@ describe('REST API Device Unit', function () {
 
     describe('#Not Found', function () {
         it('should return error when accessing non-existing device', function (done) {
-            var params = {user: utils.admin };
+            var params = {user: utils.admin};
             params.id = utils.NON_EXISTING_ID;
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');

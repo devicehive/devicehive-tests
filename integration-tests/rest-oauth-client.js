@@ -7,9 +7,16 @@ var req = require('./common/request');
 
 describe('REST API OAuth Client', function () {
 
-    before(function () {
-        path.current = path.combine('/', 'oauth', 'client');
+    before(function (done) {
+        utils.clearOldEntities(function () {
+            init(done);
+        });
     });
+
+    function init(done) {
+        path.current = path.combine('/', 'oauth', 'client');
+        done();
+    }
 
     describe('#Get All', function () {
 

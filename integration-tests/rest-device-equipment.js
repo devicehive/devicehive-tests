@@ -15,6 +15,12 @@ describe('REST API Device Equipment', function () {
     var timestamp = null;
 
     before(function (done) {
+        utils.clearOldEntities(function () {
+            init(done);
+        });
+    });
+
+    function init(done) {
 
         path.current = path.combine(path.DEVICE, DEVICE_GUID, 'equipment');
 
@@ -79,7 +85,7 @@ describe('REST API Device Equipment', function () {
             createDevice,
             createNotification
         ], done);
-    });
+    }
 
     describe('#Get All', function () {
 

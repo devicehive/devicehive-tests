@@ -16,6 +16,12 @@ describe('REST API Network', function () {
     var nonNetworkUser = null;
 
     before(function (done) {
+        utils.clearOldEntities(function () {
+            init(done);
+        });
+    });
+
+    function init(done) {
         path.current = path.NETWORK;
 
         function createNetwork1(callback) {
@@ -78,7 +84,7 @@ describe('REST API Network', function () {
             createUser,
             createNonNetworkUser
         ], done);
-    });
+    }
 
     describe('#Get All', function () {
 
