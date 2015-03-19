@@ -5,7 +5,7 @@ var path = require('./common/path');
 var status = require('./common/http').status;
 var req = require('./common/request');
 
-describe.only('REST API User Network', function () {
+describe('REST API User Network', function () {
 
     var NETWORK = utils.getName('user-network');
     var networkId = null;
