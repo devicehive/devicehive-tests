@@ -492,7 +492,7 @@ describe('REST API User', function () {
     describe('#Bad Request', function () {
         it('should fail with 400 when trying to create user with invalid parameters', function (done) {
             req.create(path.current)
-                .params({user: utils.admin, data: {}})
+                .params({user: utils.admin, data: {invalidProp: utils.getName('invalid-user')}})
                 .expectError(status.BAD_REQUEST)
                 .send(done);
         });

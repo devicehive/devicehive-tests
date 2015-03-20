@@ -417,12 +417,11 @@ describe('REST API Access Key', function () {
     });
 
     describe('#Bad Request', function () {
-        it('should return error 400 when trying to create access key without actions', function (done) {
-
-            var params = helper.getParamsObj(utils.getName('bad-request'), utils.admin);
+        it('should return error 400 when trying to create access key with wrong properties', function (done) {
+            var params = {user: utils.admin, data: {invalidProp: 'bad-request'}};
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'Actions are required!');
+                assert.strictEqual(err.error, 'Label is required!');
                 assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
                 done();
             })
