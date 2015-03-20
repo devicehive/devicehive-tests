@@ -6,8 +6,9 @@ var path = require('./common/path');
 var status = require('./common/http').status;
 
 describe('REST API Device Equipment', function () {
+    this.timeout(30000);
 
-    var DEVICE_GUID = utils.getName('DEVICE-GUID-12345');
+    var DEVICE_GUID = utils.getName('device-guid-12345');
     var EQUIPMENT = utils.getName('device-eqpmnt');
     var networkId = null;
     var equipment = {equipment: EQUIPMENT, a: 'some value'};
@@ -26,7 +27,7 @@ describe('REST API Device Equipment', function () {
 
         var NETWORK = utils.getName('network-device-eqpmnt');
         var DEVICE = utils.getName('device-eqpmnt');
-        var DEVICE_KEY = utils.getName('DEVICE-KEY');
+        var DEVICE_KEY = utils.getName('device-key');
 
         function createNetwork(callback) {
             var params = {

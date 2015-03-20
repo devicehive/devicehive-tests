@@ -6,6 +6,7 @@ var status = require('./common/http').status;
 var req = require('./common/request');
 
 describe('REST API User', function () {
+    this.timeout(30000);
 
     before(function (done) {
         utils.clearOldEntities(function () {

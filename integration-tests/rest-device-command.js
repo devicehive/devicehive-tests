@@ -12,10 +12,10 @@ describe('REST API Device Command', function () {
 
     var NETWORK = utils.getName('network-device-cmd');
     var DEVICE = utils.getName('device-cmd');
-    var DEVICE_GUID = utils.getName('GUID-CMD-12345');
-    var DEVICE_KEY = utils.getName('DEVICE-CMD-KEY');
+    var DEVICE_GUID = utils.getName('guid-cmd-12345');
+    var DEVICE_KEY = utils.getName('device-cmd-key');
     var COMMAND = utils.getName('cmd-1');
-    var COMMAND_2 = utils.getName('CMD-2');
+    var COMMAND_2 = utils.getName('cmd-2');
 
     var user = null;
     var nonNetworkUser = null;
@@ -404,9 +404,9 @@ describe('REST API Device Command', function () {
 
     describe('#Poll Many - Other Device', function () {
 
-        var OTHER_NETWORK = utils.getName('OTHER-network-cmd');
+        var OTHER_NETWORK = utils.getName('other-network-cmd');
         var otherNetworkId = null;
-        var OTHER_DEVICE_GUID = 'OTHER-DEVICE-GUID-1234';
+        var OTHER_DEVICE_GUID = 'other-guid-1234';
 
         before(function (done) {
 
@@ -429,7 +429,7 @@ describe('REST API Device Command', function () {
             }
 
             function createDevice(callback) {
-                var params = utils.device.getParamsObj(utils.getName('OTHER-device-cmd'), utils.admin, DEVICE_KEY,
+                var params = utils.device.getParamsObj(utils.getName('other-device-cmd'), utils.admin, DEVICE_KEY,
                     {name: OTHER_NETWORK}, {name: DEVICE, version: '1'});
                 params.id = OTHER_DEVICE_GUID;
                 utils.update(path.DEVICE, params, function (err) {

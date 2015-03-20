@@ -6,6 +6,7 @@ var status = require('./common/http').status;
 var req = require('./common/request');
 
 describe('REST API Network', function () {
+    this.timeout(30000);
 
     var NETWORK_1 = utils.getName('network-1');
     var NETWORK_2 = utils.getName('network-2');
@@ -284,8 +285,8 @@ describe('REST API Network', function () {
 
         var DEVICE = utils.getName('network-device');
         var DEVICE_CLASS_VERSION = '1';
-        var DEVICE_GUID = utils.getName('NETWORK-GUID');
-        var DEVICE_KEY = utils.getName('NETWORK-KEY');
+        var DEVICE_GUID = utils.getName('network-guid');
+        var DEVICE_KEY = utils.getName('network-key');
 
         var deviceClassId = null;
 
@@ -414,7 +415,7 @@ describe('REST API Network', function () {
 
         it('should update with admin authorization', function (done) {
             var update = {
-                name:utils.getName('network-4-UPDATE'),
+                name:utils.getName('network-4-update'),
                 key: NETWORK_KEY,
                 description: 'lorem ipsum dolor sit amet'
             };

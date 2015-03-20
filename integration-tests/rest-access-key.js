@@ -6,6 +6,7 @@ var path = require('./common/path');
 var status = require('./common/http').status;
 
 describe('REST API Access Key', function () {
+    this.timeout(30000);
 
     var helper = utils.accessKey;
     var user = null;

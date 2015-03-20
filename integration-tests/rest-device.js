@@ -13,8 +13,8 @@ describe('REST API Device Unit', function () {
     var NETWORK = utils.getName('network-device');
     var DEVICE = utils.getName('device');
     var DEVICE_CLASS_VERSION = '1';
-    var DEVICE_GUID = utils.getName('GUID-111');
-    var DEVICE_KEY = utils.getName('DEVICE-KEY-1');
+    var DEVICE_GUID = utils.getName('guid-111');
+    var DEVICE_KEY = utils.getName('device-key-1');
 
     var networkId = null;
     var user = null;
@@ -333,7 +333,7 @@ describe('REST API Device Unit', function () {
     describe('#Create', function () {
 
         var NEW_DEVICE = utils.getName('new-device');
-        var NEW_DEVICE_GUID = utils.getName('GUID-222');
+        var NEW_DEVICE_GUID = utils.getName('guid-222');
 
         before(function (done) {
             var params = helper.getParamsObj(NEW_DEVICE, utils.admin, DEVICE_KEY,
@@ -402,7 +402,7 @@ describe('REST API Device Unit', function () {
     describe('#Create Client', function () {
 
         var NEW_DEVICE = utils.getName('new-device-1');
-        var NEW_DEVICE_GUID = utils.getName('GUID-333');
+        var NEW_DEVICE_GUID = utils.getName('guid-333');
 
         it('should fail device creation for invalid user', function (done) {
             var params = helper.getParamsObj(NEW_DEVICE, nonNetworkUser, DEVICE_KEY,
@@ -455,7 +455,7 @@ describe('REST API Device Unit', function () {
 
     describe('#Create Network Key', function () {
 
-        var NETWORK_KEY = utils.getName('NETWORK-KEY');
+        var NETWORK_KEY = utils.getName('network-key');
 
         before(function (done) {
             // Set a key to the network
@@ -556,7 +556,7 @@ describe('REST API Device Unit', function () {
         var NEW_DEVICE = utils.getName('new-device-auto-create');
         var NEW_DEVICE_CLASS = utils.getName('new-device-class-auto-create');
         var NEW_DEVICE_CLASS_VERSION = '2';
-        var DEVICE_GUID = utils.getName('GUID-444');
+        var DEVICE_GUID = utils.getName('guid-444');
         var NEW_NETWORK = utils.getName('network-autocreate');
         var equipment = {
             name: "eq1",
@@ -668,7 +668,7 @@ describe('REST API Device Unit', function () {
 
     describe('#Update', function () {
 
-        var NEW_DEVICE_GUID = utils.getName('GUID-555');
+        var NEW_DEVICE_GUID = utils.getName('guid-555');
 
         before(function (done) {
             var params = helper.getParamsObj(utils.getName('dev-update-0'), null, DEVICE_KEY,
@@ -731,7 +731,7 @@ describe('REST API Device Unit', function () {
 
     describe('#Update Partial', function () {
 
-        var NEW_DEVICE_GUID = utils.getName('GUID-666');
+        var NEW_DEVICE_GUID = utils.getName('guid-666');
         var NEW_DEVICE = utils.getName('dev-update-1');
 
         before(function (done) {
@@ -779,7 +779,7 @@ describe('REST API Device Unit', function () {
 
     describe('#Update Device Auth', function () {
 
-        var NEW_DEVICE_GUID = utils.getName('GUID-777');
+        var NEW_DEVICE_GUID = utils.getName('guid-777');
         var NEW_DEVICE = utils.getName('dev-update-2');
 
         before(function (done) {
@@ -838,7 +838,7 @@ describe('REST API Device Unit', function () {
         var invalidAccessKey3 = null;
         var accessKey = null;
 
-        var NEW_DEVICE_GUID = utils.getName('GUID-888');
+        var NEW_DEVICE_GUID = utils.getName('guid-888');
         var NEW_DEVICE = utils.getName('dev-update-3');
 
         before(function (done) {
@@ -1034,7 +1034,7 @@ describe('REST API Device Unit', function () {
 
     describe('#Delete Client Auth', function () {
 
-        var NEW_DEVICE_GUID = utils.getName('GUID-999');
+        var NEW_DEVICE_GUID = utils.getName('guid-999');
         var NEW_DEVICE = utils.getName('dev-update-4');
 
         before(function (done) {
@@ -1097,7 +1097,7 @@ describe('REST API Device Unit', function () {
 
     describe.skip('#Delete Device Auth', function () {
 
-        var NEW_DEVICE_GUID = utils.getName('GUID-1010');
+        var NEW_DEVICE_GUID = utils.getName('guid-1010');
 
         before(function (done) {
             var params = helper.getParamsObj(utils.getName('dev-update-4'), null, DEVICE_KEY,
@@ -1137,7 +1137,7 @@ describe('REST API Device Unit', function () {
 
     describe('#Bad Request', function () {
 
-        var NEW_DEVICE_GUID = utils.getName('GUID-1111');
+        var NEW_DEVICE_GUID = utils.getName('guid-1111');
 
         it('should fail with 400 when trying to create device with badly formed request #1', function (done) {
             var params = {user: utils.admin};
