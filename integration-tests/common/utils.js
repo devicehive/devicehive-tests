@@ -10,6 +10,8 @@ var utils = {
     NON_EXISTING_ID: 999999,
     NEW_USER_PASSWORD: 'new_user_password',
 
+    emptyCb: function () { },
+
     core: $utils,
 
     url: $utils.getConfig('server:restUrl'),
@@ -436,6 +438,21 @@ var utils = {
             clearNetworks,
             clearOAuthClients
         ], done);
+    },
+
+    hasPropsWithValues: function (obj, props) {
+        this.hasProps(obj, props);
+        Object.keys(obj).forEach(function (key) {
+            assert.strictEqual(!(!obj[key]), true, 'Expected property \'' + key + '\' should have value');
+        });
+    },
+
+    hasProps: function (obj, props) {
+        this.arraysEqual(Object.keys(obj), props);
+    },
+
+    arraysEqual: function (actual, expected) {
+        this.matches(actual.sort(), expected.sort());
     },
 
     matches: function (actual, expected) {

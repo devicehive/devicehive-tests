@@ -79,6 +79,7 @@ var request = {
     },
 
     send: function (done) {
+        done || (done = utils.emptyCb);
         var self = this;
         var ctx = this.context;
         var runner = utils[ctx.action];
