@@ -9,6 +9,7 @@ function Websocket(url, name) {
     this.name = name + '#' + this.id;
     this.socket = new WebSocket(url + '/client');
     this.context = null;
+    this.waitTimeoutId = null;
 }
 
 Websocket.prototype = {
@@ -83,10 +84,17 @@ Websocket.prototype = {
 
     send: function (done) {
         done || (done = utils.emptyCb);
+
+        var self = this;
         this.context.done = done;
         var params = JSON.stringify(this.context.params);
         console.log('-> %s', params);
         this.socket.send(params);
+
+        this.waitTimeoutId = setTimeout(function () {
+            self.context.handled = true;
+            done(new Error('send() timeout: hasn\'t got message \'' + self.context.params.action + '\''));
+        }, 2000);
     },
 
     waitFor: function (action, callback) {
@@ -101,25 +109,40 @@ Websocket.prototype = {
             trueExpectations: [],
             falseExpectations: []
         };
-        setTimeout(function () {
+        this.waitTimeoutId = setTimeout(function () {
             if (self.context.waitFor) {
+                var action = self.context.waitFor.action;
                 self.context.waitFor = null;
-                callback({error: 'wait timeout exceeded'})
+                callback(new Error('waitFor() timeout: hasn\'t got message \'' + action + '\''));
             }
         }, 2000);
         return this;
     },
 
     onMessage: function (message) {
-
         console.log('<- %s', message.data);
 
         var data = JSON.parse(message.data);
         var done = this.context.done;
 
         if (this.context.waitFor && (this.context.waitFor.action === data.action)) {
+            if (this.waitTimeoutId) {
+                clearTimeout(this.waitTimeoutId);
+                this.waitTimeoutId = null;
+            }
             done = this.context.waitFor.callback;
             this.context.waitFor = null;
+        }
+
+        if (this.context.handled) {
+            return;
+        }
+
+        this.context.handled = true;
+
+        if (this.waitTimeoutId) {
+            clearTimeout(this.waitTimeoutId);
+            this.waitTimeoutId = null;
         }
 
         if (this.context.expectError) {
