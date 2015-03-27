@@ -251,6 +251,80 @@ describe('WebSocket API Device Command', function () {
         });
     });
 
+    describe('#srv: command/insert', function () {
+
+        it('should notify when command was inserted, device auth', function (done) {
+            var command = {
+                command: COMMAND,
+                parameters: {a: '1', b: '2'},
+                lifetime: 100500,
+                status: 'Inserted',
+                result: {done: 'yes'}
+            };
+
+            device.params({
+                    action: 'command/subscribe',
+                    requestId: getRequestId()
+                })
+                .send(onSubscribed);
+
+            function onSubscribed(err) {
+                if (err) {
+                    return done(err);
+                }
+
+                device.waitFor('command/insert', cleanUp)
+                    .expect({
+                        action: 'command/insert',
+                        deviceGuid: deviceId,
+                        command: command
+                    });
+
+                req.create(path.COMMAND.get(deviceId))
+                    .params({
+                        user: utils.admin,
+                        data: command
+                    })
+                    .send();
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    device.params({
+                            action: 'command/unsubscribe',
+                            requestId: getRequestId()
+                        })
+                        .send(done);
+                }
+            }
+        });
+
+        it('should not notify when command was inserted without prior subscription, device auth', function (done) {
+            var command = {
+                command: COMMAND,
+                parameters: {a: '3', b: '4'},
+                lifetime: 500100,
+                status: 'Inserted',
+                result: {done: 'yes'}
+            };
+
+            device.waitFor('command/insert', function (err) {
+                assert.strictEqual(!(!err), true, 'Commands should not arrive');
+                utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\''});
+                done();
+            });
+
+            req.create(path.COMMAND.get(deviceId))
+                .params({
+                    user: utils.admin,
+                    data: command
+                })
+                .send();
+        });
+    });
+
     after(function (done) {
         device.close();
         utils.clearResources(done);
