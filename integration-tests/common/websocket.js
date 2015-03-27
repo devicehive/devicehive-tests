@@ -152,7 +152,7 @@ Websocket.prototype = {
             utils.matches(data, this.context.expectError);
             return done(null, data);
         } else if (data.status === 'error') {
-            return done(data);
+            return done(new Error(data.code + ' ' + data.error));
         }
         this.handleResults(data);
 
