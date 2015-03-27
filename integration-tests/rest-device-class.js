@@ -90,11 +90,11 @@ describe('REST API Device Class', function () {
             })
         });
 
-        it.skip('should allow access key authorization', function (done) {
+        it('should allow access key authorization', function (done) {
             var expDate = new Date();
             expDate.setFullYear(expDate.getFullYear() + 10);
             var params = utils.accessKey.getParamsObj(
-                utils.getName('device-class-ak'), user, expDate, void 0, void 0, ['GetDevice']);
+                utils.getName('device-class-ak'), utils.admin, expDate, void 0, void 0, ['ManageDeviceClass']);
             utils.create(path.CURRENT_ACCESS_KEY, params, function (err, result) {
                 if (err) {
                     return done(err);

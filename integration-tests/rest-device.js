@@ -1048,30 +1048,16 @@ describe('REST API Device Unit', function () {
             utils.update(path.current, params, done);
         });
 
-        it('should not succeed on deleting without error when using invalid user', function (done) {
+        it('should return error when deleting device with invalid user', function (done) {
             var params = {user: nonNetworkUser};
             params.id = NEW_DEVICE_GUID;
             utils.delete(path.current, params, function (err) {
-                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error,
+                    format('Device with such guid = %s not found', NEW_DEVICE_GUID));
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
 
-                var params = {user: utils.admin};
-                params.id = NEW_DEVICE_GUID;
-                utils.get(path.current, params, function (err, result) {
-                    assert.strictEqual(!(!err), false, 'No error');
-                    utils.matches(result, {
-                        id: NEW_DEVICE_GUID,
-                        name: NEW_DEVICE,
-                        network: {
-                            name: NETWORK
-                        },
-                        deviceClass: {
-                            name: DEVICE,
-                            version: DEVICE_CLASS_VERSION
-                        }
-                    });
-
-                    done();
-                });
+                done();
             });
         });
 
