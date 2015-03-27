@@ -90,7 +90,6 @@ describe('WebSocket API Client Command', function () {
 
         function createAccessKey(callback) {
             var args = {
-                user: user,
                 label: utils.getName('ws-access-key'),
                 actions: [
                     'GetDeviceCommand',
@@ -114,7 +113,6 @@ describe('WebSocket API Client Command', function () {
 
         function createInvalidAccessKey(callback) {
             var args = {
-                user: user,
                 label: utils.getName('ws-invalid-access-key'),
                 actions: [ 'GetNetwork' ],
                 deviceIds: deviceId,

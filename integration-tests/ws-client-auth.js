@@ -72,7 +72,6 @@ describe('WebSocket API Client Authentication', function () {
 
         function createAccessKey(callback) {
             var args = {
-                user: user,
                 label: utils.getName('ws-access-key'),
                 actions: [
                     'GetDeviceNotification',
