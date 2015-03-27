@@ -8,7 +8,7 @@ var req = require('./common/request');
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
-describe.only('WebSocket API Client Notification', function () {
+describe('WebSocket API Client Notification', function () {
     var url = null;
 
     var DEVICE = utils.getName('ws-notif-device');

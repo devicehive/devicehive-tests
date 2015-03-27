@@ -109,7 +109,7 @@ describe('WebSocket API Client Command', function () {
 
                     accessKey = result.key;
                     callback();
-                })
+                });
         }
 
         function createInvalidAccessKey(callback) {
@@ -128,7 +128,7 @@ describe('WebSocket API Client Command', function () {
 
                     invalidKey = result.key;
                     callback();
-                })
+                });
         }
 
         function createConnUsrAuth(callback) {
@@ -388,7 +388,7 @@ describe('WebSocket API Client Command', function () {
                 lifetime: 100500,
                 status: 'Updated',
                 result: {done: 'yes'}
-            }
+            };
 
             client.params({
                     action: 'command/insert',
@@ -457,7 +457,7 @@ describe('WebSocket API Client Command', function () {
                 lifetime: 100500,
                 status: 'Inserted',
                 result: {done: 'yes'}
-            }
+            };
 
             client.params({
                     action: 'command/subscribe',
@@ -519,7 +519,7 @@ describe('WebSocket API Client Command', function () {
                 lifetime: 500100,
                 status: 'Inserted',
                 result: {done: 'yes'}
-            }
+            };
 
             client.waitFor('command/insert', function (err) {
                 assert.strictEqual(!(!err), true, 'Commands should not arrive');
@@ -555,7 +555,7 @@ describe('WebSocket API Client Command', function () {
                 lifetime: 100500,
                 status: 'Updated',
                 result: {done: 'yes'}
-            }
+            };
 
             client.params({
                     action: 'command/insert',

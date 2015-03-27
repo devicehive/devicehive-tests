@@ -25,7 +25,7 @@ describe('WebSocket API Client Server Info', function () {
 
         it('should get server info, no auth', function (done) {
             var client = new Websocket(url, 'client');
-            client.connect(function (err, result) {
+            client.connect(function (err) {
                 if (err) {
                     return done(err);
                 }

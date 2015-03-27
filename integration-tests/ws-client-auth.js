@@ -16,7 +16,7 @@ describe('WebSocket API Client Authentication', function () {
     var invalidUser = {
         login: 'invalidUser',
         password: 'invalidPass'
-    }
+    };
     var invalidAccessKey = 'qwertyuiopasdfghjklzxcvbnm1234567890ASDFGHJ=';
 
     var NETWORK = utils.getName('ws-client-network');
