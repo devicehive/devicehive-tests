@@ -8,17 +8,17 @@ var req = require('./common/request');
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
-describe('WebSocket API Client Command', function () {
+describe.only('WebSocket API Client Notification', function () {
     var url = null;
 
-    var DEVICE = utils.getName('ws-cmd-device');
-    var DEVICE_KEY = utils.getName('ws-cmd-device-key');
-    var NETWORK = utils.getName('ws-cmd-network');
-    var NETWORK_KEY = utils.getName('ws-cmd-network-key');
+    var DEVICE = utils.getName('ws-notif-device');
+    var DEVICE_KEY = utils.getName('ws-notif-device-key');
+    var NETWORK = utils.getName('ws-notif-network');
+    var NETWORK_KEY = utils.getName('ws-notif-network-key');
 
-    var COMMAND = utils.getName('ws-command');
+    var NOTIFICATION = utils.getName('ws-notification');
 
-    var deviceId = utils.getName('ws-cmd-device-id');
+    var deviceId = utils.getName('ws-notif-device-id');
     var user = null;
     var accessKey = null;
     var invalidKey = null;
@@ -93,12 +93,11 @@ describe('WebSocket API Client Command', function () {
                 user: user,
                 label: utils.getName('ws-access-key'),
                 actions: [
-                    'GetDeviceCommand',
-                    'CreateDeviceCommand',
-                    'UpdateDeviceCommand'
+                    'GetDeviceNotification',
+                    'CreateDeviceNotification'
                 ],
                 deviceIds: deviceId,
-                //networkIds: networkId // TODO: command/subscribe fails with this network
+                //networkIds: networkId // TODO: notification/subscribe fails with this network
                 networkIds: void 0
             };
             utils.accessKey.create(utils.admin, args.label, args.actions, args.deviceIds, args.networkIds,
@@ -191,28 +190,28 @@ describe('WebSocket API Client Command', function () {
         ], done);
     }
 
-    describe('#command/insert', function () {
+    describe('#notification/insert', function () {
 
-        var command = {
-            command: COMMAND,
-            status: 'in progress'
+        var notification = {
+            notification: NOTIFICATION,
+            parameters: {a: '1', b: '2'}
         };
 
         function runTest(client, done) {
             var requestId = getRequestId();
             client.params({
-                    action: 'command/insert',
+                    action: 'notification/insert',
                     requestId: requestId,
                     deviceGuid: deviceId,
-                    command: command
+                    notification: notification
                 })
                 .expect({
-                    action: 'command/insert',
+                    action: 'notification/insert',
                     status: 'success',
                     requestId: requestId
                 })
                 .assert(function (result) {
-                    utils.hasPropsWithValues(result.command, ['id', 'timestamp', 'userId']);
+                    utils.hasPropsWithValues(result.notification, ['id', 'timestamp']);
                 })
                 .send(onInsert);
 
@@ -221,48 +220,48 @@ describe('WebSocket API Client Command', function () {
                     return done(err);
                 }
 
-                var commandId = result.command.id;
-                req.get(path.COMMAND.get(deviceId))
-                    .params({user: utils.admin, id: commandId})
-                    .expect({id: commandId})
-                    .expect(command)
+                var notificationId = result.notification.id;
+                req.get(path.NOTIFICATION.get(deviceId))
+                    .params({user: utils.admin, id: notificationId})
+                    .expect({id: notificationId})
+                    .expect(notification)
                     .send(done);
             }
         }
 
-        it('should add new command, access key auth', function (done) {
+        it('should add new notification, access key auth', function (done) {
             runTest(clientAK, done);
         });
 
-        it('should add new command, user auth', function (done) {
+        it('should add new notification, user auth', function (done) {
             runTest(clientUsr, done);
         });
 
         it('should fail when using wrong access key', function (done) {
             clientInvalidAK.params({
-                    action: 'command/insert',
+                    action: 'notification/insert',
                     requestId: getRequestId(),
                     deviceGuid: deviceId,
-                    command: command
+                    notification: notification
                 })
                 .expectError(401, 'Unauthorized')
                 .send(done);
         });
     });
 
-    describe('#command/subscribe', function () {
+    describe('#notification/subscribe', function () {
 
         function runTest(client, done) {
             var requestId = getRequestId();
             var subscriptionId = null;
             client.params({
-                    action: 'command/subscribe',
+                    action: 'notification/subscribe',
                     requestId: requestId,
                     deviceGuids: [deviceId],
-                    names: [COMMAND]
+                    names: [NOTIFICATION]
                 })
                 .expect({
-                    action: 'command/subscribe',
+                    action: 'notification/subscribe',
                     requestId: requestId,
                     status: 'success'
                 })
@@ -277,18 +276,18 @@ describe('WebSocket API Client Command', function () {
                 }
 
                 subscriptionId = result.subscriptionId;
-                client.waitFor('command/insert', cleanUp)
+                client.waitFor('notification/insert', cleanUp)
                     .expect({
-                        action: 'command/insert',
+                        action: 'notification/insert',
                         deviceGuid: deviceId,
-                        command: { command: COMMAND },
+                        notification: { notification: NOTIFICATION },
                         subscriptionId: subscriptionId
                     });
 
-                req.create(path.COMMAND.get(deviceId))
+                req.create(path.NOTIFICATION.get(deviceId))
                     .params({
                         user: user,
-                        data: {command: COMMAND}
+                        data: {notification: NOTIFICATION}
                     })
                     .send();
 
@@ -298,7 +297,7 @@ describe('WebSocket API Client Command', function () {
                     }
 
                     client.params({
-                            action: 'command/unsubscribe',
+                            action: 'notification/unsubscribe',
                             requestId: getRequestId(),
                             subscriptionId: subscriptionId
                         })
@@ -307,24 +306,24 @@ describe('WebSocket API Client Command', function () {
             }
         }
 
-        it('should subscribe to device commands, user authorization', function (done) {
+        it('should subscribe to device notifications, user authorization', function (done) {
             runTest(clientUsr, done);
         });
 
-        it('should subscribe to device commands, access key authorization', function (done) {
+        it('should subscribe to device notifications, access key authorization', function (done) {
             runTest(clientAK, done);
         });
     });
 
-    describe('#command/unsubscribe', function () {
+    describe('#notification/unsubscribe', function () {
 
         function runTest(client, done) {
             var subscriptionId = null;
             client.params({
-                    action: 'command/subscribe',
+                    action: 'notification/subscribe',
                     requestId: getRequestId(),
                     deviceGuids: [deviceId],
-                    names: [COMMAND]
+                    names: [NOTIFICATION]
                 })
                 .send(onSubscribed);
 
@@ -336,14 +335,14 @@ describe('WebSocket API Client Command', function () {
                 var requestId = getRequestId();
                 subscriptionId = result.subscriptionId;
                 client.params({
-                        action: 'command/unsubscribe',
+                        action: 'notification/unsubscribe',
                         requestId: requestId,
                         subscriptionId: subscriptionId
                     })
                     .expect({
-                        action: 'command/unsubscribe',
-                        requestId: requestId,
-                        status: 'success'
+                        action: 'notification/unsubscribe',
+                        status: 'success',
+                        requestId: requestId
                     })
                     .send(onUnubscribed);
             }
@@ -353,117 +352,45 @@ describe('WebSocket API Client Command', function () {
                     return done(err);
                 }
 
-                client.waitFor('command/insert', function (err) {
+                client.waitFor('notification/insert', function (err) {
                     assert.strictEqual(!(!err), true, 'Commands should not arrive');
-                    utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\''});
+                    utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'notification/insert\''});
                     done();
                 });
 
-                req.create(path.COMMAND.get(deviceId))
+                req.create(path.NOTIFICATION.get(deviceId))
                     .params({
                         user: utils.admin,
-                        data: {command: COMMAND}
+                        data: {notification: NOTIFICATION}
                     })
                     .send();
             }
         }
 
-        it('should unsubscribe from device commands, user authorization', function (done) {
+        it('should unsubscribe from device notifications, user authorization', function (done) {
             runTest(clientUsr, done);
         });
 
-        it('should subscribe to device commands, access key authorization', function (done) {
+        it('should subscribe to device notifications, access key authorization', function (done) {
             runTest(clientAK, done);
         });
     });
 
-    describe('#command/update', function () {
-
-        function runTest(client, done) {
-            var commandId = null;
-
-            var update = {
-                command: COMMAND + '-UPD',
-                parameters: {a: '1', b: '2'},
-                lifetime: 100500,
-                status: 'Updated',
-                result: {done: 'yes'}
-            }
-
-            client.params({
-                    action: 'command/insert',
-                    requestId: getRequestId(),
-                    deviceGuid: deviceId,
-                    command: {
-                        command: COMMAND,
-                        lifetime: 500,
-                        status: 'Inserted'
-                    }
-                })
-                .send(onCommandCreated);
-
-            function onCommandCreated(err, result) {
-                if (err) {
-                    return done(err);
-                }
-
-                var requestId = getRequestId();
-                commandId = result.command.id;
-                client.params({
-                        action: 'command/update',
-                        requestId: requestId,
-                        deviceGuid: deviceId,
-                        commandId: commandId,
-                        command: update
-                    })
-                    .expect({
-                        action: 'command/update',
-                        status: 'success',
-                        requestId: requestId
-                    })
-                    .send(onCommandUpdated);
-            }
-
-            function onCommandUpdated(err) {
-                if (err) {
-                    return done(err);
-                }
-
-                req.get(path.COMMAND.get(deviceId))
-                    .params({user: utils.admin, id: commandId})
-                    .expect({id: commandId})
-                    .expect(update)
-                    .send(done);
-            }
-        }
-
-        it('should update existing command, user auth', function (done) {
-            runTest(clientUsr, done);
-        });
-
-        it('should update existing command, access key auth', function (done) {
-            runTest(clientAK, done);
-        });
-    });
-
-    describe('#srv: command/insert', function () {
+    describe('#srv: notification/insert', function () {
 
         function runTest(client, done) {
 
             var subscriptionId = null;
-            var command = {
-                command: COMMAND,
-                parameters: {a: '1', b: '2'},
-                lifetime: 100500,
-                status: 'Inserted',
-                result: {done: 'yes'}
-            }
+            var notification = {
+                notification: NOTIFICATION,
+                parameters: {a: '1', b: '2'}
+            };
 
             client.params({
-                    action: 'command/subscribe',
+                    action: 'notification/subscribe',
                     requestId: getRequestId(),
                     deviceGuids: [deviceId],
-                    names: [COMMAND]
+                    names: [NOTIFICATION]
                 })
                 .send(onSubscribed);
 
@@ -473,18 +400,18 @@ describe('WebSocket API Client Command', function () {
                 }
 
                 subscriptionId = result.subscriptionId;
-                client.waitFor('command/insert', cleanUp)
+                client.waitFor('notification/insert', cleanUp)
                     .expect({
-                        action: 'command/insert',
+                        action: 'notification/insert',
                         deviceGuid: deviceId,
-                        command: command,
+                        notification: notification,
                         subscriptionId: subscriptionId
                     });
 
-                req.create(path.COMMAND.get(deviceId))
+                req.create(path.NOTIFICATION.get(deviceId))
                     .params({
                         user: user,
-                        data: command
+                        data: notification
                     })
                     .send();
 
@@ -494,7 +421,7 @@ describe('WebSocket API Client Command', function () {
                     }
 
                     client.params({
-                            action: 'command/unsubscribe',
+                            action: 'notification/unsubscribe',
                             requestId: getRequestId(),
                             subscriptionId: subscriptionId
                         })
@@ -503,109 +430,41 @@ describe('WebSocket API Client Command', function () {
             }
         }
 
-        it('should notify when command was inserted, user auth', function (done) {
+        it('should notify when notification was inserted, user auth', function (done) {
             runTest(clientUsr, done);
         });
 
-        it('should notify when command was inserted, access key auth', function (done) {
+        it('should notify when notification was inserted, access key auth', function (done) {
             runTest(clientAK, done);
         });
 
         function runTestNoSubscr(client, done) {
 
-            var command = {
-                command: COMMAND,
-                parameters: {a: '3', b: '4'},
-                lifetime: 500100,
-                status: 'Inserted',
-                result: {done: 'yes'}
-            }
+            var notification = {
+                notification: NOTIFICATION,
+                parameters: {a: '3', b: '4'}
+            };
 
-            client.waitFor('command/insert', function (err) {
+            client.waitFor('notification/insert', function (err) {
                 assert.strictEqual(!(!err), true, 'Commands should not arrive');
-                utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\''});
+                utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'notification/insert\''});
                 done();
             });
 
-            req.create(path.COMMAND.get(deviceId))
+            req.create(path.NOTIFICATION.get(deviceId))
                 .params({
                     user: user,
-                    data: command
+                    data: notification
                 })
                 .send();
         }
 
-        it('should not notify when command was inserted without prior subscription, user auth', function (done) {
+        it('should not notify when notification was inserted without prior subscription, user auth', function (done) {
             runTestNoSubscr(clientUsr, done);
         });
 
-        it('should not notify when command was inserted without prior subscription, access key auth', function (done) {
+        it('should not notify when notification was inserted without prior subscription, access key auth', function (done) {
             runTestNoSubscr(clientAK, done);
-        });
-    });
-
-    describe('#srv: command/update', function () {
-
-        function runTest(client, done) {
-            var commandId = null;
-
-            var update = {
-                command: COMMAND + '-UPD',
-                parameters: {a: '1', b: '2'},
-                lifetime: 100500,
-                status: 'Updated',
-                result: {done: 'yes'}
-            }
-
-            client.params({
-                    action: 'command/insert',
-                    requestId: getRequestId(),
-                    deviceGuid: deviceId,
-                    command: {
-                        command: COMMAND,
-                        lifetime: 500,
-                        status: 'Inserted'
-                    }
-                })
-                .send(onCommandCreated);
-
-            function onCommandCreated(err, result) {
-                if (err) {
-                    return done(err);
-                }
-
-                var requestId = getRequestId();
-                commandId = result.command.id;
-                client.params({
-                        action: 'command/update',
-                        requestId: requestId,
-                        deviceGuid: deviceId,
-                        commandId: commandId,
-                        command: update
-                    })
-                    .send(onCommandUpdated);
-            }
-
-            function onCommandUpdated(err) {
-                if (err) {
-                    return done(err);
-                }
-
-                client.waitFor('command/update', done)
-                    .expect({
-                        action: 'command/update',
-                        command: {id: commandId}
-                    })
-                    .expect({command: update});
-            }
-        }
-
-        it('should notify when command was updated, user auth', function (done) {
-            runTest(clientUsr, done);
-        });
-
-        it('should notify when command was updated, access key auth', function (done) {
-            runTest(clientAK, done);
         });
     });
 

@@ -109,6 +109,7 @@ Websocket.prototype = {
             trueExpectations: [],
             falseExpectations: []
         };
+
         this.waitTimeoutId = setTimeout(function () {
             if (self.context.waitFor) {
                 var action = self.context.waitFor.action;
@@ -116,6 +117,7 @@ Websocket.prototype = {
                 callback(new Error('waitFor() timeout: hasn\'t got message \'' + action + '\''));
             }
         }, 2000);
+
         return this;
     },
 
@@ -152,6 +154,12 @@ Websocket.prototype = {
         } else if (data.status === 'error') {
             return done(data);
         }
+        this.handleResults(data);
+
+        done(null, data);
+    },
+
+    handleResults: function (data) {
 
         this.context.assertions.forEach(function (expectation) {
             if (typeof (expectation) !== 'function') {
@@ -178,7 +186,6 @@ Websocket.prototype = {
             }
             assert.strictEqual(expectation(data), false, 'Expression should return \'false\'');
         });
-        done(null, data);
     },
 
     close: function () {

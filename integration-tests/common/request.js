@@ -95,24 +95,28 @@ var request = {
             }
 
             assert.strictEqual(!(!err), false, 'No error');
-            self.expectations.forEach(function (expectation) {
-                utils.matches(result, expectation);
-            });
-
-            self.trueExpectations.forEach(function (expectation) {
-                if (typeof (expectation) !== 'function') {
-                    return;
-                }
-                assert.strictEqual(expectation(result), true, 'Expression should return \'true\'');
-            });
-
-            self.falseExpectations.forEach(function (expectation) {
-                if (typeof (expectation) !== 'function') {
-                    return;
-                }
-                assert.strictEqual(expectation(result), false, 'Expression should return \'false\'');
-            });
+            self.handleResult(result);
             done(null, result);
+        });
+    },
+
+    handleResult: function (result) {
+        this.expectations.forEach(function (expectation) {
+            utils.matches(result, expectation);
+        });
+
+        this.trueExpectations.forEach(function (expectation) {
+            if (typeof (expectation) !== 'function') {
+                return;
+            }
+            assert.strictEqual(expectation(result), true, 'Expression should return \'true\'');
+        });
+
+        this.falseExpectations.forEach(function (expectation) {
+            if (typeof (expectation) !== 'function') {
+                return;
+            }
+            assert.strictEqual(expectation(result), false, 'Expression should return \'false\'');
         });
     }
 };
