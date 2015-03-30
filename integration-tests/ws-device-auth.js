@@ -15,12 +15,6 @@ describe('WebSocket API Device Authentication', function () {
     var deviceId = utils.getName('ws-device-id');
 
     before(function (done) {
-        utils.clearOldEntities(function () {
-            init(done);
-        });
-    });
-
-    function init(done) {
 
         function getWsUrl(callback) {
 
@@ -44,7 +38,7 @@ describe('WebSocket API Device Authentication', function () {
             getWsUrl,
             createDevice
         ], done);
-    }
+    });
 
     describe('#authenticate', function () {
 
@@ -117,6 +111,6 @@ describe('WebSocket API Device Authentication', function () {
     });
 
     after(function (done) {
-        utils.clearResources(done);
+        utils.clearData(done);
     });
 });

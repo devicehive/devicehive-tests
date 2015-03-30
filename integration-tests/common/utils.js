@@ -7,6 +7,7 @@ var $utils = require('./../../common/utils');
 
 var utils = {
 
+    NAME_PREFIX: '_it-',
     NON_EXISTING_ID: 999999,
     NEW_USER_PASSWORD: 'new_user_password',
 
@@ -239,7 +240,6 @@ var utils = {
                 }
 
                 var resource = path.get($path, result.id);
-                self.resources.push(resource);
                 assert.strictEqual(xhr.status, status.EXPECTED_CREATED);
 
                 cb(null, result, resource);
@@ -268,10 +268,6 @@ var utils = {
                 if (err) {
                     err.httpStatus = xhr.status;
                     return cb(err);
-                }
-
-                if (self.resources.indexOf(updatePath) === -1) {
-                    self.resources.push(updatePath);
                 }
 
                 if (result) {
@@ -316,7 +312,7 @@ var utils = {
     },
 
     getName: function ($for) {
-        return ['_it-', $for, '-', (+new Date() + '').substr(7)].join('');
+        return [this.NAME_PREFIX, $for, '-', (+new Date() + '').substr(7)].join('');
     },
 
     createUser2: function (role, networkIds, callback) {
@@ -350,7 +346,6 @@ var utils = {
                             }
 
                             assert.strictEqual(xhr.status, status.EXPECTED_UPDATED);
-                            self.resources.push($path);
                             cb();
                         })
                 },
@@ -364,41 +359,9 @@ var utils = {
         });
     },
 
-    clearResources: function (done) {
+    clearData: function (done) {
+
         var self = this;
-        this.resources.reverse();
-        async.eachSeries(this.resources,
-            function(resource, callback) {
-
-                if (resource.indexOf('command') >= 0 || resource.indexOf('notification') >= 0) {
-                    return callback();
-                }
-
-                new Http(self.url, resource)
-                    .delete({ user: self.admin }, function () {
-                        // Ignore any errors
-                        callback();
-                    });
-            },
-            function () {
-                self.resources = [];
-                done();
-            });
-    },
-
-    oldEntitiesCleared: false,
-
-    clearOldEntities: function (done) {
-
-        if (this.oldEntitiesCleared) {
-            return done();
-        }
-
-        this.oldEntitiesCleared = true;
-
-        var IT1 = '_it';
-        var IT2 = '_integr';
-
         function clearEntities(path, name, callback) {
             utils.get(path, {user: utils.admin}, function (err, result) {
                 if (err) {
@@ -406,7 +369,7 @@ var utils = {
                 }
 
                 async.eachSeries(result, function (item, cb) {
-                    if ((item[name].indexOf(IT1) < 0) && (item[name].indexOf(IT2) < 0)) {
+                    if (item[name].indexOf(self.NAME_PREFIX) < 0) {
                         return cb();
                     }
 

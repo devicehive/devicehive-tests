@@ -27,13 +27,6 @@ describe('REST API Device Unit', function () {
     };
 
     before(function (done) {
-        utils.clearOldEntities(function () {
-            init(done);
-        });
-    });
-
-    function init(done) {
-
         path.current = path.DEVICE;
 
         function createNetwork(callback) {
@@ -104,7 +97,7 @@ describe('REST API Device Unit', function () {
             createUser,
             createNonNetworkUser
         ], done);
-    }
+    });
 
     describe('#Get All', function () {
 
@@ -580,9 +573,6 @@ describe('REST API Device Unit', function () {
                 params.id = DEVICE_GUID;
                 utils.get(path.current, params, function (err, result) {
 
-                    utils.resources.push(path.get(path.NETWORK, result.network.id));
-                    utils.resources.push(path.get(path.DEVICE_CLASS, result.deviceClass.id));
-
                     assert.strictEqual(!(!err), false, 'No error');
                     utils.matches(result, {
                         id: DEVICE_GUID,
@@ -685,8 +675,6 @@ describe('REST API Device Unit', function () {
                     if (err) {
                         done(err);
                     }
-                    utils.resources.push(path.get(path.NETWORK, result.network.id));
-                    utils.resources.push(path.get(path.DEVICE_CLASS, result.deviceClass.id));
                     done();
                 });
             });
@@ -717,10 +705,6 @@ describe('REST API Device Unit', function () {
                 utils.get(path.current, params, function (err, result) {
 
                     assert.strictEqual(!(!err), false, 'No error');
-
-                    utils.resources.push(path.get(path.NETWORK, result.network.id));
-                    utils.resources.push(path.get(path.DEVICE_CLASS, result.deviceClass.id));
-
                     utils.matches(result, expected);
 
                     done();
@@ -888,13 +872,7 @@ describe('REST API Device Unit', function () {
                 utils.update(path.current, params, function () {
                     var params = {user: utils.admin};
                     params.id = NEW_DEVICE_GUID;
-                    utils.get(path.current, params, function (err, result) {
-                        if (err) {
-                            done(err);
-                        }
-                        utils.resources.push(path.get(path.DEVICE_CLASS, result.deviceClass.id));
-                        done();
-                    });
+                    utils.get(path.current, params, done);
                 });
             }
         });
@@ -1241,6 +1219,6 @@ describe('REST API Device Unit', function () {
     });
 
     after(function (done) {
-        utils.clearResources(done);
+        utils.clearData(done);
     });
 });

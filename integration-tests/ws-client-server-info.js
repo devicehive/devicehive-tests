@@ -46,6 +46,6 @@ describe('WebSocket API Client Server Info', function () {
     });
 
     after(function (done) {
-        utils.clearResources(done);
+        utils.clearData(done);
     });
 });

@@ -46,6 +46,6 @@ describe('WebSocket API Device Server Info', function () {
     });
 
     after(function (done) {
-        utils.clearResources(done);
+        utils.clearData(done);
     });
 });

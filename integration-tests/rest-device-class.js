@@ -10,10 +10,6 @@ describe('REST API Device Class', function () {
 
     var helper = utils.deviceClass;
 
-    before(function (done) {
-        utils.clearOldEntities(done);
-    });
-
     describe('#Get All', function () {
 
         var DEVICE_CLASS = utils.getName('device-class');
@@ -398,6 +394,6 @@ describe('REST API Device Class', function () {
     });
 
     after(function (done) {
-        utils.clearResources(done);
+        utils.clearData(done);
     })
 });

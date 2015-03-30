@@ -26,13 +26,6 @@ describe('WebSocket API Client Command', function () {
     var clientInvalidAK = null;
 
     before(function (done) {
-        utils.clearOldEntities(function () {
-            init(done);
-        });
-    });
-
-    function init(done) {
-
         var networkId = null;
 
         function getWsUrl(callback) {
@@ -185,7 +178,7 @@ describe('WebSocket API Client Command', function () {
             authenticateWithAccessKey,
             authenticateWithInvalidAccessKey
         ], done);
-    }
+    });
 
     describe('#command/insert', function () {
 
@@ -608,6 +601,6 @@ describe('WebSocket API Client Command', function () {
     after(function (done) {
         clientUsr.close();
         clientAK.close();
-        utils.clearResources(done);
+        utils.clearData(done);
     });
 });
