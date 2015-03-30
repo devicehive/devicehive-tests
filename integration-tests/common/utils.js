@@ -367,7 +367,7 @@ var utils = {
             function(resource, callback) {
 
                 if (resource.indexOf('command') >= 0 || resource.indexOf('notification') >= 0) {
-                    callback();
+                    return callback();
                 }
 
                 new Http(self.url, resource)
