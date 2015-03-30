@@ -1,7 +1,7 @@
 {
   "server": {
     "wsUrl": "ws://192.168.152.147:8080/dh/websocket",
-    "restUrl": "http://23.253.35.56:8081/DeviceHive/rest",
+    "restUrl": "http://192.168.152.147:8080/dh/rest",
     "accessKey": "1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk="
   },
   "loadTests": {
