@@ -5,7 +5,7 @@ var req = require('./common/request');
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
-describe('WebSocket API Client Server Info', function () {
+describe('WebSocket API Device Server Info', function () {
     var url = null;
 
     before(function (done) {
@@ -21,14 +21,14 @@ describe('WebSocket API Client Server Info', function () {
     describe('#server/info', function () {
 
         it('should get server info, no auth', function (done) {
-            var client = new Websocket(url, 'client');
-            client.connect(function (err) {
+            var device = new Websocket(url, 'device');
+            device.connect(function (err) {
                 if (err) {
                     return done(err);
                 }
 
                 var requestId = getRequestId();
-                client.params({
+                device.params({
                         action: 'server/info',
                         requestId: requestId
                     })

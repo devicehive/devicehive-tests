@@ -1,9 +1,7 @@
 var async = require('async');
 var assert = require('assert');
-var format = require('util').format;
 var utils = require('./common/utils');
 var path = require('./common/path');
-var status = require('./common/http').status;
 var req = require('./common/request');
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
@@ -90,7 +88,6 @@ describe('WebSocket API Client Notification', function () {
 
         function createAccessKey(callback) {
             var args = {
-                user: user,
                 label: utils.getName('ws-access-key'),
                 actions: [
                     'GetDeviceNotification',
@@ -113,7 +110,6 @@ describe('WebSocket API Client Notification', function () {
 
         function createInvalidAccessKey(callback) {
             var args = {
-                user: user,
                 label: utils.getName('ws-invalid-access-key'),
                 actions: [ 'GetNetwork' ],
                 deviceIds: deviceId,

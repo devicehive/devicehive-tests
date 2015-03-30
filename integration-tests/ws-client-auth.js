@@ -1,8 +1,6 @@
 var async = require('async');
-var format = require('util').format;
 var utils = require('./common/utils');
 var path = require('./common/path');
-var status = require('./common/http').status;
 var req = require('./common/request');
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
@@ -72,7 +70,6 @@ describe('WebSocket API Client Authentication', function () {
 
         function createAccessKey(callback) {
             var args = {
-                user: user,
                 label: utils.getName('ws-access-key'),
                 actions: [
                     'GetDeviceNotification',

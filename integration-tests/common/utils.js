@@ -365,6 +365,11 @@ var utils = {
         this.resources.reverse();
         async.eachSeries(this.resources,
             function(resource, callback) {
+
+                if (resource.indexOf('command') >= 0 || resource.indexOf('notification') >= 0) {
+                    callback();
+                }
+
                 new Http(self.url, resource)
                     .delete({ user: self.admin }, function () {
                         // Ignore any errors
