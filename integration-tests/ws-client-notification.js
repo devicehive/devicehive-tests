@@ -26,13 +26,6 @@ describe('WebSocket API Client Notification', function () {
     var clientInvalidAK = null;
 
     before(function (done) {
-        utils.clearOldEntities(function () {
-            init(done);
-        });
-    });
-
-    function init(done) {
-
         var networkId = null;
 
         function getWsUrl(callback) {
@@ -184,7 +177,7 @@ describe('WebSocket API Client Notification', function () {
             authenticateWithAccessKey,
             authenticateWithInvalidAccessKey
         ], done);
-    }
+    });
 
     describe('#notification/insert', function () {
 
@@ -467,6 +460,6 @@ describe('WebSocket API Client Notification', function () {
     after(function (done) {
         clientUsr.close();
         clientAK.close();
-        utils.clearResources(done);
+        utils.clearData(done);
     });
 });

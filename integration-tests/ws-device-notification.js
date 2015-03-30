@@ -12,19 +12,12 @@ describe('WebSocket API Device Notification', function () {
     var DEVICE = utils.getName('ws-device-notif');
     var DEVICE_KEY = utils.getName('ws-device-notif-key');
     var NETWORK = utils.getName('ws-network-notif');
-    var NOTIFICATION = utils.getName('ws-command');
+    var NOTIFICATION = utils.getName('ws-notification');
 
     var deviceId = utils.getName('ws-device-notif-id');
-
     var device = null;
 
     before(function (done) {
-        utils.clearOldEntities(function () {
-            init(done);
-        });
-    });
-
-    function init(done) {
 
         function getWsUrl(callback) {
 
@@ -49,39 +42,15 @@ describe('WebSocket API Device Notification', function () {
             device.connect(callback);
         }
 
-        // TODO: Access Key auth is used temporarily, since device auth won't work for Websockets
         function authenticateConn(callback) {
-            var args = {
-                label: utils.getName('ws-access-key'),
-                actions: [
-                    'GetDeviceNotification',
-                    'CreateDeviceNotification'
-                ]
-            };
-            utils.accessKey.create(utils.admin, args.label, args.actions, void 0, void 0,
-                function (err, result) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    device.params({
-                            action: 'authenticate',
-                            requestId: getRequestId(),
-                            accessKey: result.key
-                        })
-                        .send(callback);
-                });
+            device.params({
+                    action: 'authenticate',
+                    requestId: getRequestId(),
+                    deviceId:  deviceId,
+                    deviceKey: DEVICE_KEY
+                })
+                .send(callback);
         }
-
-        //function authenticateConn(callback) {
-        //    device.params({
-        //            action: 'authenticate',
-        //            requestId: getRequestId(),
-        //            deviceId:  deviceId,
-        //            deviceKey: DEVICE_KEY
-        //        })
-        //        .send(callback);
-        //}
 
         async.series([
             getWsUrl,
@@ -89,7 +58,7 @@ describe('WebSocket API Device Notification', function () {
             createConn,
             authenticateConn
         ], done);
-    }
+    });
 
     describe('#notification/insert', function () {
 
@@ -148,6 +117,6 @@ describe('WebSocket API Device Notification', function () {
 
     after(function (done) {
         device.close();
-        utils.clearResources(done);
+        utils.clearData(done);
     });
 });

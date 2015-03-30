@@ -21,12 +21,6 @@ describe('WebSocket API Client Authentication', function () {
     var NETWORK_KEY = utils.getName('ws-client-network-key');
 
     before(function (done) {
-        utils.clearOldEntities(function () {
-            init(done);
-        });
-    });
-
-    function init(done) {
 
         var networkId = null;
 
@@ -97,7 +91,7 @@ describe('WebSocket API Client Authentication', function () {
             createUser,
             createAccessKey
         ], done);
-    }
+    });
 
     describe('#authenticate', function () {
 
@@ -235,6 +229,6 @@ describe('WebSocket API Client Authentication', function () {
     });
 
     after(function (done) {
-        utils.clearResources(done);
+        utils.clearData(done);
     });
 });

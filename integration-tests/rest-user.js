@@ -8,16 +8,9 @@ var req = require('./common/request');
 describe('REST API User', function () {
     this.timeout(30000);
 
-    before(function (done) {
-        utils.clearOldEntities(function () {
-            init(done);
-        });
-    });
-
-    function init(done) {
+    before(function () {
         path.current = path.USER;
-        done();
-    }
+    });
 
     describe('#Get All', function () {
         var user = null;
@@ -680,6 +673,6 @@ describe('REST API User', function () {
     });
 
     after(function (done) {
-        utils.clearResources(done);
+        utils.clearData(done);
     });
 });

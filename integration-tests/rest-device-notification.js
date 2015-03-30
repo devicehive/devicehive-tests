@@ -26,13 +26,6 @@ describe('REST API Device Notification', function () {
     }
 
     before(function (done) {
-        utils.clearOldEntities(function () {
-            init(done);
-        });
-    });
-
-    function init(done) {
-
         path.current = path.NOTIFICATION.get(DEVICE_GUID);
         var networkId = null;
 
@@ -99,7 +92,7 @@ describe('REST API Device Notification', function () {
             createUser,
             createNonNetworkUser
         ], done);
-    }
+    });
 
     describe('#Get All', function () {
 
@@ -812,6 +805,6 @@ describe('REST API Device Notification', function () {
     });
 
     after(function (done) {
-        utils.clearResources(done);
+        utils.clearData(done);
     });
 });

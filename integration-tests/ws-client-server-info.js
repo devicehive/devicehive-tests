@@ -1,4 +1,3 @@
-var async = require('async');
 var utils = require('./common/utils');
 var path = require('./common/path');
 var req = require('./common/request');
@@ -43,9 +42,5 @@ describe('WebSocket API Client Server Info', function () {
                     .send(done);
             });
         });
-    });
-
-    after(function (done) {
-        utils.clearResources(done);
     });
 });

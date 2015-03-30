@@ -8,16 +8,9 @@ var req = require('./common/request');
 describe('REST API OAuth Client', function () {
     this.timeout(30000);
 
-    before(function (done) {
-        utils.clearOldEntities(function () {
-            init(done);
-        });
-    });
-
-    function init(done) {
+    before(function () {
         path.current = path.combine('/', 'oauth', 'client');
-        done();
-    }
+    });
 
     describe('#Get All', function () {
 
@@ -450,6 +443,6 @@ describe('REST API OAuth Client', function () {
     });
 
     after(function (done) {
-        utils.clearResources(done);
+        utils.clearData(done);
     });
 });
