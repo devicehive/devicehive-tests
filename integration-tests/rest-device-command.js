@@ -5,7 +5,7 @@ var utils = require('./common/utils');
 var path = require('./common/path');
 var status = require('./common/http').status;
 
-describe.only('REST API Device Command', function () {
+describe('REST API Device Command', function () {
     this.timeout(30000);
 
     var helper = utils.command;
