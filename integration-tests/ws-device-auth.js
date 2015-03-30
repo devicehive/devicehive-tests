@@ -6,6 +6,7 @@ var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
 describe('WebSocket API Device Authentication', function () {
+    this.timeout(30000);
     var url = null;
 
     var DEVICE = utils.getName('ws-device');

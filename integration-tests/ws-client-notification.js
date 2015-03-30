@@ -7,6 +7,7 @@ var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
 describe('WebSocket API Client Notification', function () {
+    this.timeout(30000);
     var url = null;
 
     var DEVICE = utils.getName('ws-notif-device');

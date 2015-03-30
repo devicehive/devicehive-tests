@@ -6,6 +6,7 @@ var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
 describe('WebSocket API Client Authentication', function () {
+    this.timeout(30000);
     var url = null;
 
     var user = null;
