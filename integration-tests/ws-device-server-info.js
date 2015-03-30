@@ -1,11 +1,10 @@
-var async = require('async');
 var utils = require('./common/utils');
 var path = require('./common/path');
 var req = require('./common/request');
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
-describe('WebSocket API Device Server Info', function () {
+describe.only('WebSocket API Device Server Info', function () {
     var url = null;
 
     before(function (done) {
@@ -43,9 +42,5 @@ describe('WebSocket API Device Server Info', function () {
                     .send(done);
             });
         });
-    });
-
-    after(function (done) {
-        utils.clearData(done);
     });
 });

@@ -6,13 +6,15 @@ var req = require('./common/request');
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
-describe.only('WebSocket API Device Unit', function () {
+describe('WebSocket API Device Unit', function () {
     var url = null;
 
     var DEVICE = utils.getName('ws-device');
+    var DEVICE_KEY = utils.getName('ws-device-key');
+
     var device = {
         name: DEVICE,
-        key: utils.getName('ws-device-key'),
+        key: DEVICE_KEY,
         status: 'Online',
         data: {a: '1', b: '2'},
         network: {
@@ -54,48 +56,15 @@ describe.only('WebSocket API Device Unit', function () {
             conn.connect(callback);
         }
 
-        // TODO: device auth won't work for Websockets, use Access Key auth instead
         function authenticateConn(callback) {
-
             conn.params({
                     action: 'authenticate',
                     requestId: getRequestId(),
-                    login:  utils.admin.login,
-                    password: utils.admin.password
+                    deviceId:  deviceId,
+                    deviceKey: DEVICE_KEY
                 })
                 .send(callback);
-
-            //var args = {
-            //    label: utils.getName('ws-access-key'),
-            //    actions: [
-            //        'GetDevice',
-            //        'GetDeviceState'
-            //    ]
-            //};
-            //utils.accessKey.create(utils.admin, args.label, args.actions, void 0, void 0,
-            //    function (err, result) {
-            //        if (err) {
-            //            return callback(err);
-            //        }
-            //
-            //            conn.params({
-            //                action: 'authenticate',
-            //                requestId: getRequestId(),
-            //                accessKey: result.key
-            //            })
-            //            .send(callback);
-            //    });
         }
-
-        //function authenticateConn(callback) {
-        //    conn.params({
-        //            action: 'authenticate',
-        //            requestId: getRequestId(),
-        //            deviceId:  deviceId,
-        //            deviceKey: DEVICE_KEY
-        //        })
-        //        .send(callback);
-        //}
 
         async.series([
             getWsUrl,
