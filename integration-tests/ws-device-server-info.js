@@ -4,7 +4,7 @@ var req = require('./common/request');
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
-describe.only('WebSocket API Device Server Info', function () {
+describe('WebSocket API Device Server Info', function () {
     var url = null;
 
     before(function (done) {
