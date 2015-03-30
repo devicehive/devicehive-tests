@@ -32,7 +32,11 @@ var utils = {
                 var p = params.shift();
                 utils.accessKey.create(p.user, p.label, p.actions, p.deviceIds, p.networkIds,
                     function (err, result) {
-                        callback(err, result.key);
+                        if (err) {
+                            callback(err);
+                        }
+
+                        callback(null, result.key);
                     });
             }
 
