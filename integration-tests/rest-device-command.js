@@ -26,7 +26,9 @@ describe('REST API Device Command', function () {
     }
 
     before(function (done) {
-        utils.clearOldEntities(done);
+        utils.clearOldEntities(function () {
+            init(done);
+        });
     });
 
     function init(done) {
@@ -100,7 +102,9 @@ describe('REST API Device Command', function () {
 
                 var params = helper.getParamsObj(utils.getName('cmd-2'), user);
                 utils.create(path.current, params, function (err) {
-                    callback(err);
+                    setTimeout(function () {
+                        callback(err);
+                    }, 2000);
                 })
             })
         }
@@ -116,10 +120,6 @@ describe('REST API Device Command', function () {
     }
 
     describe('#Get All', function () {
-
-        before(function (done) {
-            init(done);
-        });
 
         it('should get all two commands for user', function (done) {
             utils.get(path.current, {user: user}, function (err, result) {
@@ -196,17 +196,9 @@ describe('REST API Device Command', function () {
                 done();
             });
         });
-
-        after(function (done) {
-            utils.clearResources(done);
-        });
     });
 
     describe('#Get', function () {
-
-        before(function (done) {
-            init(done);
-        });
 
         var invalidAccessKey1 = null;
         var invalidAccessKey2 = null;
@@ -346,18 +338,9 @@ describe('REST API Device Command', function () {
                 done();
             });
         });
-
-        after(function (done) {
-            utils.clearResources(done);
-        });
     });
 
     describe('#Poll', function () {
-
-        before(function (done) {
-            init(done);
-        });
-
         it('should return new command when adding command with specified name', function (done) {
             var params = {user: user};
             var $path = path.combine(path.current, path.POLL);
@@ -381,18 +364,9 @@ describe('REST API Device Command', function () {
                 utils.create(path.current, params, function () {});
             }, 100);
         })
-
-        after(function (done) {
-            utils.clearResources(done);
-        });
     });
 
     describe('#Poll No Wait', function () {
-
-        before(function (done) {
-            init(done);
-        });
-
         it('should return immediately with empty result', function (done) {
             var params = {user: user};
             var $path = path.combine(path.current, path.POLL);
@@ -403,18 +377,9 @@ describe('REST API Device Command', function () {
                 done();
             })
         })
-
-        after(function (done) {
-            utils.clearResources(done);
-        });
     });
 
     describe('#Poll Many', function () {
-
-        before(function (done) {
-            init(done);
-        });
-
         it('should return result with deviceGuid', function (done) {
             var params = {user: user};
             params.query = path.query('names', COMMAND, 'deviceGuids', DEVICE_GUID);
@@ -437,10 +402,6 @@ describe('REST API Device Command', function () {
                 utils.create(path.current, params, function () {});
             }, 100);
         })
-
-        after(function (done) {
-            utils.clearResources(done);
-        });
     });
 
     describe('#Poll Many - Other Device', function () {
@@ -479,7 +440,6 @@ describe('REST API Device Command', function () {
             }
 
             async.series([
-                init,
                 createNetwork,
                 createDevice
             ], done);
@@ -506,18 +466,9 @@ describe('REST API Device Command', function () {
                 utils.create(path.current, params, function () {});
             }, 100);
         })
-
-        after(function (done) {
-            utils.clearResources(done);
-        });
     });
 
     describe('#Poll Many No Wait', function () {
-
-        before(function (done) {
-            init(done);
-        });
-
         it('should return immediately with empty result', function (done) {
             var params = {user: user};
             params.query = path.query('waitTimeout', '0');
@@ -527,17 +478,9 @@ describe('REST API Device Command', function () {
                 done();
             })
         })
-
-        after(function (done) {
-            utils.clearResources(done);
-        });
     });
 
     describe('#Poll by Id', function () {
-
-        before(function (done) {
-            init(done);
-        });
 
         var commandUpdate = {
             status: 'Done',
@@ -562,10 +505,6 @@ describe('REST API Device Command', function () {
                 utils.update(path.current, params, function () {});
             }, 100);
         })
-
-        after(function (done) {
-            utils.clearResources(done);
-        });
     });
 
     describe('#Create', function () {
@@ -577,47 +516,39 @@ describe('REST API Device Command', function () {
 
         before(function (done) {
 
-            function createAccessKeys(callback) {
+            var params = [
+                {
+                    user: nonNetworkUser,
+                    actions: 'CreateDeviceCommand'
+                },
+                {
+                    user: user,
+                    actions: 'CreateDeviceCommand',
+                    networkIds: [0]
+                },
+                {
+                    user: user,
+                    actions: 'CreateDeviceCommand',
+                    deviceIds: utils.NON_EXISTING_ID
+                },
+                {
+                    user: user,
+                    actions: 'CreateDeviceCommand'
+                }
+            ];
 
-                var params = [
-                    {
-                        user: nonNetworkUser,
-                        actions: 'CreateDeviceCommand'
-                    },
-                    {
-                        user: user,
-                        actions: 'CreateDeviceCommand',
-                        networkIds: [0]
-                    },
-                    {
-                        user: user,
-                        actions: 'CreateDeviceCommand',
-                        deviceIds: utils.NON_EXISTING_ID
-                    },
-                    {
-                        user: user,
-                        actions: 'CreateDeviceCommand'
-                    }
-                ];
+            utils.accessKey.createMany(params, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
 
-                utils.accessKey.createMany(params, function (err, result) {
-                    if (err) {
-                        return callback(err);
-                    }
+                invalidAccessKey1 = result[0];
+                invalidAccessKey2 = result[1];
+                invalidAccessKey3 = result[2];
+                accessKey = result[3];
 
-                    invalidAccessKey1 = result[0];
-                    invalidAccessKey2 = result[1];
-                    invalidAccessKey3 = result[2];
-                    accessKey = result[3];
-
-                    callback();
-                })
-            }
-
-            async.series([
-                init,
-                createAccessKeys
-            ], done);
+                done();
+            })
         });
 
         it('should return error when creating command with invalid user', function (done) {
@@ -698,10 +629,6 @@ describe('REST API Device Command', function () {
                 done();
             });
         });
-
-        after(function (done) {
-            utils.clearResources(done);
-        });
     });
 
     describe('#Update', function () {
@@ -713,47 +640,47 @@ describe('REST API Device Command', function () {
 
         before(function (done) {
 
-            function createAccessKeys(callback) {
+            var params = [
+                {
+                    user: nonNetworkUser,
+                    actions: 'UpdateDeviceCommand'
+                },
+                {
+                    user: user,
+                    actions: 'UpdateDeviceCommand',
+                    networkIds: [0]
+                },
+                {
+                    user: user,
+                    actions: 'UpdateDeviceCommand',
+                    deviceIds: utils.NON_EXISTING_ID
+                },
+                {
+                    user: user,
+                    actions: 'UpdateDeviceCommand'
+                }
+            ];
 
-                var params = [
-                    {
-                        user: nonNetworkUser,
-                        actions: 'UpdateDeviceCommand'
-                    },
-                    {
-                        user: user,
-                        actions: 'UpdateDeviceCommand',
-                        networkIds: [0]
-                    },
-                    {
-                        user: user,
-                        actions: 'UpdateDeviceCommand',
-                        deviceIds: utils.NON_EXISTING_ID
-                    },
-                    {
-                        user: user,
-                        actions: 'UpdateDeviceCommand'
-                    }
-                ];
+            utils.accessKey.createMany(params, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
 
-                utils.accessKey.createMany(params, function (err, result) {
+                invalidAccessKey1 = result[0];
+                invalidAccessKey2 = result[1];
+                invalidAccessKey3 = result[2];
+                accessKey = result[3];
+
+                var params = helper.getParamsObj(COMMAND, user);
+                utils.create(path.current, params, function (err, result) {
                     if (err) {
-                        return callback(err);
+                        return done(err);
                     }
 
-                    invalidAccessKey1 = result[0];
-                    invalidAccessKey2 = result[1];
-                    invalidAccessKey3 = result[2];
-                    accessKey = result[3];
-
-                    callback();
+                    commandId = result.id;
+                    done();
                 })
-            }
-
-            async.series([
-                init,
-                createAccessKeys
-            ], done);
+            })
         });
 
         it('should update command using device authentication', function (done) {
@@ -854,18 +781,9 @@ describe('REST API Device Command', function () {
                 done();
             });
         });
-
-        after(function (done) {
-            utils.clearResources(done);
-        });
     });
 
     describe('#Delete', function () {
-
-        before(function (done) {
-            init(done);
-        });
-
         it('should return error when trying to delete command', function (done) {
             var params = {user: utils.admin};
             params.id = commandId;
@@ -876,17 +794,9 @@ describe('REST API Device Command', function () {
                 done();
             });
         })
-
-        after(function (done) {
-            utils.clearResources(done);
-        });
     });
 
     describe('#Not Authorized', function () {
-
-        before(function (done) {
-            init(done);
-        });
 
         describe('#No Authorization', function () {
             it('should return error when getting commands without authorization', function (done) {
@@ -944,17 +854,9 @@ describe('REST API Device Command', function () {
                 });
             });
         });
-
-        after(function (done) {
-            utils.clearResources(done);
-        });
     });
 
     describe('#Not Found', function () {
-
-        before(function (done) {
-            init(done);
-        });
 
         it('should return error when accessing non-existing command', function (done) {
             var params = {user: utils.admin, id: utils.NON_EXISTING_ID };
@@ -978,9 +880,9 @@ describe('REST API Device Command', function () {
                 done();
             })
         })
+    });
 
-        after(function (done) {
-            utils.clearResources(done);
-        });
+    after(function (done) {
+        utils.clearResources(done);
     });
 });
