@@ -23,7 +23,7 @@ var utils = {
         //password: 'Password1@'
     },
 
-    resources: [],
+    loggingOff: false,
 
     accessKey: {
 
@@ -231,8 +231,7 @@ var utils = {
     },
 
     create: function ($path, params, cb) {
-        var self = this;
-        new Http(this.url, $path)
+        new Http(this.url, $path, this.loggingOff)
             .post(params, function (err, result, xhr) {
                 if (err) {
                     err.httpStatus = xhr.status;
@@ -247,7 +246,7 @@ var utils = {
     },
 
     get: function ($path, params, cb) {
-        new Http(this.url, path.get($path, params.id, params.query))
+        new Http(this.url, path.get($path, params.id, params.query), this.loggingOff)
             .get(params, function (err, result, xhr) {
                 if (err) {
                     err.httpStatus = xhr.status;
@@ -261,9 +260,8 @@ var utils = {
     },
 
     update: function ($path, params, cb) {
-        var self = this;
         var updatePath = path.get($path, params.id, params.query);
-        new Http(this.url, updatePath)
+        new Http(this.url, updatePath, this.loggingOff)
             .put(params, function (err, result, xhr) {
                 if (err) {
                     err.httpStatus = xhr.status;
@@ -281,7 +279,7 @@ var utils = {
     },
 
     delete: function ($path, params, cb) {
-        new Http(this.url, path.get($path, params.id, params.query))
+        new Http(this.url, path.get($path, params.id, params.query), this.loggingOff)
             .delete(params, function (err, result, xhr) {
                 if (err) {
                     err.httpStatus = xhr.status;
@@ -402,6 +400,7 @@ var utils = {
             clearEntities(path.combine('/', 'oauth', 'client'), 'name', callback);
         }
 
+        self.loggingOff = true;
         async.series([
             clearAccessKeys,
             clearUsers,
@@ -409,7 +408,13 @@ var utils = {
             clearDeviceClasses,
             clearNetworks,
             clearOAuthClients
-        ], done);
+        ], function (err) {
+            if (err) {
+                done(err);
+            }
+            self.loggingOff = false;
+            done();
+        });
     },
 
     hasPropsWithValues: function (obj, props) {
