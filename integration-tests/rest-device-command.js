@@ -5,7 +5,7 @@ var utils = require('./common/utils');
 var path = require('./common/path');
 var status = require('./common/http').status;
 
-describe('REST API Device Command', function () {
+describe.only('REST API Device Command', function () {
     this.timeout(30000);
 
     var helper = utils.command;
@@ -24,6 +24,10 @@ describe('REST API Device Command', function () {
     function hasCommand(item) {
         return item.id === commandId && item.command === COMMAND;
     }
+
+    beforeEach(function (done) {
+        setTimeout(done, 1000);
+    });
 
     before(function (done) {
         path.current = path.COMMAND.get(DEVICE_GUID);
