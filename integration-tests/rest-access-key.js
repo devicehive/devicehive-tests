@@ -431,7 +431,7 @@ describe('REST API Access Key', function () {
                 var params = {user: null};
                 utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Not authorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -441,7 +441,7 @@ describe('REST API Access Key', function () {
                 var params = {user: null, id: utils.NON_EXISTING_ID };
                 utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Not authorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -451,7 +451,7 @@ describe('REST API Access Key', function () {
                 var params = helper.getParamsObj(utils.getName('create-no-auth'), null);
                 utils.create(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Not authorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -462,7 +462,7 @@ describe('REST API Access Key', function () {
                 params.id = utils.NON_EXISTING_ID;
                 utils.update(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Not authorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -472,7 +472,7 @@ describe('REST API Access Key', function () {
                 var params = {user: null, id: utils.NON_EXISTING_ID};
                 utils.delete(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Not authorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })

@@ -254,7 +254,7 @@ describe('REST API Device Class', function () {
                 var params = {user: null};
                 utils.get(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Not authorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -264,7 +264,7 @@ describe('REST API Device Class', function () {
                 var params = {user: null, id: utils.NON_EXISTING_ID };
                 utils.get(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Not authorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -274,7 +274,7 @@ describe('REST API Device Class', function () {
                 var params = helper.getParamsObj(utils.getName('create-no-auth'), null, '1');
                 utils.create(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Not authorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -285,7 +285,7 @@ describe('REST API Device Class', function () {
                 params.id = utils.NON_EXISTING_ID;
                 utils.update(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Not authorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -295,7 +295,7 @@ describe('REST API Device Class', function () {
                 var params = {user: null, id: utils.NON_EXISTING_ID};
                 utils.delete(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Not authorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -320,7 +320,7 @@ describe('REST API Device Class', function () {
                 var params = {user: user};
                 utils.get(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Not authorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -330,7 +330,7 @@ describe('REST API Device Class', function () {
                 var params = helper.getParamsObj(utils.getName('create-other-user'), user);
                 utils.create(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Not authorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -341,7 +341,7 @@ describe('REST API Device Class', function () {
                 params.id = utils.NON_EXISTING_ID;
                 utils.update(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Not authorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -351,7 +351,7 @@ describe('REST API Device Class', function () {
                 var params = {user: user, id: utils.NON_EXISTING_ID};
                 utils.delete(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Not authorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
