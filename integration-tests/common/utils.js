@@ -420,7 +420,7 @@ var utils = {
     hasPropsWithValues: function (obj, props) {
         this.hasProps(obj, props);
         Object.keys(obj).forEach(function (key) {
-            assert.strictEqual(!(!obj[key]), true, 'Expected property \'' + key + '\' should have value');
+            assert.notStrictEqual(typeof obj[key], 'undefined', 'Expected property \'' + key + '\' should have value');
         });
     },
 
