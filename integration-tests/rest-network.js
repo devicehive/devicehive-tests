@@ -498,7 +498,7 @@ describe('REST API Network', function () {
         });
     });
 
-    describe('#Unauthorized', function () {
+    describe('#Not Authorized', function () {
         describe('#No Authorization', function () {
             it('should fail with 401 if auth parameters omitted', function (done) {
                 req.get(path.current)
@@ -579,7 +579,6 @@ describe('REST API Network', function () {
             it('should fail with 401 when getting list using invalid access key', function (done) {
                 req.get(path.current)
                     .params({accessKey: accessKey})
-                    //.expectError(status.NOT_AUTHORIZED, 'Unauthorized') TODO: Not authorized/Unauthorized
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
