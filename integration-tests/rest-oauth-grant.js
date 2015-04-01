@@ -12,7 +12,7 @@ describe('REST API OAuth Grant', function () {
     var user = null;
     var client = {
         name: utils.getName('oauth-grant'),
-        oauthId: '_oauth-oauth-grant-id',
+        oauthId: utils.getName('_oauth-oauth-grant-id'),
         domain: '_domain-oauth-grant.com',
         redirectUri: '_domain-oauth-grant.com',
         subnet: '127.0.0.0/24'
@@ -54,10 +54,10 @@ describe('REST API OAuth Grant', function () {
     describe('#Get All', function () {
 
         var anotherClient = {
-            name: utils.getName('oauth-grant-another'),
-            oauthId: '_oauth-oauth-grant-another-id',
-            domain: '_domain-oauth-grant-another.com',
-            redirectUri: '_domain-oauth-grant-another.com'
+            name: utils.getName('oauth-grant-oth'),
+            oauthId: utils.getName('oauth-grant-oth-id'),
+            domain: '_domain-oauth-grant-oth.com',
+            redirectUri: '_domain-oauth-grant-oth.com'
         };
         var grant1 = {
             client: { oauthId: client.oauthId },
@@ -241,7 +241,7 @@ describe('REST API OAuth Grant', function () {
                 })
                 .expect({
                     accessKey: {
-                        label: 'OAuth token for: ' + client.name,
+                        //label: 'OAuth token for: ' + client.name,
                         permissions: [{
                             domains: ['_domain-oauth-grant.com'],
                             subnets: ['127.0.0.0/24'],
@@ -511,40 +511,40 @@ describe('REST API OAuth Grant', function () {
         });
     });
 
-    describe('#Not Authorized', function () {
+    describe('#Unauthorized', function () {
         describe('#No Authorization', function () {
             it('should fail with 401 if auth parameters omitted', function (done) {
                 req.get(path.current)
                     .params({user: null})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when selecting grant by id, auth parameters omitted', function (done) {
                 req.get(path.current)
                     .params({user: null, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when creating grant with no auth parameters', function (done) {
                 req.create(path.current)
                     .params({user: null, data: {name: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when updating grant with no auth parameters', function (done) {
                 req.update(path.current)
                     .params({user: null, id: utils.NON_EXISTING_ID, data: {name: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when deleting grant with no auth parameters', function (done) {
                 req.delete(path.current)
                     .params({user: null, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
         });
@@ -625,35 +625,35 @@ describe('REST API OAuth Grant', function () {
             it('should fail with 401 when getting list using invalid access key', function (done) {
                 req.get(path.current)
                     .params({accessKey: accessKey})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when selecting grant by id using invalid access key', function (done) {
                 req.get(path.current)
                     .params({accessKey: accessKey, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when creating grant using invalid access key', function (done) {
                 req.create(path.current)
                     .params({accessKey: accessKey, data: {name: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when updating grant using invalid access key', function (done) {
                 req.update(path.current)
                     .params({accessKey: accessKey, id: utils.NON_EXISTING_ID, data: {name: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when deleting grant with no auth parameters', function (done) {
                 req.delete(path.current)
                     .params({accessKey: accessKey, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
         });

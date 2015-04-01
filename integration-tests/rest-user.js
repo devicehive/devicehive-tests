@@ -426,7 +426,7 @@ describe('REST API User', function () {
             function failGetWithOldCredentials(callback) {
                 req.get(path.combine(path.current, path.CURRENT))
                     .params({user: user})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(callback);
             }
 
@@ -477,7 +477,7 @@ describe('REST API User', function () {
 
                     req.get(path.current)
                         .params({user: utils.admin, id: user.id})
-                        .expectError(status.NOT_FOUND, format('User with id = %s not found', user.id))
+                        .expectError(status.NOT_FOUND, format('User not found'))
                         .send(done);
                 });
         });
@@ -492,54 +492,54 @@ describe('REST API User', function () {
         });
     });
 
-    describe('#Not Authorized', function () {
+    describe('#Unauthorized', function () {
         describe('#No Authorization', function () {
             it('should fail with 401 if auth parameters omitted', function (done) {
                 req.get(path.current)
                     .params({user: null})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when selecting user by id, auth parameters omitted', function (done) {
                 req.get(path.current)
                     .params({user: null, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when selecting user by \'/current\', auth parameters omitted', function (done) {
                 req.get(path.combine(path.current, path.CURRENT))
                     .params({user: null})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when creating user with no auth parameters', function (done) {
                 req.create(path.current)
                     .params({user: null, data: {login: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when updating user with no auth parameters', function (done) {
                 req.update(path.current)
                     .params({user: null, id: utils.NON_EXISTING_ID, data: {login: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when updating user by \'/current\' with no auth parameters', function (done) {
                 req.update(path.combine(path.current, path.CURRENT))
                     .params({user: null, data: {login: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when deleting user with no auth parameters', function (done) {
                 req.delete(path.current)
                     .params({user: null, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
         });
@@ -562,35 +562,35 @@ describe('REST API User', function () {
             it('should fail with 401 when selecting users with invalid user', function (done) {
                 req.get(path.current)
                     .params({user: nonNetworkUser})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when getting user with invalid user', function (done) {
                 req.get(path.current)
                     .params({user: nonNetworkUser, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when creating user with invalid user', function (done) {
                 req.create(path.current)
                     .params({user: nonNetworkUser, data: {login: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when updating user with invalid user', function (done) {
                 req.update(path.current)
                     .params({user: nonNetworkUser, id: utils.NON_EXISTING_ID, data: {login: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when deleting user with invalid user', function (done) {
                 req.delete(path.current)
                     .params({user: nonNetworkUser, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
         });
@@ -615,35 +615,35 @@ describe('REST API User', function () {
             it('should fail with 401 when getting list using invalid access key', function (done) {
                 req.get(path.current)
                     .params({accessKey: accessKey})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when selecting user by id using invalid access key', function (done) {
                 req.get(path.current)
                     .params({accessKey: accessKey, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when creating user using invalid access key', function (done) {
                 req.create(path.current)
                     .params({accessKey: accessKey, data: {login: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when updating user using invalid access key', function (done) {
                 req.update(path.current)
                     .params({accessKey: accessKey, id: utils.NON_EXISTING_ID, data: {login: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when deleting user with no auth parameters', function (done) {
                 req.delete(path.current)
                     .params({accessKey: accessKey, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
         });
@@ -654,14 +654,14 @@ describe('REST API User', function () {
         it('should fail with 404 when selecting user by non-existing id', function (done) {
             req.get(path.current)
                 .params({user: utils.admin, id: utils.NON_EXISTING_ID})
-                .expectError(status.NOT_FOUND, format('User with id = %s not found', utils.NON_EXISTING_ID))
+                .expectError(status.NOT_FOUND, format('User not found'))
                 .send(done);
         });
 
         it('should fail with 404 when updating user by non-existing id', function (done) {
             req.update(path.current)
                 .params({user: utils.admin, id: utils.NON_EXISTING_ID})
-                .expectError(status.NOT_FOUND, format('User with id = %s not found', utils.NON_EXISTING_ID))
+                .expectError(status.NOT_FOUND, format('User not found'))
                 .send(done);
         });
 

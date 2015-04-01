@@ -498,40 +498,40 @@ describe('REST API Network', function () {
         });
     });
 
-    describe('#Not Authorized', function () {
+    describe('#Unauthorized', function () {
         describe('#No Authorization', function () {
             it('should fail with 401 if auth parameters omitted', function (done) {
                 req.get(path.current)
                     .params({user: null})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when selecting network by id, auth parameters omitted', function (done) {
                 req.get(path.current)
                     .params({user: null, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when creating network with no auth parameters', function (done) {
                 req.create(path.current)
                     .params({user: null, data: {name: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when updating network with no auth parameters', function (done) {
                 req.update(path.current)
                     .params({user: null, id: utils.NON_EXISTING_ID, data: {name: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when deleting network with no auth parameters', function (done) {
                 req.delete(path.current)
                     .params({user: null, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
         });
@@ -540,21 +540,21 @@ describe('REST API Network', function () {
             it('should fail with 401 when creating network with invalid user', function (done) {
                 req.create(path.current)
                     .params({user: nonNetworkUser, data: {name: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when updating network with invalid user', function (done) {
                 req.update(path.current)
                     .params({user: nonNetworkUser, id: utils.NON_EXISTING_ID, data: {name: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when deleting network with invalid user', function (done) {
                 req.delete(path.current)
                     .params({user: nonNetworkUser, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
         });
@@ -579,7 +579,7 @@ describe('REST API Network', function () {
             it('should fail with 401 when getting list using invalid access key', function (done) {
                 req.get(path.current)
                     .params({accessKey: accessKey})
-                    //.expectError(status.NOT_AUTHORIZED, 'Not authorized') TODO: Not authorized/Unauthorized
+                    //.expectError(status.NOT_AUTHORIZED, 'Unauthorized') TODO: Not authorized/Unauthorized
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
@@ -594,21 +594,21 @@ describe('REST API Network', function () {
             it('should fail with 401 when creating network using invalid access key', function (done) {
                 req.create(path.current)
                     .params({accessKey: accessKey, data: {name: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when updating network using invalid access key', function (done) {
                 req.update(path.current)
                     .params({accessKey: accessKey, id: utils.NON_EXISTING_ID, data: {name: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when deleting network with no auth parameters', function (done) {
                 req.delete(path.current)
                     .params({accessKey: accessKey, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
         });

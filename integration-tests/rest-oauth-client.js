@@ -311,7 +311,7 @@ describe('REST API OAuth Client', function () {
         });
     });
 
-    describe('#Not Authorized', function () {
+    describe('#Unauthorized', function () {
 
         var client = {
             name: utils.getName('fail'),
@@ -324,21 +324,21 @@ describe('REST API OAuth Client', function () {
             it('should fail with 401 when creating client with no auth parameters', function (done) {
                 req.create(path.current)
                     .params({user: null, data: client})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when updating client with no auth parameters', function (done) {
                 req.update(path.current)
                     .params({user: null, id: utils.NON_EXISTING_ID, data: client})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when deleting client with no auth parameters', function (done) {
                 req.delete(path.current)
                     .params({user: null, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
         });
@@ -361,21 +361,21 @@ describe('REST API OAuth Client', function () {
             it('should fail with 401 when creating client with invalid user', function (done) {
                 req.create(path.current)
                     .params({user: nonNetworkUser, data: client})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when updating client with invalid user', function (done) {
                 req.update(path.current)
                     .params({user: nonNetworkUser, id: utils.NON_EXISTING_ID, data: client})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when deleting client with invalid user', function (done) {
                 req.delete(path.current)
                     .params({user: nonNetworkUser, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
         });
@@ -400,21 +400,21 @@ describe('REST API OAuth Client', function () {
             it('should fail with 401 when creating client using invalid access key', function (done) {
                 req.create(path.current)
                     .params({accessKey: accessKey, data: client})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when updating client using invalid access key', function (done) {
                 req.update(path.current)
                     .params({accessKey: accessKey, id: utils.NON_EXISTING_ID, data: client})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when deleting client with no auth parameters', function (done) {
                 req.delete(path.current)
                     .params({accessKey: accessKey, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Not authorized')
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
         });

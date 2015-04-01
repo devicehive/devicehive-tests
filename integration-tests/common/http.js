@@ -69,8 +69,8 @@ Http.prototype = {
             }
 
             // TODO: JSON hack
-            if (xhr.responseText === '{message:\"Not authorized\"}') {
-                xhr.responseText = '{\"message\":\"Not authorized\"}';
+            if (xhr.responseText === '{message:\"Unauthorized\"}') {
+                xhr.responseText = '{\"message\":\"Unauthorized\"}';
             }
 
             self.log('<- reply at %s: %s', new Date().toLocaleTimeString(),

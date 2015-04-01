@@ -366,7 +366,7 @@ describe('REST API Device Unit', function () {
             });
         });
 
-        it('should verify device-add notification', function (done) {
+        it.skip('should verify device-add notification', function (done) {
             utils.get(path.NOTIFICATION.get(NEW_DEVICE_GUID), {user: user}, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
@@ -1059,7 +1059,7 @@ describe('REST API Device Unit', function () {
         });
     });
 
-    describe.skip('#Delete Device Auth', function () {
+    describe('#Delete Device Auth', function () {
 
         var NEW_DEVICE_GUID = utils.getName('guid-1010');
 
@@ -1138,13 +1138,13 @@ describe('REST API Device Unit', function () {
         });
     });
 
-    describe('#Not Authorized', function () {
+    describe('#Unauthorized', function () {
 
         describe('#No Authorization', function () {
             it('should return error when getting devices without authorization', function (done) {
                 utils.get(path.current, {user: null}, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Not authorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -1155,19 +1155,19 @@ describe('REST API Device Unit', function () {
                 params.id = DEVICE_GUID;
                 utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Not authorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
             });
 
-            it.skip('should return error when updating device without authorization', function (done) {
+            it('should return error when updating device without authorization', function (done) {
                 var params = {user: null};
                 params.data = {status: 'modified'};
                 params.id = DEVICE_GUID;
                 utils.update(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Not authorized');
+                    assert.strictEqual(err.error, 'Invalid credentials');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -1178,7 +1178,7 @@ describe('REST API Device Unit', function () {
                 params.id = DEVICE_GUID;
                 utils.delete(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Not authorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
@@ -1195,7 +1195,7 @@ describe('REST API Device Unit', function () {
                 };
                 utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Not authorized');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })

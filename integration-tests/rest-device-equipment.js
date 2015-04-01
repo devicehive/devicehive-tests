@@ -237,20 +237,20 @@ describe('REST API Device Equipment', function () {
         });
     });
 
-    describe('#Not Authorized', function () {
-        it('should fail when request not authorized', function () {
+    describe('#Unauthorized', function () {
+        it('should fail when request Unauthorized', function () {
             utils.get(path.current, {}, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'Not authorized');
+                assert.strictEqual(err.error, 'Unauthorized');
                 assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
             })
         });
 
-        it('should fail when request not authorized', function () {
+        it('should fail when request Unauthorized', function () {
             var $path = path.combine(path.DEVICE, 'none', 'equipment');
             utils.get($path, {}, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'Not authorized');
+                assert.strictEqual(err.error, 'Unauthorized');
                 assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
             })
         });

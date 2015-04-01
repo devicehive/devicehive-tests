@@ -16,5 +16,9 @@ describe('REST API Info', function () {
 
             done();
         })
-    })
+    });
+
+    after(function (done) {
+        utils.clearData(done);
+    });
 });
