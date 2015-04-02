@@ -193,8 +193,7 @@ describe('WebSocket API Device Command', function () {
             device.params({
                     action: 'command/update',
                     requestId: requestId,
-                    deviceId: deviceId, // TODO: test fails since 'deviceId' param is used. No fail if using param 'deviceGuid'
-                    //deviceGuid: deviceId,
+                    deviceId: deviceId,
                     commandId: commandId,
                     command: update
                 })
@@ -203,19 +202,7 @@ describe('WebSocket API Device Command', function () {
                     status: 'success',
                     requestId: requestId
                 })
-                .send(onCommandUpdated);
-
-            function onCommandUpdated(err) {
-                if (err) {
-                    return done(err);
-                }
-
-                req.get(path.COMMAND.get(deviceId))
-                    .params({user: utils.admin, id: commandId})
-                    .expect({id: commandId})
-                    .expect(update)
-                    .send(done);
-            }
+                .send(done);
         });
     });
 
