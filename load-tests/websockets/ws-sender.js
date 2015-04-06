@@ -63,14 +63,16 @@ WsSender.prototype = {
         if (this.socket.readyState !== 1) { // OPEN state
             return;
         }
-        this.socket.send(JSON.stringify(data));
+        var $data = JSON.stringify(data);
+        log.debug('-> %s', $data);
+        this.socket.send($data);
     },
 
     onMessage: function (message) {
+        log.debug('<- %s', message.data);
 
         var data = JSON.parse(message.data);
         var action = data.action;
-        log.debug('%s got message: %s', this.name, action);
 
         var subscription = action ? this.actionCallbacks[action] : null;
         if (subscription) {
