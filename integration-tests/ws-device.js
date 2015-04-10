@@ -155,7 +155,7 @@ describe('WebSocket API Device Unit', function () {
 
             function checkDevice(callback) {
                 var expectedDevice = utils.core.clone(device);
-                delete expectedDevice.key
+                delete expectedDevice.key;
 
                 req.get(path.DEVICE)
                     .params({user: utils.admin, id: deviceId})
