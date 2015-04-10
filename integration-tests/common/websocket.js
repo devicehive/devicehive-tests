@@ -127,13 +127,17 @@ Websocket.prototype = {
         var data = JSON.parse(message.data);
         var done = this.context.done;
 
-        if (this.context.waitFor && (this.context.waitFor.action === data.action)) {
-            if (this.waitTimeoutId) {
-                clearTimeout(this.waitTimeoutId);
-                this.waitTimeoutId = null;
+        if (this.context.waitFor){
+            if (this.context.waitFor.action === data.action) {
+                if (this.waitTimeoutId) {
+                    clearTimeout(this.waitTimeoutId);
+                    this.waitTimeoutId = null;
+                }
+                done = this.context.waitFor.callback;
+                this.context.waitFor = null;
+            } else {
+                return;
             }
-            done = this.context.waitFor.callback;
-            this.context.waitFor = null;
         }
 
         if (this.context.handled) {
