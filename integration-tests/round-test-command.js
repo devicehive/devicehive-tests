@@ -186,7 +186,7 @@ describe('Round tests for command', function () {
                 .send(done);
         });
 
-        function runTest(command, callback) {
+        function runTest(command, done) {
 
             var update = {
                 command: COMMAND,
@@ -195,10 +195,24 @@ describe('Round tests for command', function () {
                 result: {done: 'yes'}
             };
 
-            function sendCmdResult(err, result) {
-                if (err) {
-                    return callback(err);
-                }
+            function sendCommand(callback) {
+
+                deviceConn.waitFor('command/insert', callback)
+                    .expect({
+                        action: 'command/insert',
+                        command: command
+                    });
+
+                clientConn.params({
+                        action: 'command/insert',
+                        requestId: getRequestId(),
+                        deviceGuid: deviceId,
+                        command: command
+                    })
+                    .send();
+            }
+
+            function sendReply(cmnd, callback) {
 
                 clientConn.waitFor('command/update', callback)
                     .expect({
@@ -210,25 +224,16 @@ describe('Round tests for command', function () {
                         action: 'command/update',
                         requestId: getRequestId(),
                         deviceGuid: deviceId,
-                        commandId: result.command.id,
+                        commandId: cmnd.command.id,
                         command: update
                     })
                     .send();
             }
 
-            deviceConn.waitFor('command/insert', sendCmdResult)
-                .expect({
-                    action: 'command/insert',
-                    command: command
-                });
-
-            clientConn.params({
-                    action: 'command/insert',
-                    requestId: getRequestId(),
-                    deviceGuid: deviceId,
-                    command: command
-                })
-                .send();
+            async.waterfall([
+                sendCommand,
+                sendReply
+            ], done);
         }
 
         it.only('should transfer commands to device and get updates on client', function (done) {
