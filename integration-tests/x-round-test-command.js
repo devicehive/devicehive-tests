@@ -7,12 +7,17 @@ var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
 describe('Round tests for command', function () {
-    this.timeout(30000);
+    this.timeout(60000);
     var url = null;
 
-    var COMMAND = utils.getName('round-cmd-command');
+    var INTERVAL = 1000;
+    var TOTAL_COMMANDS = 20;
+
+    var COMMAND = utils.getName('round-command');
     var DEVICE = utils.getName('round-cmd-device');
     var DEVICE_KEY = utils.getName('round-cmd-device-key');
+
+    var commands = [];
 
     var deviceDef = {
         name: DEVICE,
@@ -40,35 +45,25 @@ describe('Round tests for command', function () {
     var deviceId = utils.getName('round-cmd-device-id');
     var networkId = null;
 
-    //var user = null;
     var accessKey = null;
 
     var deviceConn = null;
     var clientConn = null;
 
-    var commands = [{
-        command: COMMAND,
-        parameters: {a: '1', b: '2'},
-        status: 'in progress'
-    }, {
-        command: COMMAND,
-        parameters: {a: '3', b: '4'},
-        status: 'in progress'
-    }, {
-        command: COMMAND,
-        parameters: {a: '5', b: '6'},
-        status: 'in progress'
-    }, {
-        command: COMMAND,
-        parameters: {a: '7', b: '8'},
-        status: 'in progress'
-    }, {
-        command: COMMAND,
-        parameters: {a: '9', b: '10'},
-        status: 'in progress'
-    }];
-
     before(function (done) {
+
+        function initCommands(callback) {
+
+            for (var i = 0; i < TOTAL_COMMANDS; i++) {
+                commands.push({
+                    command: COMMAND,
+                    parameters: {a: (i + 1), b: (i + 2)},
+                    status: 'in progress ' + (i + 1)
+                })
+            }
+
+            callback();
+        }
 
         function getWsUrl(callback) {
             req.get(path.INFO).params({user: utils.admin}).send(function (err, result) {
@@ -101,24 +96,11 @@ describe('Round tests for command', function () {
                 });
         }
 
-        //function createUser(callback) {
-        //    utils.createUser2(1, networkId, function (err, result) {
-        //        if (err) {
-        //            return callback(err);
-        //        }
-        //
-        //        user = result.user;
-        //        callback();
-        //    });
-        //}
-
         function createAccessKey(callback) {
             var args = {
                 label: utils.getName('ws-access-key'),
                 actions: [
-                    'GetDeviceNotification',
                     'GetDeviceCommand',
-                    'CreateDeviceNotification',
                     'CreateDeviceCommand',
                     'UpdateDeviceCommand'
                 ],
@@ -165,9 +147,9 @@ describe('Round tests for command', function () {
         }
 
         async.series([
+            initCommands,
             getWsUrl,
             createDevice,
-            //createUser,
             createAccessKey,
             createDeviceConn,
             authenticateDeviceConn,
@@ -186,14 +168,13 @@ describe('Round tests for command', function () {
                 .send(done);
         });
 
-        function runTest(command, done) {
+        function runTestDelayed(command, done) {
+            setTimeout(function () {
+                runTest(command, done);
+            }, INTERVAL);
+        }
 
-            var update = {
-                command: COMMAND,
-                lifetime: 100500,
-                status: 'updated',
-                result: {done: 'yes'}
-            };
+        function runTest(command, done) {
 
             function sendCommand(callback) {
 
@@ -213,6 +194,13 @@ describe('Round tests for command', function () {
             }
 
             function sendReply(cmnd, callback) {
+
+                var update = {
+                    command: COMMAND,
+                    lifetime: 100500,
+                    status: 'updated',
+                    result: {done: 'yes'}
+                };
 
                 clientConn.waitFor('command/update', callback)
                     .expect({
@@ -236,8 +224,8 @@ describe('Round tests for command', function () {
             ], done);
         }
 
-        it.only('should transfer commands to device and get updates on client', function (done) {
-            async.eachSeries(commands, runTest, done);
+        it('should transfer commands to device and get updates on client', function (done) {
+            async.eachSeries(commands, runTestDelayed, done);
         });
 
         after(function (done) {

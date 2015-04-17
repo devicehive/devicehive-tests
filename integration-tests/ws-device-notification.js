@@ -81,8 +81,7 @@ describe('WebSocket API Device Notification', function () {
             device.params({
                     action: 'notification/insert',
                     requestId: requestId,
-                    deviceId: deviceId, // TODO: test fails since 'deviceId' param is used. No fail if using param 'deviceGuid'
-                    //deviceGuid: deviceId,
+                    deviceId: deviceId,
                     notification: notification
                 })
                 .expect({
