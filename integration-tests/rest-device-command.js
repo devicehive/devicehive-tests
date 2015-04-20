@@ -25,10 +25,6 @@ describe('REST API Device Command', function () {
         return item.id === commandId && item.command === COMMAND;
     }
 
-    beforeEach(function (done) {
-        setTimeout(done, 1000);
-    });
-
     before(function (done) {
         path.current = path.COMMAND.get(DEVICE_GUID);
         var networkId = null;
@@ -117,7 +113,7 @@ describe('REST API Device Command', function () {
         ], done);
     });
 
-    describe.skip('#Get All', function () {
+    describe('#Get All', function () {
 
         it('should get all two commands for user', function (done) {
             utils.get(path.current, {user: user}, function (err, result) {
@@ -168,7 +164,7 @@ describe('REST API Device Command', function () {
             });
         });
 
-        it.skip('should return user commands by end date', function (done) {
+        it('should return user commands by end date', function (done) {
             var params = {user: user};
             var date = new Date();
             date.setHours(date.getHours() + 1);
@@ -181,22 +177,9 @@ describe('REST API Device Command', function () {
                 done();
             });
         });
-
-        it.skip('should return empty commands list when end date is out of range', function (done) {
-            var params = {user: user};
-            var date = new Date();
-            date.setHours(date.getHours() - 1);
-            params.query = path.query('end', date.toISOString());
-            utils.get(path.current, params, function (err, result) {
-                assert.strictEqual(!(!err), false, 'No error');
-                assert.strictEqual(utils.core.isEmptyArray(result), true, 'Is empty array');
-
-                done();
-            });
-        });
     });
 
-    describe.skip('#Get', function () {
+    describe('#Get', function () {
 
         var invalidAccessKey1 = null;
         var invalidAccessKey2 = null;
@@ -561,7 +544,7 @@ describe('REST API Device Command', function () {
             })
         });
 
-        it.skip('should succeed when creating command with allowed user', function (done) {
+        it('should succeed when creating command with allowed user', function (done) {
             var params = helper.getParamsObj(COMMAND, user);
             utils.create(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
@@ -785,7 +768,7 @@ describe('REST API Device Command', function () {
     describe('#Unauthorized', function () {
 
         describe('#No Authorization', function () {
-            it.skip('should return error when getting commands without authorization', function (done) {
+            it('should return error when getting commands without authorization', function (done) {
                 utils.get(path.current, {user: null}, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'Unauthorized');
@@ -794,7 +777,7 @@ describe('REST API Device Command', function () {
                 })
             });
 
-            it.skip('should return error when accessing non-existing command without authorization', function (done) {
+            it('should return error when accessing non-existing command without authorization', function (done) {
                 var params = {user: null, id: utils.NON_EXISTING_ID };
                 utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
@@ -844,7 +827,7 @@ describe('REST API Device Command', function () {
 
     describe('#Not Found', function () {
 
-        it.skip('should return error when accessing non-existing command', function (done) {
+        it('should return error when accessing non-existing command', function (done) {
             var params = {user: utils.admin, id: utils.NON_EXISTING_ID };
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -855,7 +838,7 @@ describe('REST API Device Command', function () {
             })
         });
 
-        it.skip('should return error when updating non-existing command', function (done) {
+        it('should return error when updating non-existing command', function (done) {
             var params = helper.getParamsObj('the-command', utils.admin);
             params.id = utils.NON_EXISTING_ID;
             utils.update(path.current, params, function (err) {

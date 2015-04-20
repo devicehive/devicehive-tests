@@ -25,10 +25,6 @@ describe('REST API Device Notification', function () {
         return item.id === notificationId && item.notification === NOTIFICATION;
     }
 
-    beforeEach(function (done) {
-        setTimeout(done, 1000);
-    });
-
     before(function (done) {
         path.current = path.NOTIFICATION.get(DEVICE_GUID);
         var networkId = null;
@@ -98,7 +94,7 @@ describe('REST API Device Notification', function () {
         ], done);
     });
 
-    describe.skip('#Get All', function () {
+    describe('#Get All', function () {
 
         before(function (done) {
             var params = helper.getParamsObj(NOTIFICATION, user);
@@ -181,7 +177,7 @@ describe('REST API Device Notification', function () {
             })
         });
 
-        it.skip('should return user notifications by end date', function (done) {
+        it('should return user notifications by end date', function (done) {
             var params = {user: user};
             var date = new Date();
             date.setHours(date.getHours() + 1);
@@ -195,22 +191,9 @@ describe('REST API Device Notification', function () {
                 done();
             });
         });
-
-        it.skip('should return empty notifications list when end date is out of range', function (done) {
-            var params = {user: user};
-            var date = new Date();
-            date.setHours(date.getHours() - 1);
-            params.query = path.query('end', date.toISOString());
-            utils.get(path.current, params, function (err, result) {
-                assert.strictEqual(!(!err), false, 'No error');
-                assert.strictEqual(utils.core.isEmptyArray(result), true, 'Is empty array');
-
-                done();
-            });
-        });
     });
 
-    describe.skip('#Get', function () {
+    describe('#Get', function () {
 
         var invalidAccessKey1 = null;
         var invalidAccessKey2 = null;
@@ -664,7 +647,7 @@ describe('REST API Device Notification', function () {
 
     describe('#Unauthorized', function () {
         describe('#No Authorization', function () {
-            it.skip('should return error when getting notifications without authorization', function (done) {
+            it('should return error when getting notifications without authorization', function (done) {
                 utils.get(path.current, {user: null}, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'Unauthorized');
@@ -673,7 +656,7 @@ describe('REST API Device Notification', function () {
                 })
             });
 
-            it.skip('should return error when accessing non-existing notification without authorization', function (done) {
+            it('should return error when accessing non-existing notification without authorization', function (done) {
                 var params = {user: null };
                 params.id = utils.NON_EXISTING_ID;
                 utils.get(path.current, params, function (err) {
@@ -715,7 +698,7 @@ describe('REST API Device Notification', function () {
         });
 
         describe('#Device Authorization', function () {
-            it.skip('should return error when getting notifications using device authorization', function (done) {
+            it('should return error when getting notifications using device authorization', function (done) {
                 var params = {
                     device: {
                         id: DEVICE_GUID,
@@ -730,7 +713,7 @@ describe('REST API Device Notification', function () {
                 })
             });
 
-            it.skip('should return error when accessing non-existing notification using device authorization', function (done) {
+            it('should return error when accessing non-existing notification using device authorization', function (done) {
                 var params = {
                     device: {
                         id: DEVICE_GUID,
@@ -780,7 +763,7 @@ describe('REST API Device Notification', function () {
     });
 
     describe('#Not Found', function () {
-        it.skip('should return error when accessing non-existing notification', function (done) {
+        it('should return error when accessing non-existing notification', function (done) {
             var params = {user: utils.admin };
             params.id = utils.NON_EXISTING_ID;
             utils.get(path.current, params, function (err) {

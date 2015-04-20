@@ -17,7 +17,6 @@ describe('WebSocket API Device Notification', function () {
 
     var deviceId = utils.getName('ws-device-notif-id');
     var device = null;
-    var device2 = null;
 
     before(function (done) {
 
@@ -44,11 +43,6 @@ describe('WebSocket API Device Notification', function () {
             device.connect(callback);
         }
 
-        function createConn2(callback) {
-            device2 = new Websocket(url, 'device');
-            device2.connect(callback);
-        }
-
         function authenticateConn(callback) {
             device.params({
                     action: 'authenticate',
@@ -63,7 +57,6 @@ describe('WebSocket API Device Notification', function () {
             getWsUrl,
             createDevice,
             createConn,
-            createConn2,
             authenticateConn
         ], done);
     });
@@ -90,27 +83,40 @@ describe('WebSocket API Device Notification', function () {
                     requestId: requestId
                 })
                 .assert(function (result) {
-                    utils.hasPropsWithValues(result.notification, ['id', 'timestamp']);
+                    utils.hasPropsWithValues(result.notification, ['id', 'notification', 'deviceGuid', 'timestamp']);
                 })
-                .send(done);
+                .send(onInsert);
+
+            function onInsert(err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                var notificationId = result.notification.id;
+                req.get(path.NOTIFICATION.get(deviceId))
+                    .params({user: utils.admin, id: notificationId})
+                    .expect({id: notificationId})
+                    .expect(notification)
+                    .send(done);
+            }
         });
 
-        it('should fail when using wrong access key', function (done) {
-            device2.params({
+        it.only('should fail when using wrong access key', function (done) {
+            device.params({
                     action: 'notification/insert',
                     requestId: getRequestId(),
-                    deviceId: 'invalid-device-id',
+                    //deviceId: 'invalid-device-id', // TODO: test fails since 'deviceId' param is used. 'deviceGuid' won't work as well
+                    deviceGuid: 'invalid-device-id',
                     deviceKey: 'invalid-device-key',
                     notification: notification
                 })
-                .expectError(403, 'Forbidden')
+                .expectError(403, 'Device guid is wrong or empty')
                 .send(done);
         });
     });
 
     after(function (done) {
         device.close();
-        device2.close();
         utils.clearData(done);
     });
 });

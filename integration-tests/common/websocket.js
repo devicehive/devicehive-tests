@@ -4,10 +4,10 @@ var utils = require('./utils');
 
 var connId = 1;
 
-function Websocket(url, role) {
+function Websocket(url, name) {
     this.id = connId++;
-    this.name = role + '#' + this.id;
-    this.socket = new WebSocket(url + '/' + role);
+    this.name = name + '#' + this.id;
+    this.socket = new WebSocket(url + '/' + name);
     this.context = null;
     this.waitTimeoutId = null;
 }
