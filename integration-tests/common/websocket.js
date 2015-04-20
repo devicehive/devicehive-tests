@@ -97,7 +97,15 @@ Websocket.prototype = {
         }, 2000);
     },
 
-    waitFor: function (action, callback) {
+    waitFor: function (action, timeout, callback) {
+
+        if (typeof (timeout) === 'function') {
+            callback = timeout;
+            timeout = null;
+        }
+
+        timeout || (timeout = 2000);
+
         var self = this;
         this.context = {
             waitFor: {
@@ -114,9 +122,9 @@ Websocket.prototype = {
             if (self.context.waitFor) {
                 var action = self.context.waitFor.action;
                 self.context.waitFor = null;
-                callback(new Error('waitFor() timeout: hasn\'t got message \'' + action + '\''));
+                callback(new Error('waitFor() timeout: hasn\'t got message \'' + action + '\' for ' + timeout + 'ms'));
             }
-        }, 2000);
+        }, timeout);
 
         return this;
     },

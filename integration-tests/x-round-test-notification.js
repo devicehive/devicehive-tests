@@ -6,12 +6,15 @@ var req = require('./common/request');
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
-describe('Round tests for notification', function () {
+describe.only('Round tests for notification', function () {
     this.timeout(60000);
     var url = null;
 
+    //var INTERVAL = 500;
+    //var TOTAL_NOTIFS = 20;
+
     var INTERVAL = 1000;
-    var TOTAL_NOTIFS = 20;
+    var TOTAL_NOTIFS = 10;
 
     var NOTIFICATION = utils.getName('round-notification');
     var DEVICE = utils.getName('round-notif-device');
@@ -45,6 +48,7 @@ describe('Round tests for notification', function () {
     var deviceId = utils.getName('round-notif-device-id');
     var networkId = null;
 
+    var user = null;
     var accessKey = null;
 
     var deviceConn = null;
@@ -95,6 +99,17 @@ describe('Round tests for notification', function () {
                 });
         }
 
+        function createUser(callback) {
+            utils.createUser2(1, networkId, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                user = result.user;
+                callback();
+            });
+        }
+
         function createAccessKey(callback) {
             var args = {
                 label: utils.getName('ws-access-key'),
@@ -122,11 +137,11 @@ describe('Round tests for notification', function () {
 
         function authenticateDeviceConn(callback) {
             deviceConn.params({
-                    action: 'authenticate',
-                    requestId: getRequestId(),
-                    deviceId: deviceId,
-                    deviceKey: DEVICE_KEY
-                })
+                action: 'authenticate',
+                requestId: getRequestId(),
+                deviceId: deviceId,
+                deviceKey: DEVICE_KEY
+            })
                 .send(callback);
         }
 
@@ -137,10 +152,10 @@ describe('Round tests for notification', function () {
 
         function authenticateClientConn(callback) {
             clientConn.params({
-                    action: 'authenticate',
-                    requestId: getRequestId(),
-                    accessKey: accessKey
-                })
+                action: 'authenticate',
+                requestId: getRequestId(),
+                accessKey: accessKey
+            })
                 .send(callback);
         }
 
@@ -148,6 +163,7 @@ describe('Round tests for notification', function () {
             initNotifications,
             getWsUrl,
             createDevice,
+            createUser,
             createAccessKey,
             createDeviceConn,
             authenticateDeviceConn,
@@ -162,11 +178,11 @@ describe('Round tests for notification', function () {
 
         before(function (done) {
             clientConn.params({
-                    action: 'notification/subscribe',
-                    requestId: getRequestId(),
-                    deviceGuids: [deviceId],
-                    names: [NOTIFICATION]
-                })
+                action: 'notification/subscribe',
+                requestId: getRequestId(),
+                deviceGuids: [deviceId],
+                names: [NOTIFICATION]
+            })
                 .send(function (err, result) {
                     if (err) {
                         return done(err);
@@ -192,25 +208,172 @@ describe('Round tests for notification', function () {
                 });
 
             deviceConn.params({
-                    action: 'notification/insert',
-                    requestId: getRequestId(),
-                    deviceId: deviceId,
-                    notification: notification
-                })
+                action: 'notification/insert',
+                requestId: getRequestId(),
+                deviceId: deviceId,
+                notification: notification
+            })
                 .send();
         }
 
-        it('should transfer device notifications to clients', function (done) {
+        it('WS device, device auth -> WS client, access key auth', function (done) {
             async.eachSeries(notifications, runTestDelayed, done);
         });
 
         after(function (done) {
             clientConn.params({
-                    action: 'notification/unsubscribe',
-                    requestId: getRequestId(),
-                    subscriptionId: subscriptionId
-                })
+                action: 'notification/unsubscribe',
+                requestId: getRequestId(),
+                subscriptionId: subscriptionId
+            })
                 .send(done);
+        });
+    });
+
+    describe('#WS device -> REST client', function () {
+
+        var $path = null;
+
+        before(function () {
+            $path = path.combine(path.NOTIFICATION.get(deviceId), path.POLL);
+        });
+
+        function runTestDelayed(notification, done) {
+            setTimeout(function () {
+                runTest(notification, done);
+            }, INTERVAL);
+        }
+
+        function runTest(notification, done) {
+
+            var expectedNotif = utils.core.clone(notification);
+            expectedNotif.deviceGuid = deviceId;
+
+            req.get($path)
+                .params({user: user})
+                .query('names', NOTIFICATION)
+                .expect([expectedNotif])
+                .send(done);
+
+            setTimeout(function () {
+                deviceConn.params({
+                    action: 'notification/insert',
+                    requestId: getRequestId(),
+                    deviceId: deviceId,
+                    notification: notification
+                })
+                    .send();
+            }, 500);
+        }
+
+        it('WS device, device auth -> REST client, user auth', function (done) {
+            async.eachSeries(notifications, runTestDelayed, done);
+        });
+    });
+
+    describe('#REST device -> WS client', function () {
+
+        var subscriptionId = null;
+        var $path = null;
+
+        before(function (done) {
+
+            $path = path.NOTIFICATION.get(deviceId);
+
+            clientConn.params({
+                action: 'notification/subscribe',
+                requestId: getRequestId(),
+                deviceGuids: [deviceId],
+                names: [NOTIFICATION]
+            })
+                .send(function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    subscriptionId = result.subscriptionId;
+                    done();
+                })
+        });
+
+        function runTestDelayed(notification, done) {
+            setTimeout(function () {
+                runTest(notification, done);
+            }, INTERVAL);
+        }
+
+        function runTest(notification, done) {
+
+            clientConn.waitFor('notification/insert', 4000, done)
+                .expect({
+                    action: 'notification/insert',
+                    notification: notification
+                });
+
+            req.create($path)
+                .params({
+                    device: {
+                        id: deviceId,
+                        key: DEVICE_KEY
+                    },
+                    data: notification
+                })
+                .send();
+        }
+
+        it('REST device, device auth -> WS client, access key auth', function (done) {
+            async.eachSeries(notifications, runTestDelayed, done);
+        });
+
+        after(function (done) {
+            clientConn.params({
+                action: 'notification/unsubscribe',
+                requestId: getRequestId(),
+                subscriptionId: subscriptionId
+            })
+                .send(done);
+        });
+    });
+
+    describe('#REST device -> REST client', function () {
+
+        var $devicePath = null;
+        var $clientPath = null;
+
+        before(function () {
+            $devicePath = path.NOTIFICATION.get(deviceId);
+            $clientPath = path.combine(path.NOTIFICATION.get(deviceId), path.POLL);
+        });
+
+        function runTestDelayed(notification, done) {
+            setTimeout(function () {
+                runTest(notification, done);
+            }, INTERVAL);
+        }
+
+        function runTest(notification, done) {
+
+            var expectedNotif = utils.core.clone(notification);
+            expectedNotif.deviceGuid = deviceId;
+
+            req.get($clientPath)
+                .params({accessKey: accessKey})
+                .query('names', NOTIFICATION)
+                .expect([expectedNotif])
+                .send(done);
+
+            setTimeout(function () {
+                req.create($devicePath)
+                    .params({
+                        accessKey: accessKey,
+                        data: notification
+                    })
+                    .send();
+            }, 500);
+        }
+
+        it('REST device, access key auth -> REST client, access key auth', function (done) {
+            async.eachSeries(notifications, runTestDelayed, done);
         });
     });
 
