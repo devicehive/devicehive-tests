@@ -92,6 +92,10 @@ Websocket.prototype = {
         this.socket.send(params);
 
         this.waitTimeoutId = setTimeout(function () {
+            if (self.context.handled) {
+                return;
+            }
+
             self.context.handled = true;
             done(new Error('send() timeout: hasn\'t got message \'' + self.context.params.action + '\''));
         }, 2000);

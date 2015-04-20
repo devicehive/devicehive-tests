@@ -11,7 +11,7 @@ describe('Round tests for command', function () {
     var url = null;
 
     var INTERVAL = 1000;
-    var TOTAL_COMMANDS = 20;
+    var TOTAL_COMMANDS = 10;
 
     var COMMAND = utils.getName('round-command');
     var DEVICE = utils.getName('round-cmd-device');
@@ -45,6 +45,7 @@ describe('Round tests for command', function () {
     var deviceId = utils.getName('round-cmd-device-id');
     var networkId = null;
 
+    var user = null;
     var accessKey = null;
 
     var deviceConn = null;
@@ -94,6 +95,17 @@ describe('Round tests for command', function () {
                             callback();
                         })
                 });
+        }
+
+        function createUser(callback) {
+            utils.createUser2(1, networkId, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                user = result.user;
+                callback();
+            });
         }
 
         function createAccessKey(callback) {
@@ -150,6 +162,7 @@ describe('Round tests for command', function () {
             initCommands,
             getWsUrl,
             createDevice,
+            createUser,
             createAccessKey,
             createDeviceConn,
             authenticateDeviceConn,
@@ -224,7 +237,7 @@ describe('Round tests for command', function () {
             ], done);
         }
 
-        it('should transfer commands to device and get updates on client', function (done) {
+        it('WS client, access key auth -> WS device, device auth', function (done) {
             async.eachSeries(commands, runTestDelayed, done);
         });
 
@@ -234,6 +247,254 @@ describe('Round tests for command', function () {
                     requestId: getRequestId()
                 })
                 .send(done);
+        });
+    });
+
+    describe('#REST client -> WS device', function () {
+
+        var createPath = null;
+
+        before(function (done) {
+
+            createPath = path.COMMAND.get(deviceId);
+
+            deviceConn.params({
+                    action: 'command/subscribe',
+                    requestId: getRequestId()
+                })
+                .send(done);
+        });
+
+        function runTestDelayed(command, done) {
+            setTimeout(function () {
+                runTest(command, done);
+            }, INTERVAL);
+        }
+
+        function runTest(command, done) {
+
+            function sendCommand(callback) {
+                
+                deviceConn.waitFor('command/insert', callback)
+                    .expect({
+                        action: 'command/insert',
+                        command: command
+                    });
+
+                req.create(createPath)
+                    .params({ user: user, data: command })
+                    .send();
+            }
+
+            function sendReply(cmnd, callback) {
+
+                var waitPath = path.combine(createPath, cmnd.command.id, path.POLL);
+
+                var update = {
+                    command: COMMAND,
+                    lifetime: 100500,
+                    status: 'updated',
+                    result: {done: 'yes'}
+                };
+
+                req.get(waitPath)
+                    .params({user: user})
+                    .expect(update)
+                    .send(callback);
+
+                setTimeout(function () {
+                    deviceConn.params({
+                            action: 'command/update',
+                            requestId: getRequestId(),
+                            deviceGuid: deviceId,
+                            commandId: cmnd.command.id,
+                            command: update
+                        })
+                        .send();
+                }, 500);
+            }
+
+            async.waterfall([
+                sendCommand,
+                sendReply
+            ], done);
+        }
+
+        it('REST client, user auth -> WS device, device auth', function (done) {
+            async.eachSeries(commands, runTestDelayed, done);
+        });
+
+        after(function (done) {
+            deviceConn.params({
+                    action: 'command/unsubscribe',
+                    requestId: getRequestId()
+                })
+                .send(done);
+        });
+    });
+
+    describe('#WS client -> REST device', function () {
+
+        var $path = null;
+        var pollPath = null;
+
+        before(function () {
+            $path = path.COMMAND.get(deviceId);
+            pollPath = path.combine($path, path.POLL);
+        });
+
+        function runTestDelayed(command, done) {
+            setTimeout(function () {
+                runTest(command, done);
+            }, INTERVAL);
+        }
+
+        function runTest(command, done) {
+
+            function sendCommand(callback) {
+
+                req.get(pollPath)
+                    .params({
+                        device: {id: deviceId, key: DEVICE_KEY}
+                    })
+                    .query('names', COMMAND)
+                    .expect([command])
+                    .send(callback);
+
+                setTimeout(function () {
+                    clientConn.params({
+                            action: 'command/insert',
+                            requestId: getRequestId(),
+                            deviceGuid: deviceId,
+                            command: command
+                        })
+                        .send();
+                }, 500);
+            }
+
+            function sendReply(commands, callback) {
+
+                var cmnd = commands[0];
+                var update = {
+                    command: COMMAND,
+                    lifetime: 100500,
+                    status: 'updated',
+                    result: {done: 'yes'}
+                };
+
+                clientConn.waitFor('command/update', 4000, callback)
+                    .expect({
+                        action: 'command/update',
+                        command: update
+                    });
+
+                var updatePath = path.get($path, cmnd.id);
+                req.update(updatePath)
+                    .params({
+                        device: { id: deviceId, key: DEVICE_KEY },
+                        data: update
+                    })
+                    .send();
+            }
+
+            async.waterfall([
+                sendCommand,
+                sendReply
+            ], done);
+        }
+
+        it('WS client, access key auth -> REST device, device auth', function (done) {
+            async.eachSeries(commands, runTestDelayed, done);
+        });
+    });
+
+    describe('#REST client -> REST device', function () {
+
+        var clientAuth = null;
+        var deviceAuth = null;
+
+        var createPath = null;
+        var pollPath = null;
+
+        before(function () {
+            createPath = path.COMMAND.get(deviceId);
+            pollPath = path.combine(createPath, path.POLL);
+        });
+
+        function runTestDelayed(command, done) {
+            setTimeout(function () {
+                runTest(command, done);
+            }, INTERVAL);
+        }
+
+        function runTest(command, done) {
+
+            function sendCommand(callback) {
+
+                req.get(pollPath)
+                    .params(utils.core.clone(deviceAuth))
+                    .query('names', COMMAND)
+                    .expect([command])
+                    .send(callback);
+
+                setTimeout(function () {
+                    var params = utils.core.clone(clientAuth);
+                    params.data = command;
+                    req.create(createPath)
+                        .params(params)
+                        .send();
+                }, 1000);
+            }
+
+            function sendReply(commands, callback) {
+
+                var cmnd = commands[0];
+                var waitPath = path.combine(createPath, cmnd.id, path.POLL);
+
+                var update = {
+                    command: COMMAND,
+                    lifetime: 100500,
+                    status: 'updated',
+                    result: {done: 'yes'}
+                };
+
+                req.get(waitPath)
+                    .params(utils.core.clone(clientAuth))
+                    .expect(update)
+                    .send(callback);
+
+                setTimeout(function () {
+                    var updatePath = path.get(createPath, cmnd.id);
+                    var params = utils.core.clone(deviceAuth);
+                    params.data = update;
+                    req.update(updatePath)
+                        .params(params)
+                        .send();
+                }, 1000);
+            }
+
+            async.waterfall([
+                sendCommand,
+                sendReply
+            ], done);
+        }
+
+        it('REST client, access key auth -> REST device, access key auth', function (done) {
+            clientAuth = {accessKey: accessKey};
+            deviceAuth = {accessKey: accessKey};
+            async.eachSeries(commands, runTestDelayed, done);
+        });
+
+        it('REST client, user auth -> REST device, device auth', function (done) {
+            clientAuth = {user: user};
+            deviceAuth = {device: {id: deviceId, key: DEVICE_KEY}};
+            async.eachSeries(commands, runTestDelayed, done);
+        });
+
+        it('REST client, user auth -> REST device, access key auth', function (done) {
+            clientAuth = {user: user};
+            deviceAuth = {accessKey: accessKey};
+            async.eachSeries(commands, runTestDelayed, done);
         });
     });
 
