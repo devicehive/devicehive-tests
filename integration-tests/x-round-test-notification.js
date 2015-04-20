@@ -6,7 +6,7 @@ var req = require('./common/request');
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
-describe.only('Round tests for notification', function () {
+describe('Round tests for notification', function () {
     this.timeout(60000);
     var url = null;
 
