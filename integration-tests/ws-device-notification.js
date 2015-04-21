@@ -101,7 +101,7 @@ describe('WebSocket API Device Notification', function () {
             }
         });
 
-        it.only('should fail when using wrong access key', function (done) {
+        it('should fail when using wrong access key', function (done) {
             device.params({
                     action: 'notification/insert',
                     requestId: getRequestId(),

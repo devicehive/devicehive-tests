@@ -19,6 +19,10 @@ describe('WebSocket API Device Command', function () {
 
     var device = null;
 
+    beforeEach(function(done) {
+        setTimeout(done, 1000);
+    });
+
     before(function (done) {
 
         function getWsUrl(callback) {
@@ -146,7 +150,7 @@ describe('WebSocket API Device Command', function () {
 
                 device.waitFor('command/insert', function (err) {
                     assert.strictEqual(!(!err), true, 'Commands should not arrive');
-                    utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\''});
+                    utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\' for 2000ms'});
                     done();
                 });
 
@@ -267,7 +271,7 @@ describe('WebSocket API Device Command', function () {
 
             device.waitFor('command/insert', function (err) {
                 assert.strictEqual(!(!err), true, 'Commands should not arrive');
-                utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\''});
+                utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\' for 2000ms'});
                 done();
             });
 

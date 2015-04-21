@@ -26,6 +26,10 @@ describe('WebSocket API Client Command', function () {
     var clientAK = null;
     var clientInvalidAK = null;
 
+    beforeEach(function(done) {
+        setTimeout(done, 1000);
+    })
+
     before(function (done) {
         var networkId = null;
 
@@ -345,7 +349,7 @@ describe('WebSocket API Client Command', function () {
 
                 client.waitFor('command/insert', function (err) {
                     assert.strictEqual(!(!err), true, 'Commands should not arrive');
-                    utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\''});
+                    utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\' for 2000ms'});
                     done();
                 });
 
@@ -494,11 +498,11 @@ describe('WebSocket API Client Command', function () {
         }
 
         it('should notify when command was inserted, user auth', function (done) {
-            runTest(clientUsr, done);
+            setTimeout(runTest(clientUsr, done), 500);
         });
 
         it('should notify when command was inserted, access key auth', function (done) {
-            runTest(clientAK, done);
+            setTimeout(runTest(clientAK, done), 500);
         });
 
         function runTestNoSubscr(client, done) {
@@ -513,7 +517,7 @@ describe('WebSocket API Client Command', function () {
 
             client.waitFor('command/insert', function (err) {
                 assert.strictEqual(!(!err), true, 'Commands should not arrive');
-                utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\''});
+                utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\' for 2000ms'});
                 done();
             });
 

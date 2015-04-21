@@ -1,7 +1,7 @@
 {
   "server": {
-    "wsUrl": "ws://192.168.152.147:8080/dh/websocket",
-    "restUrl": "http://192.168.152.147:8080/dh/rest",
+    "wsUrl": "ws://127.0.0.1:8080/dh/websocket",
+    "restUrl": "http://127.0.0.1:8080/dh/rest",
     "accessKey": "1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk="
   },
   "loadTests": {

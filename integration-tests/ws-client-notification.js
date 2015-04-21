@@ -201,7 +201,7 @@ describe('WebSocket API Client Notification', function () {
                     requestId: requestId
                 })
                 .assert(function (result) {
-                    utils.hasPropsWithValues(result.notification, ['id', 'timestamp']);
+                    utils.hasPropsWithValues(result.notification, ['id', 'notification', 'deviceGuid', 'timestamp']);
                 })
                 .send(onInsert);
 
@@ -343,8 +343,9 @@ describe('WebSocket API Client Notification', function () {
                 }
 
                 client.waitFor('notification/insert', function (err) {
+                    console.log(err);
                     assert.strictEqual(!(!err), true, 'Commands should not arrive');
-                    utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'notification/insert\''});
+                    utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'notification/insert\' for 2000ms'});
                     done();
                 });
 
@@ -437,7 +438,7 @@ describe('WebSocket API Client Notification', function () {
 
             client.waitFor('notification/insert', function (err) {
                 assert.strictEqual(!(!err), true, 'Commands should not arrive');
-                utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'notification/insert\''});
+                utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'notification/insert\' for 2000ms'});
                 done();
             });
 
