@@ -69,7 +69,7 @@ describe('REST API User Network', function () {
     });
 
     describe('#Delete', function () {
-        it.skip('should delete user network', function (done) {
+        it('should delete user network', function (done) {
             req.delete(path.current)
                 .params({user: utils.admin, id: networkId})
                 .send(function (err) {
@@ -80,7 +80,7 @@ describe('REST API User Network', function () {
                     req.get(path.current)
                         .params({user: utils.admin, id: networkId})
                         .expectError(status.NOT_FOUND,
-                            format('Network with id %s for user with is %s was not found', networkId, userId))// TODO: swap networkId <> userId in error message
+                            format('Network with id %s for user with id %s was not found', networkId, userId))// TODO: swap networkId <> userId in error message
                         .send(done);
                 });
         });
@@ -190,11 +190,11 @@ describe('REST API User Network', function () {
 
     describe('#Not Found', function () {
 
-        it.skip('should fail with 404 when selecting user network by non-existing id', function (done) {
+        it('should fail with 404 when selecting user network by non-existing id', function (done) {
             req.get(path.current)
                 .params({user: utils.admin, id: utils.NON_EXISTING_ID})
                 .expectError(status.NOT_FOUND,
-                    format('Network with id %s for user with is %s was not found', utils.NON_EXISTING_ID, userId))// TODO: swap networkId <> userId in error message
+                    format('Network with id %s for user with id %s was not found', utils.NON_EXISTING_ID, userId))// TODO: swap networkId <> userId in error message
                 .send(done);
         });
 

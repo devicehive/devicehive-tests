@@ -366,7 +366,7 @@ describe('REST API Device Unit', function () {
             });
         });
 
-        it.skip('should verify device-add notification', function (done) {
+        it('should verify device-add notification', function (done) {
             utils.get(path.NOTIFICATION.get(NEW_DEVICE_GUID), {user: user}, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');

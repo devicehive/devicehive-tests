@@ -359,7 +359,7 @@ describe('REST API Network', function () {
                 .send(done);
         });
 
-        it.skip('should return empty devices list result when using accessKey1', function (done) {
+        it('should return empty devices list result when using accessKey1', function (done) {
             req.get(path.get(path.NETWORK, networkId1))
                 .params({accessKey: accessKey1})
                 .expectTrue(function (result) {
