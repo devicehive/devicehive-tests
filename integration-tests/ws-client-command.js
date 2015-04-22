@@ -498,11 +498,15 @@ describe('WebSocket API Client Command', function () {
         }
 
         it('should notify when command was inserted, user auth', function (done) {
-            setTimeout(runTest(clientUsr, done), 500);
+            setTimeout(function () {
+                runTest(clientUsr, done);
+            }, 500);
         });
 
         it('should notify when command was inserted, access key auth', function (done) {
-            setTimeout(runTest(clientAK, done), 500);
+            setTimeout(function () {
+                runTest(clientAK, done);
+            }, 500);
         });
 
         function runTestNoSubscr(client, done) {
