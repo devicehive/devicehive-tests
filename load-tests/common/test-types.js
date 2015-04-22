@@ -47,7 +47,8 @@ TestTypes.prototype = {
 
             log.info('--------------------------------------');
 
-            log.summary('duration: %s\tconns: %s\tmin: %s\tmax: %s\tavg: %s\tmed: %s\terrors: %s\tsent: %s\texpected: %s\treceived: %s',
+            log.summary('type: \'%s\'\tduration: %s\tconns: %s\tmin: %s\tmax: %s\tavg: %s\tmed: %s\terrors: %s\tsent: %s\texpected: %s\treceived: %s',
+                'ws-notification',
                 result.duration,
                 result.clients + result.devices,
                 result.min,
@@ -91,7 +92,8 @@ TestTypes.prototype = {
 
             log.info('--------------------------------------');
 
-            log.summary('duration: %s\tconns: %s\tmin: %s\tmax: %s\tavg: %s\tmed: %s\terrors: %s\tsent: %s\texpected: %s\treceived: %s',
+            log.summary('type: \'%s\'\tduration: %s\tconns: %s\tmin: %s\tmax: %s\tavg: %s\tmed: %s\terrors: %s\tsent: %s\texpected: %s\treceived: %s',
+                'ws-command',
                 result.duration,
                 result.clients + result.devices,
                 result.min,
@@ -136,7 +138,8 @@ TestTypes.prototype = {
 
             log.info('--------------------------------------');
 
-            log.summary('duration: %s\tconns: %s\tmin: %s\tmax: %s\tavg: %s\tmed: %s\terrors: %s\tsent: %s\texpected: %s\treceived: %s',
+            log.summary('type: \'%s\'\tduration: %s\tconns: %s\tmin: %s\tmax: %s\tavg: %s\tmed: %s\terrors: %s\tsent: %s\texpected: %s\treceived: %s',
+                'ws-message',
                 result.duration,
                 result.connections,
                 result.min,
@@ -181,7 +184,8 @@ TestTypes.prototype = {
 
             log.info('--------------------------------------');
 
-            log.summary('duration: %s\tsenders: %s\tmin: %s\tmax: %s\tavg: %s\tmed: %s\terrors: %s\tsent: %s\texpected: %s\treceived: %s',
+            log.summary('type: \'%s\'\tduration: %s\tsenders: %s\tmin: %s\tmax: %s\tavg: %s\tmed: %s\terrors: %s\tsent: %s\texpected: %s\treceived: %s',
+                'rest-message',
                 result.duration,
                 result.senders,
                 result.min,
