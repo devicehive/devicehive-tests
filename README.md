@@ -8,6 +8,8 @@ Integration tests require [mocha](http://mochajs.org/) framework.
 
 * cd to project root directory: **$ cd devicehive-tests**
 
+* Install Node.js references: Linux: **$ sudo npm i**, Windows: **\> npm i**
+
 * When running specify tests directory 'integration-tests': **$ mocha integration-tests**
 
 Another easy way to run tests is to use [WebStorm](https://www.youtube.com/watch?v=4mKiGkokyx8)
