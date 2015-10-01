@@ -114,7 +114,7 @@ describe('WebSocket API Device Unit', function () {
                     deviceId: 'invalid-device-id',
                     deviceKey: 'invalid-device-key'
                 })
-                .expectError(403, 'Forbidden')
+                .expectError(401, 'Unauthorized')
                 .send(done);
         });
 

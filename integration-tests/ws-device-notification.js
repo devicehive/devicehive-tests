@@ -110,7 +110,7 @@ describe('WebSocket API Device Notification', function () {
                     deviceKey: 'invalid-device-key',
                     notification: notification
                 })
-                .expectError(403, 'Device guid is wrong or empty')
+                .expectError(401, 'Unauthorized')
                 .send(done);
         });
     });
