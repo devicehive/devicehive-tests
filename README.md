@@ -4,13 +4,16 @@
 
 Integration tests require [mocha](http://mochajs.org/) framework.
 
-* Install mocha globally: **$ npm install -g mocha**
+* Install mocha globally: **$ sudo npm install -g mocha**, Windows: **\> npm install -g mocha**
 
 * cd to project root directory: **$ cd devicehive-tests**
 
 * Install Node.js references: Linux: **$ sudo npm i**, Windows: **\> npm i**
 
 * When running specify tests directory 'integration-tests': **$ mocha integration-tests**
+
+* More advanced example of running tests with JSON reporter: **$ mocha -R json integration-tests/rest-access-key.js > result.json**
+You can pick any of [alternative reporters](http://mochajs.org/#reporters) available in Mocha framework or third-party reporter.
 
 Another easy way to run tests is to use [WebStorm](https://www.youtube.com/watch?v=4mKiGkokyx8)
 
