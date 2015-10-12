@@ -18,6 +18,10 @@ You can pick any of [alternative reporters](http://mochajs.org/#reporters) avail
 
 Another easy way to run tests is to use [WebStorm](https://www.youtube.com/watch?v=4mKiGkokyx8)
 
+When running tests in WebStorm you can export test results to .html file:
+
+![export_tests.png](https://bitbucket.org/repo/M6o9ee/images/3334473711-export_tests.png)
+
 ### Tests structure ###
 
 * *describe()* closure defines a group of tests
