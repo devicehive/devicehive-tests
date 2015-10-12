@@ -13,6 +13,7 @@ Integration tests require [mocha](http://mochajs.org/) framework.
 * When running specify tests directory 'integration-tests': **$ mocha integration-tests**
 
 * More advanced example of running tests with JSON reporter: **$ mocha -R json integration-tests/rest-access-key.js > result.json**
+
 You can pick any of [alternative reporters](http://mochajs.org/#reporters) available in Mocha framework or third-party reporter.
 
 Another easy way to run tests is to use [WebStorm](https://www.youtube.com/watch?v=4mKiGkokyx8)
