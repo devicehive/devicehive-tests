@@ -382,6 +382,49 @@ describe('REST API Device Command', function () {
                 var params = helper.getParamsObj(COMMAND, user);
                 utils.create(path.current, params, function () {});
             }, 100);
+        });
+
+        it('should not return command with the same timestamp', function (done) {
+            var globalId = -1;
+            var globalTimestamp = "";
+
+            function pollWithoutTimestamp(callback){
+                var params = {user: user};
+                params.query = path.query('names', COMMAND, 'deviceGuids', DEVICE_GUID, "waitTimeout", 5);
+                utils.get(path.COMMAND.poll(), params, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
+                    callback(err);
+                });
+            }
+
+            function updateCommand(callback){
+                var params = {user: user, data: {"newField": "newValue"}};
+                utils.update(path.combine(path.COMMAND.get(DEVICE_GUID), globalId), params, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    callback(err);
+                });
+            }
+
+            function pollWithTimestamp(){
+                    var params = {user: user};
+                    params.query = path.query('names', COMMAND, 'deviceGuids', DEVICE_GUID, "waitTimeout", 1, 'timestamp', globalTimestamp);
+                    utils.get(path.COMMAND.poll(), params, function (err, result) {
+                        assert.strictEqual(!(!err), false, 'No error');
+                        assert.strictEqual(utils.core.isEmptyArray(result), true);
+                        done()
+                    });
+            }
+
+
+            async.series([pollWithoutTimestamp, updateCommand], pollWithTimestamp);
+
+            var params = helper.getParamsObj(COMMAND, user);
+            setTimeout(function(){utils.create(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                globalId = result.id;
+                globalTimestamp = result.timestamp
+            });}, 100);
         })
     });
 
