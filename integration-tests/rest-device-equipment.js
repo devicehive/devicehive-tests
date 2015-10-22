@@ -20,7 +20,6 @@ describe('REST API Device Equipment', function () {
 
         var NETWORK = utils.getName('network-device-eqpmnt');
         var DEVICE = utils.getName('device-eqpmnt');
-        var DEVICE_KEY = utils.getName('device-key');
 
         function createNetwork(callback) {
             var params = {
@@ -53,7 +52,7 @@ describe('REST API Device Equipment', function () {
         }
 
         function createDevice(callback) {
-            var params = utils.device.getParamsObj(DEVICE, utils.admin, DEVICE_KEY,
+            var params = utils.device.getParamsObj(DEVICE, utils.admin,
                 {name: NETWORK}, {name: DEVICE, version: '1'});
             params.id = DEVICE_GUID;
             utils.update(path.DEVICE, params, function (err) {

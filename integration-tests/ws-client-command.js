@@ -11,7 +11,6 @@ describe('WebSocket API Client Command', function () {
     var url = null;
 
     var DEVICE = utils.getName('ws-cmd-device');
-    var DEVICE_KEY = utils.getName('ws-cmd-device-key');
     var NETWORK = utils.getName('ws-cmd-network');
     var NETWORK_KEY = utils.getName('ws-cmd-network-key');
 
@@ -79,7 +78,7 @@ describe('WebSocket API Client Command', function () {
 
         function createDevice(callback) {
             req.update(path.get(path.DEVICE, deviceId))
-                .params(utils.device.getParamsObj(DEVICE, utils.admin, DEVICE_KEY,
+                .params(utils.device.getParamsObj(DEVICE, utils.admin,
                     {name: NETWORK, key: NETWORK_KEY}, {name: DEVICE, version: '1'}))
                 .send(callback);
         }

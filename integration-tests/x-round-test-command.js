@@ -15,13 +15,11 @@ describe('Round tests for command', function () {
 
     var COMMAND = utils.getName('round-command');
     var DEVICE = utils.getName('round-cmd-device');
-    var DEVICE_KEY = utils.getName('round-cmd-device-key');
 
     var commands = [];
 
     var deviceDef = {
         name: DEVICE,
-        key: DEVICE_KEY,
         status: 'Online',
         data: {a: '1', b: '2'},
         network: {
@@ -139,7 +137,7 @@ describe('Round tests for command', function () {
                     action: 'authenticate',
                     requestId: getRequestId(),
                     deviceId: deviceId,
-                    deviceKey: DEVICE_KEY
+                    accessKey: accessKey
                 })
                 .send(callback);
         }
@@ -355,7 +353,7 @@ describe('Round tests for command', function () {
 
                 req.get(pollPath)
                     .params({
-                        device: {id: deviceId, key: DEVICE_KEY}
+                        accessKey:accessKey
                     })
                     .query('names', COMMAND)
                     .expect([command])
@@ -391,7 +389,7 @@ describe('Round tests for command', function () {
                 var updatePath = path.get($path, cmnd.id);
                 req.update(updatePath)
                     .params({
-                        device: { id: deviceId, key: DEVICE_KEY },
+                        accessKey:accessKey,
                         data: update
                     })
                     .send();
@@ -485,11 +483,6 @@ describe('Round tests for command', function () {
             async.eachSeries(commands, runTestDelayed, done);
         });
 
-        it('REST client, user auth -> REST device, device auth', function (done) {
-            clientAuth = {user: user};
-            deviceAuth = {device: {id: deviceId, key: DEVICE_KEY}};
-            async.eachSeries(commands, runTestDelayed, done);
-        });
 
         it('REST client, user auth -> REST device, access key auth', function (done) {
             clientAuth = {user: user};

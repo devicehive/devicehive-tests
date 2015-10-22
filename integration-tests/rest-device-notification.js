@@ -13,7 +13,6 @@ describe('REST API Device Notification', function () {
     var NETWORK = utils.getName('network-device-notif');
     var DEVICE = utils.getName('device-notif');
     var DEVICE_GUID = utils.getName('guid-notif-12345');
-    var DEVICE_KEY = utils.getName('device-notif-key');
     var NOTIFICATION = utils.getName('notif-1');
     var NOTIFICATION_2 = utils.getName('notif-2');
 
@@ -55,7 +54,7 @@ describe('REST API Device Notification', function () {
         }
 
         function createDevice(callback) {
-            var params = utils.device.getParamsObj(DEVICE, utils.admin, DEVICE_KEY,
+            var params = utils.device.getParamsObj(DEVICE, utils.admin,
                 {name: NETWORK}, {name: DEVICE, version: '1'});
             params.id = DEVICE_GUID;
             utils.update(path.DEVICE, params, function (err) {
@@ -233,11 +232,7 @@ describe('REST API Device Notification', function () {
                 invalidAccessKey3 = result[2];
                 accessKey = result[3];
 
-                var params = helper.getParamsObj(NOTIFICATION, null);
-                params.device = {
-                    id: DEVICE_GUID,
-                    key: DEVICE_KEY
-                };
+                var params = helper.getParamsObj(NOTIFICATION, utils.admin);
 
                 utils.create(path.NOTIFICATION.get(DEVICE_GUID), params, function (err, result) {
                     if (err) {
@@ -363,7 +358,7 @@ describe('REST API Device Notification', function () {
     describe('#Poll Many', function () {
         it('should return result with deviceGuid', function (done) {
             var params = {user: user};
-            params.query = path.query('names', NOTIFICATION, 'deviceGuids', DEVICE_GUID);
+            params.query = path.query('names', NOTIFICATION, 'deviceGuid', DEVICE_GUID);
             utils.get(path.NOTIFICATION.poll(), params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
@@ -412,7 +407,7 @@ describe('REST API Device Notification', function () {
             }
 
             function createDevice(callback) {
-                var params = utils.device.getParamsObj(utils.getName('other-device-notif'), utils.admin, DEVICE_KEY,
+                var params = utils.device.getParamsObj(utils.getName('other-device-notif'), utils.admin,
                     {name: OTHER_NETWORK}, {name: DEVICE, version: '1'});
                 params.id = OTHER_DEVICE_GUID;
                 utils.update(path.DEVICE, params, function (err) {
@@ -438,11 +433,7 @@ describe('REST API Device Notification', function () {
             });
 
             setTimeout(function () {
-                var params = helper.getParamsObj(NOTIFICATION_2, null);
-                params.device = {
-                    id: OTHER_DEVICE_GUID,
-                    key: DEVICE_KEY
-                };
+                var params = helper.getParamsObj(NOTIFICATION_2, utils.admin);
                 utils.create(path.NOTIFICATION.get(OTHER_DEVICE_GUID), params, function () {});
             }, 100);
 
@@ -507,18 +498,6 @@ describe('REST API Device Notification', function () {
 
                 done();
             })
-        });
-
-        it('should create notification using device authorization', function (done) {
-            var params = helper.getParamsObj(NOTIFICATION, null);
-            params.device = {
-                id: DEVICE_GUID,
-                key: DEVICE_KEY
-            };
-            utils.create(path.current, params, function (err, result) {
-                assert.strictEqual(!(!err), false, 'No error');
-                done();
-            });
         });
 
         it('should return error when creating notification with invalid user', function (done) {
@@ -596,10 +575,7 @@ describe('REST API Device Notification', function () {
                 data: {
                     parameters: { a: 'b' }
                 },
-                device: {
-                    id: DEVICE_GUID,
-                    key: DEVICE_KEY
-                }
+                accessKey: utils.accessKey.admin
             };
             params.id = notificationId;
             utils.update(path.current, params, function (err) {
@@ -632,10 +608,7 @@ describe('REST API Device Notification', function () {
                     notification2: NOTIFICATION
                 }
             };
-            params.device = {
-                id: DEVICE_GUID,
-                key: DEVICE_KEY
-            };
+            params.user = user;
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, 'Invalid request parameters');
@@ -689,70 +662,6 @@ describe('REST API Device Notification', function () {
 
             it('should return error when polling notifications without authorization #2', function (done) {
                 utils.get(path.NOTIFICATION.poll(), {user: null}, function (err) {
-                    assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Unauthorized');
-                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
-                    done();
-                })
-            });
-        });
-
-        describe('#Device Authorization', function () {
-            it('should return error when getting notifications using device authorization', function (done) {
-                var params = {
-                    device: {
-                        id: DEVICE_GUID,
-                        key: DEVICE_KEY
-                    }
-                };
-                utils.get(path.current, params, function (err) {
-                    assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Unauthorized');
-                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
-                    done();
-                })
-            });
-
-            it('should return error when accessing non-existing notification using device authorization', function (done) {
-                var params = {
-                    device: {
-                        id: DEVICE_GUID,
-                        key: DEVICE_KEY
-                    }
-                };
-                params.id = utils.NON_EXISTING_ID;
-                utils.get(path.current, params, function (err) {
-                    assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Unauthorized');
-                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
-                    done();
-                })
-            });
-
-            it('should return error when polling notifications using device authorization #1', function (done) {
-                var params = {
-                    device: {
-                        id: DEVICE_GUID,
-                        key: DEVICE_KEY
-                    }
-                };
-                var $path = path.combine(path.current, path.POLL);
-                utils.get($path, params, function (err) {
-                    assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Unauthorized');
-                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
-                    done();
-                })
-            });
-
-            it('should return error when polling notifications using device authorization #2', function (done) {
-                var params = {
-                    device: {
-                        id: DEVICE_GUID,
-                        key: DEVICE_KEY
-                    }
-                };
-                utils.get(path.NOTIFICATION.poll(), params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);

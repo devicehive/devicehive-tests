@@ -13,7 +13,6 @@ describe('REST API Device Command', function () {
     var NETWORK = utils.getName('network-device-cmd');
     var DEVICE = utils.getName('device-cmd');
     var DEVICE_GUID = utils.getName('guid-cmd-12345');
-    var DEVICE_KEY = utils.getName('device-cmd-key');
     var COMMAND = utils.getName('cmd-1');
     var COMMAND_2 = utils.getName('cmd-2');
 
@@ -55,7 +54,7 @@ describe('REST API Device Command', function () {
         }
 
         function createDevice(callback) {
-            var params = utils.device.getParamsObj(DEVICE, utils.admin, DEVICE_KEY,
+            var params = utils.device.getParamsObj(DEVICE, utils.admin,
                 {name: NETWORK}, {name: DEVICE, version: '1'});
             params.id = DEVICE_GUID;
             utils.update(path.DEVICE, params, function (err) {
@@ -221,22 +220,6 @@ describe('REST API Device Command', function () {
 
                 done();
             })
-        });
-
-        it('should return commands using device authentication', function (done) {
-            var params = {
-                device: {
-                    id: DEVICE_GUID,
-                    key: DEVICE_KEY
-                }
-            };
-            utils.get(path.current, params, function (err, result) {
-                assert.strictEqual(!(!err), false, 'No error');
-                assert.strictEqual(utils.core.isArrayOfLength(result, 2), true, 'Is array of 2 objects');
-                assert.strictEqual(result.some(hasCommand), true);
-
-                done();
-            });
         });
 
         it('should return error when using wrong user authentication', function (done) {
@@ -455,7 +438,7 @@ describe('REST API Device Command', function () {
             }
 
             function createDevice(callback) {
-                var params = utils.device.getParamsObj(utils.getName('other-device-cmd'), utils.admin, DEVICE_KEY,
+                var params = utils.device.getParamsObj(utils.getName('other-device-cmd'), utils.admin,
                     {name: OTHER_NETWORK}, {name: DEVICE, version: '1'});
                 params.id = OTHER_DEVICE_GUID;
                 utils.update(path.DEVICE, params, function (err) {
@@ -698,28 +681,6 @@ describe('REST API Device Command', function () {
             })
         });
 
-        it('should update command using device authentication', function (done) {
-
-            var commandUpdate = {
-                parameters: { a: 'b' },
-                status: 'Done',
-                result: 'OK'
-            };
-
-            var params = {
-                data: commandUpdate,
-                device: {
-                    id: DEVICE_GUID,
-                    key: DEVICE_KEY
-                }
-            };
-            params.id = commandId;
-            utils.update(path.current, params, function (err) {
-                assert.strictEqual(!(!err), false, 'No error');
-                done();
-            });
-        });
-
         it('should return error when updating command with invalid user', function (done) {
             var params = helper.getParamsObj(COMMAND, nonNetworkUser);
             params.id = commandId;
@@ -849,21 +810,6 @@ describe('REST API Device Command', function () {
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })
-            });
-
-            it('should return error when inserting command using device authentication', function (done) {
-
-                var params = helper.getParamsObj('the-command', null);
-                params.device = {
-                    id: DEVICE_GUID,
-                    key: DEVICE_KEY
-                };
-                utils.create(path.current, params, function (err) {
-                    assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Unauthorized');
-                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
-                    done();
-                });
             });
         });
     });

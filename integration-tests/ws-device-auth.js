@@ -10,10 +10,11 @@ describe('WebSocket API Device Authentication', function () {
     var url = null;
 
     var DEVICE = utils.getName('ws-device');
-    var DEVICE_KEY = utils.getName('ws-device-key');
     var NETWORK = utils.getName('ws-device-network');
 
     var deviceId = utils.getName('ws-device-id');
+    var accessKey = null;
+
 
     before(function (done) {
 
@@ -30,20 +31,41 @@ describe('WebSocket API Device Authentication', function () {
 
         function createDevice(callback) {
             req.update(path.get(path.DEVICE, deviceId))
-                .params(utils.device.getParamsObj(DEVICE, utils.admin, DEVICE_KEY,
+                .params(utils.device.getParamsObj(DEVICE, utils.admin,
                     {name: NETWORK}, {name: DEVICE, version: '1'}))
                 .send(callback);
         }
 
+        function createAccessKey(callback) {
+            var args = {
+                label: utils.getName('ws-access-key'),
+                actions: [
+                    'GetDeviceCommand',
+                    'CreateDeviceCommand',
+                    'UpdateDeviceCommand'
+                ]
+            };
+            utils.accessKey.create(utils.admin, args.label, args.actions, void 0, args.networkIds,
+                function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    accessKey = result.key;
+                    callback();
+                })
+        }
+
         async.series([
             getWsUrl,
-            createDevice
+            createDevice,
+            createAccessKey
         ], done);
     });
 
     describe('#authenticate', function () {
 
-        it('should authenticate using deviceId / deviceKey', function (done) {
+        it('should authenticate using access key', function (done) {
             var device = null;
             var requestId = getRequestId();
 
@@ -57,8 +79,7 @@ describe('WebSocket API Device Authentication', function () {
                 device.params({
                         action: 'authenticate',
                         requestId: requestId,
-                        deviceId:  deviceId,
-                        deviceKey: DEVICE_KEY
+                        accessKey:  accessKey
                     })
                     .expect({
                         action: 'authenticate',
@@ -79,7 +100,7 @@ describe('WebSocket API Device Authentication', function () {
             });
         });
 
-        it('should return error when using invalid deviceId / deviceKey', function (done) {
+        it('should return error when using invalid access key', function (done) {
             var device = null;
 
             function createConnection(callback) {
@@ -91,8 +112,7 @@ describe('WebSocket API Device Authentication', function () {
                 device.params({
                         action: 'authenticate',
                         requestId: getRequestId(),
-                        deviceId: utils.NON_EXISTING_ID,
-                        deviceKey: 'non-existing-key'
+                        accessKey: null
                     })
                     .expectError(401, 'Invalid credentials')
                     .send(callback);

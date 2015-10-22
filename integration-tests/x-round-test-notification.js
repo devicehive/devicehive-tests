@@ -18,13 +18,11 @@ describe('Round tests for notification', function () {
 
     var NOTIFICATION = utils.getName('round-notification');
     var DEVICE = utils.getName('round-notif-device');
-    var DEVICE_KEY = utils.getName('round-notif-device-key');
 
     var notifications = [];
 
     var deviceDef = {
         name: DEVICE,
-        key: DEVICE_KEY,
         status: 'Online',
         data: {a: '1', b: '2'},
         network: {
@@ -140,7 +138,7 @@ describe('Round tests for notification', function () {
                     action: 'authenticate',
                     requestId: getRequestId(),
                     deviceId: deviceId,
-                    deviceKey: DEVICE_KEY
+                    accessKey: accessKey
                 })
                 .send(callback);
         }
@@ -312,7 +310,7 @@ describe('Round tests for notification', function () {
 
             req.create($path)
                 .params({
-                    device: { id: deviceId, key: DEVICE_KEY },
+                    accessKey: accessKey,
                     data: notification
                 })
                 .send();
@@ -378,7 +376,7 @@ describe('Round tests for notification', function () {
         });
 
         it('REST device, device auth -> REST client, user auth', function (done) {
-            deviceAuth = {device: {id: deviceId, key: DEVICE_KEY}};
+            deviceAuth = {accessKey:accessKey};
             clientAuth = {user: user};
             async.eachSeries(notifications, runTestDelayed, done);
         });

@@ -11,11 +11,11 @@ describe('WebSocket API Device Command', function () {
     var url = null;
 
     var DEVICE = utils.getName('ws-device-cmd');
-    var DEVICE_KEY = utils.getName('ws-device-cmd-key');
     var NETWORK = utils.getName('ws-network-cmd');
     var COMMAND = utils.getName('ws-command');
 
     var deviceId = utils.getName('ws-device-cmd-id');
+    var accessKey= null;
 
     var device = null;
 
@@ -38,9 +38,29 @@ describe('WebSocket API Device Command', function () {
 
         function createDevice(callback) {
             req.update(path.get(path.DEVICE, deviceId))
-                .params(utils.device.getParamsObj(DEVICE, utils.admin, DEVICE_KEY,
+                .params(utils.device.getParamsObj(DEVICE, utils.admin,
                     {name: NETWORK}, {name: DEVICE, version: '1'}))
                 .send(callback);
+        }
+
+        function createAccessKey(callback) {
+            var args = {
+                label: utils.getName('ws-access-key'),
+                actions: [
+                    'GetDeviceCommand',
+                    'CreateDeviceCommand',
+                    'UpdateDeviceCommand'
+                ]
+            };
+            utils.accessKey.create(utils.admin, args.label, args.actions, void 0, args.networkIds,
+                function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    accessKey = result.key;
+                    callback();
+                })
         }
 
         function createConn(callback) {
@@ -52,8 +72,7 @@ describe('WebSocket API Device Command', function () {
             device.params({
                     action: 'authenticate',
                     requestId: getRequestId(),
-                    deviceId:  deviceId,
-                    deviceKey: DEVICE_KEY
+                    accessKey: accessKey
                 })
                 .send(callback);
         }
@@ -61,6 +80,7 @@ describe('WebSocket API Device Command', function () {
         async.series([
             getWsUrl,
             createDevice,
+            createAccessKey,
             createConn,
             authenticateConn
         ], done);
@@ -183,7 +203,7 @@ describe('WebSocket API Device Command', function () {
                 });
         });
 
-        it('should update existing command, device auth', function (done) {
+        it('should update existing command, access key auth', function (done) {
 
             var update = {
                 command: COMMAND + '-UPD',
@@ -195,9 +215,10 @@ describe('WebSocket API Device Command', function () {
 
             var requestId = getRequestId();
             device.params({
+                    user: utils.admin,
                     action: 'command/update',
                     requestId: requestId,
-                    deviceId: deviceId,
+                    deviceGuid: deviceId,
                     commandId: commandId,
                     command: update
                 })

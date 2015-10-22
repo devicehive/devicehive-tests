@@ -27,6 +27,8 @@ var utils = {
 
     accessKey: {
 
+        admin: "1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=",
+
         createMany: function (params, done) {
 
             function createAccessKey(callback) {
@@ -176,7 +178,7 @@ var utils = {
     },
 
     device: {
-        getParamsObj: function (name, user, key, network, deviceClass) {
+        getParamsObj: function (name, user, network, deviceClass, accessKey) {
 
             var params = {
                 user: user,
@@ -185,16 +187,16 @@ var utils = {
                 }
             };
 
-            if (key) {
-                params.data.key = key;
-            }
-
             if (network) {
                 params.data.network = network;
             }
 
             if (deviceClass) {
                 params.data.deviceClass = deviceClass;
+            }
+
+            if(accessKey){
+                params.accessKey = accessKey;
             }
 
             return params;

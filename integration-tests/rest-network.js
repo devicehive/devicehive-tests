@@ -328,7 +328,7 @@ describe('REST API Network', function () {
                         deviceClassId = result.id;
 
                         req.update(path.get(path.DEVICE, DEVICE_GUID))
-                            .params(utils.device.getParamsObj(DEVICE, utils.admin, DEVICE_KEY,
+                            .params(utils.device.getParamsObj(DEVICE, utils.admin,
                                 {name: NETWORK_1, key: NETWORK_KEY}, {name: DEVICE, version: '1'}))
                             .send(done);
                     });

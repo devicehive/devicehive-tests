@@ -11,11 +11,11 @@ describe('WebSocket API Device Notification', function () {
     var url = null;
 
     var DEVICE = utils.getName('ws-device-notif');
-    var DEVICE_KEY = utils.getName('ws-device-notif-key');
     var NETWORK = utils.getName('ws-network-notif');
     var NOTIFICATION = utils.getName('ws-notification');
 
     var deviceId = utils.getName('ws-device-notif-id');
+    var accessKey = null;
     var device = null;
 
     before(function (done) {
@@ -33,9 +33,28 @@ describe('WebSocket API Device Notification', function () {
 
         function createDevice(callback) {
             req.update(path.get(path.DEVICE, deviceId))
-                .params(utils.device.getParamsObj(DEVICE, utils.admin, DEVICE_KEY,
+                .params(utils.device.getParamsObj(DEVICE, utils.admin,
                     {name: NETWORK}, {name: DEVICE, version: '1'}))
                 .send(callback);
+        }
+
+        function createAccessKey(callback) {
+            var args = {
+                label: utils.getName('ws-access-key'),
+                actions: [
+                    'CreateDeviceNotification',
+                    'GetDeviceNotification'
+                ]
+            };
+            utils.accessKey.create(utils.admin, args.label, args.actions, void 0, args.networkIds,
+                function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    accessKey = result.key;
+                    callback();
+                })
         }
 
         function createConn(callback) {
@@ -47,8 +66,7 @@ describe('WebSocket API Device Notification', function () {
             device.params({
                     action: 'authenticate',
                     requestId: getRequestId(),
-                    deviceId:  deviceId,
-                    deviceKey: DEVICE_KEY
+                    accessKey: accessKey
                 })
                 .send(callback);
         }
@@ -56,6 +74,7 @@ describe('WebSocket API Device Notification', function () {
         async.series([
             getWsUrl,
             createDevice,
+            createAccessKey,
             createConn,
             authenticateConn
         ], done);
@@ -68,13 +87,13 @@ describe('WebSocket API Device Notification', function () {
             parameters: {a: '1', b: '2'}
         };
 
-        it('should add new notification, device auth', function (done) {
+        it('should add new notification, access key auth', function (done) {
             var requestId = getRequestId();
 
             device.params({
                     action: 'notification/insert',
                     requestId: requestId,
-                    deviceId: deviceId,
+                    deviceGuid: deviceId,
                     notification: notification
                 })
                 .expect({

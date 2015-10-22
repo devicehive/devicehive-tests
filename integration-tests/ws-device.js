@@ -11,11 +11,10 @@ describe('WebSocket API Device Unit', function () {
     var url = null;
 
     var DEVICE = utils.getName('ws-device');
-    var DEVICE_KEY = utils.getName('ws-device-key');
+    var accessKey = null;
 
     var device = {
         name: DEVICE,
-        key: DEVICE_KEY,
         status: 'Online',
         data: {a: '1', b: '2'},
         network: {
@@ -65,6 +64,26 @@ describe('WebSocket API Device Unit', function () {
                 conn.connect(callback);
             }
 
+            function createAccessKey(callback) {
+                var args = {
+                    label: utils.getName('ws-access-key'),
+                    actions: [
+                        'CreateDeviceNotification',
+                        'GetDeviceNotification',
+                        'ManageNetwork'
+                    ]
+                };
+                utils.accessKey.create(utils.admin, args.label, args.actions, void 0, args.networkIds,
+                    function (err, result) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        accessKey = result.key;
+                        callback();
+                    })
+            }
+
             function createConn2(callback) {
                 conn2 = new Websocket(url, 'device');
                 conn2.connect(callback);
@@ -75,13 +94,14 @@ describe('WebSocket API Device Unit', function () {
                         action: 'authenticate',
                         requestId: getRequestId(),
                         deviceId: deviceId,
-                        deviceKey: DEVICE_KEY
+                        accessKey: accessKey
                     })
                     .send(callback);
             }
 
             async.series([
                 createDevice,
+                createAccessKey,
                 createConn,
                 createConn2,
                 authenticateConn
@@ -92,7 +112,7 @@ describe('WebSocket API Device Unit', function () {
             var requestId = getRequestId();
 
             var expectedDevice = utils.core.clone(device);
-            delete expectedDevice.key
+            delete expectedDevice.key;
 
             conn.params({
                     action: 'device/get',
@@ -130,8 +150,58 @@ describe('WebSocket API Device Unit', function () {
         var conn = null;
 
         before(function (done) {
-            conn = new Websocket(url, 'device');
-            conn.connect(done);
+            function createDevice(callback) {
+                req.update(path.get(path.DEVICE, deviceId))
+                    .params({user: utils.admin, data: device})
+                    .send(callback);
+            }
+
+            function createConn(callback) {
+                conn = new Websocket(url, 'device');
+                conn.connect(callback);
+            }
+
+            function createAccessKey(callback) {
+                var args = {
+                    label: utils.getName('ws-access-key'),
+                    actions: [
+                        'CreateDeviceNotification',
+                        'GetDeviceNotification',
+                        'ManageNetwork'
+                    ]
+                };
+                utils.accessKey.create(utils.admin, args.label, args.actions, void 0, args.networkIds,
+                    function (err, result) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        accessKey = result.key;
+                        callback();
+                    })
+            }
+
+            function createConn2(callback) {
+                conn2 = new Websocket(url, 'device');
+                conn2.connect(callback);
+            }
+
+            function authenticateConn(callback) {
+                conn.params({
+                    action: 'authenticate',
+                    requestId: getRequestId(),
+                    deviceId: deviceId,
+                    accessKey: accessKey
+                })
+                    .send(callback);
+            }
+
+            async.series([
+                createDevice,
+                createAccessKey,
+                createConn,
+                authenticateConn
+            ], done);
         });
 
         it('should get information about current device, device auth', function (done) {
@@ -142,7 +212,6 @@ describe('WebSocket API Device Unit', function () {
                         action: 'device/save',
                         requestId: requestId,
                         deviceId: deviceId,
-                        deviceKey: DEVICE_KEY,
                         device: device
                     })
                     .expect({
