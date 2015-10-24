@@ -4,6 +4,7 @@ var format = require('util').format;
 var utils = require('./common/utils');
 var path = require('./common/path');
 var status = require('./common/http').status;
+var req = require('./common/request');
 
 describe('REST API Access Key', function () {
     this.timeout(30000);
@@ -221,22 +222,32 @@ describe('REST API Access Key', function () {
 
     describe('#Delete', function() {
 
+        var cantDeleteDefaultKeyMessage = "You can not delete your last default access key";
+
         function runTest(testData, callback) {
             utils.create(testData.createPath, testData.createParams, function (err, createResult) {
                 if (err) {
                     return callback(err);
                 }
 
-                testData.params.id = createResult.id;
-                utils.delete(testData.path, testData.params, function (err) {
+                testData.createParams.data.label += "2";
+                console.log(JSON.stringify(testData.createParams));
+
+                utils.create(testData.createPath, testData.createParams, function (err, createResult) {
                     if (err) {
                         return callback(err);
                     }
+                    testData.params.id = createResult.id;
+                    utils.delete(testData.path, testData.params, function (err) {
+                        if (err) {
+                            return callback(err);
+                        }
 
-                    utils.get(testData.path, testData.params, function (err) {
-                        assert.strictEqual(!(!err), true, 'Error object created');
-                        assert.strictEqual(err.error, 'Access key not found.');
-                        callback();
+                        utils.get(testData.path, testData.params, function (err) {
+                            assert.strictEqual(!(!err), true, 'Error object created');
+                            assert.strictEqual(err.error, 'Access key not found.');
+                            callback();
+                        })
                     })
                 })
             })
@@ -246,7 +257,7 @@ describe('REST API Access Key', function () {
             runTest({
                 createParams: helper.getParams(utils.getName('delete-1'), utils.admin),
                 createPath: path.current,
-                params: { user: utils.admin },
+                params: {user: utils.admin},
                 path: path.current
             }, done);
         });
@@ -255,7 +266,7 @@ describe('REST API Access Key', function () {
             runTest({
                 createParams: helper.getParams(utils.getName('delete-2'), user),
                 createPath: path.current,
-                params: { user: user },
+                params: {user: user},
                 path: path.CURRENT_ACCESS_KEY
             }, done);
         });
@@ -264,10 +275,126 @@ describe('REST API Access Key', function () {
             runTest({
                 createParams: helper.getParams(utils.getName('delete-3'), user),
                 createPath: path.current,
-                params: { user: user },
+                params: {user: user},
                 path: path.current
             }, done);
-        })
+        });
+
+        it('should not allow admin to delete his last default access key', function (done) {
+            var newUserAdmin = {login: utils.getName("current_admin_user"), password: utils.NEW_USER_PASSWORD};
+            utils.createUser(newUserAdmin.login, newUserAdmin.password, 0, 0, function (err, user) {
+                if (err) {
+                    done(err);
+                }
+                utils.accessKey.create(newUserAdmin, void 0, void 0, void 0, void 0, function (err, accessKey) {
+                    if (err) {
+                        done(err);
+                    }
+
+                    req.delete(format('/user/%d/accesskey', user.id))
+                        .params({user: newUserAdmin, id: accessKey.id})
+                        .expectError(status.FORBIDDEN, cantDeleteDefaultKeyMessage)
+                        .send(done);
+                });
+            });
+        });
+
+        it('should allow admin to delete his own default access key if there are at least 2 default keys', function (done) {
+            var newUserAdmin = {login: utils.getName("current_admin_user"), password: utils.NEW_USER_PASSWORD};
+            utils.createUser(newUserAdmin.login, newUserAdmin.password, 0, 0, function (err, user) {
+                if (err) {
+                    done(err);
+                }
+                utils.accessKey.create(newUserAdmin, void 0, void 0, void 0, void 0, function (err, accessKey) {
+                    if (err) {
+                        done(err);
+                    }
+                    utils.accessKey.create(newUserAdmin, void 0, void 0, void 0, void 0, function (err, accessKey2) {
+                        if (err) {
+                            done(err);
+                        }
+                        utils.delete(format('/user/%d/accesskey', user.id), {
+                            user: newUserAdmin,
+                            id: accessKey.id
+                        }, function (err) {
+                            assert.strictEqual(!(!err), false, 'No error object');
+                            done(err);
+
+                        });
+                    });
+                });
+            });
+        });
+
+        it('should not allow client to delete his last default access key', function (done) {
+            var newClientUser = {login: utils.getName("current_client_user"), password: utils.NEW_USER_PASSWORD};
+            utils.createUser(newClientUser.login, newClientUser.password, 1, 0, function (err, user) {
+                if (err) {
+                    done(err);
+                }
+                utils.accessKey.create(newClientUser, void 0, void 0, void 0, void 0, function (err, accessKey) {
+                    if (err) {
+                        done(err);
+                    }
+
+                    req.delete(format('/user/%d/accesskey', user.id))
+                        .params({user: newClientUser, id: accessKey.id})
+                        .expectError(status.FORBIDDEN, cantDeleteDefaultKeyMessage)
+                        .send(done);
+                });
+            });
+        });
+
+        it('should allow client to delete his own default access key if there are at least 2 default keys', function (done) {
+            var newClientUser = {login: utils.getName("current_client_user"), password: utils.NEW_USER_PASSWORD};
+            utils.createUser(newClientUser.login, newClientUser.password, 1, 0, function (err, user) {
+                if (err) {
+                    done(err);
+                }
+                utils.accessKey.create(newClientUser, void 0, void 0, void 0, void 0, function (err, accessKey) {
+                    if (err) {
+                        done(err);
+                    }
+                    utils.accessKey.create(newClientUser, void 0, void 0, void 0, void 0, function (err, accessKey2) {
+                        if (err) {
+                            done(err);
+                        }
+                        utils.delete(format('/user/%d/accesskey', user.id), {
+                            user: newClientUser,
+                            id: accessKey.id
+                        }, function (err) {
+                            assert.strictEqual(!(!err), false, 'No error object');
+                            done(err);
+
+                        });
+                    });
+                });
+            });
+        });
+
+        it('should not allow admin to delete other user last default access key', function (done) {
+            var newClientUser = {login: utils.getName("current_client_user"), password: utils.NEW_USER_PASSWORD};
+            var newUserAdmin = {login: utils.getName("current_admin_user"), password: utils.NEW_USER_PASSWORD};
+            utils.createUser(newUserAdmin.login, newUserAdmin.password, 0, 0, function (err, userAdmin) {
+                if (err) {
+                    done(err);
+                }
+                utils.createUser(newClientUser.login, newClientUser.password, 0, 0, function (err, userClient) {
+                    if (err) {
+                        done(err);
+                    }
+                    utils.accessKey.create(newUserAdmin, void 0, void 0, void 0, void 0, function (err, accessKey) {
+                        if (err) {
+                            done(err);
+                        }
+                        req.delete(format('/user/%d/accesskey', userClient.id))
+                            .params({user: newUserAdmin, id: accessKey.id})
+                            .expectError(status.FORBIDDEN, cantDeleteDefaultKeyMessage)
+                            .send(done);
+                    });
+                });
+            });
+        });
     });
 
     describe('#Authorization', function() {
