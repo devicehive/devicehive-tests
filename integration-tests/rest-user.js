@@ -453,6 +453,7 @@ describe('REST API User', function () {
     });
 
     describe('#Delete', function () {
+        var cantDeleteYourselfMessage = "You can not delete a user or access key that you use to authenticate this request";
 
         var user = null;
 
@@ -480,6 +481,68 @@ describe('REST API User', function () {
                         .expectError(status.NOT_FOUND, format('User not found'))
                         .send(done);
                 });
+        });
+
+        it('should not allow to delete current admin user', function (done) {
+            var newUserAdmin = {login: utils.getName("current_admin_user"), password: utils.NEW_USER_PASSWORD};
+            utils.createUser(newUserAdmin.login, newUserAdmin.password, 0, 0, function(err, user){
+                if(err){
+                    done(err);
+                }
+                req.delete(path.current)
+                    .params({user: newUserAdmin, id: user.id})
+                    .expectError(status.FORBIDDEN, cantDeleteYourselfMessage)
+                    .send(done);
+            });
+        });
+
+        it('should not allow to delete a user that owns current admin access key with ManageUser permission', function(done){
+            var newUserAdmin = {login: utils.getName("current_admin_user"), password: utils.NEW_USER_PASSWORD};
+            utils.createUser(newUserAdmin.login, newUserAdmin.password, 0, 0, function(err, user){
+                if(err){
+                    done(err);
+                }
+                utils.accessKey.create(newUserAdmin, void 0, void 0, void 0, void 0, function(err, accessKey){
+                    if(err){
+                        done(err);
+                    }
+                    req.delete(path.current)
+                        .params({accessKey: accessKey.key, id: user.id})
+                        .expectError(status.FORBIDDEN, cantDeleteYourselfMessage)
+                        .send(done);
+                });
+            });
+        });
+
+        it('should not allow to delete a user that owns current client access key with ManageUser permission', function(done){
+            var newClientUser = {login: utils.getName("current_client_user"), password: utils.NEW_USER_PASSWORD};
+            utils.createUser(newClientUser.login, newClientUser.password, 1, 0, function(err, user){
+                if(err){
+                    done(err);
+                }
+                utils.accessKey.create(newClientUser, void 0, 'ManageUser', void 0, void 0, function(err, accessKey){
+                    if(err){
+                        done(err);
+                    }
+                    req.delete(path.current)
+                        .params({accessKey: accessKey.key, id: user.id})
+                        .expectError(status.NOT_AUTHORIZED, "Unauthorized")
+                        .send(done);
+                });
+            });
+        });
+
+        it('should not allow client users to delete users', function (done) {
+            var newUserClient = {login: utils.getName("current_client_user"), password: utils.NEW_USER_PASSWORD};
+            utils.createUser(newUserClient.login, newUserClient.password, 1, 0, function(err, user){
+                if(err){
+                    done(err);
+                }
+                req.delete(path.current)
+                    .params({user: newUserClient, id: user.id})
+                    .expectError(status.NOT_AUTHORIZED, "Unauthorized")
+                    .send(done);
+            });
         });
     });
 
