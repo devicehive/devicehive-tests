@@ -1108,7 +1108,7 @@ describe('REST API Device Unit', function () {
                 params.id = DEVICE_GUID;
                 utils.update(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
-                    assert.strictEqual(err.error, 'Invalid credentials');
+                    assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 })

@@ -167,7 +167,8 @@ describe('WebSocket API Device Unit', function () {
                     actions: [
                         'CreateDeviceNotification',
                         'GetDeviceNotification',
-                        'ManageNetwork'
+                        'ManageNetwork',
+                        'RegisterDevice'
                     ]
                 };
                 utils.accessKey.create(utils.admin, args.label, args.actions, void 0, args.networkIds,
