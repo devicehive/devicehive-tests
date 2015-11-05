@@ -5,6 +5,15 @@ var Http = require('./http').Http;
 var status = require('./http').status;
 var $utils = require('./../../common/utils');
 
+function getParam(key) {
+    for (var index in process.argv) {
+        var parameter = process.argv[index];
+        if (parameter.indexOf("--" + key) == 0)
+            return parameter.substr(key.length + 3);
+    }
+    return $utils.getConfig('server:' + key);
+}
+
 var utils = {
 
     NAME_PREFIX: '_it-',
@@ -15,7 +24,7 @@ var utils = {
 
     core: $utils,
 
-    url: $utils.getConfig('server:restUrl'),
+    url:  "http://" + getParam("ip") + ":" + getParam("port") + "/dh/rest" ,
 
     admin: {
         login: 'dhadmin',
