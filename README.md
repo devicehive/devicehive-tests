@@ -16,6 +16,11 @@ Integration tests require [mocha](http://mochajs.org/) framework.
 
 You can pick any of [alternative reporters](http://mochajs.org/#reporters) available in Mocha framework or third-party reporter, like [mochawesome](https://github.com/adamgruber/mochawesome).
 
+* Install mochawesome globally: **$ sudo npm install -g mochawesome**, Windows: **$ npm install -g mochawesome**
+
+* Run tests: **$ mocha -R mochawesome integration-tests**.
+ In order to set ip and port use: **$ mocha -R mochawesome integration-tests --ip=${ip} --port=${port}**. Default values:  ${ip} = 127.0.0.1 ${port} = 8080** 
+
 Another easy way to run tests is to use [WebStorm](https://www.youtube.com/watch?v=4mKiGkokyx8)
 
 When running tests in WebStorm you can export test results to .html file:
