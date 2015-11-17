@@ -15,12 +15,15 @@ describe('REST API Device Unit', function () {
     var DEVICE = utils.getName('device');
     var DEVICE_CLASS_VERSION = '1';
     var DEVICE_GUID = utils.getName('guid-111');
+    var NETWORK_FOR_ADMIN = utils.getName('admin-with-network');
 
+    var networkForAdminId = null;
     var networkId = null;
     var otherNetworkId = null;
     var user = null;
     var otherNetworkUser = null;
     var nonNetworkUser = null;
+    var adminWithNetwork = null;
     var deviceClassId = null;
     var equipment = {
         name: "_integr-test-eq",
@@ -63,6 +66,24 @@ describe('REST API Device Unit', function () {
                 }
 
                 otherNetworkId = result.id;
+                callback();
+            });
+        }
+
+        function createNetworkForAdmin(callback) {
+            var params = {
+                user: utils.admin,
+                data: {
+                    name: NETWORK_FOR_ADMIN
+                }
+            };
+
+            utils.create(path.NETWORK, params, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                networkForAdminId = result.id;
                 callback();
             });
         }
@@ -121,14 +142,27 @@ describe('REST API Device Unit', function () {
             });
         }
 
+        function createAminWithNetwork(callback) {
+            utils.createUser2(0, networkForAdminId, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                adminWithNetwork = result.user;
+                callback();
+            });
+        }
+
         async.series([
             createNetwork,
             createOtherNetwork,
+            createNetworkForAdmin,
             createDeviceClass,
             createDevice,
             createUser,
             createNonNetworkUser,
-            createOtherNetworkUser
+            createOtherNetworkUser,
+            createAminWithNetwork
         ], done);
     });
 
@@ -747,7 +781,7 @@ describe('REST API Device Unit', function () {
         });
 
         it('should modify device status only', function (done) {
-            var params = {user: utils.admin};
+            var params = {user: adminWithNetwork};
             params.data = {status: 'modified'};
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
@@ -774,6 +808,17 @@ describe('REST API Device Unit', function () {
 
                     done();
                 });
+            });
+        });
+
+        it('should fail with 412 when admin without assigned networks', function (done) {
+            var params = {user: utils.admin};
+            params.data = {status: 'modified'};
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'User has no networks assigned to him');
+                assert.strictEqual(err.httpStatus, status.PRECONDITION_FAILED);
+                done();
             });
         });
     });
@@ -1087,7 +1132,7 @@ describe('REST API Device Unit', function () {
         var NEW_DEVICE_GUID = utils.getName('guid-1111');
 
         it('should fail with 400 when trying to create device with badly formed request #1', function (done) {
-            var params = {user: utils.admin};
+            var params = {user: adminWithNetwork};
             params.data = {wrongProp: utils.getName('bad-request')};
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
@@ -1099,7 +1144,7 @@ describe('REST API Device Unit', function () {
         });
 
         it('should fail with 400 when trying to create device with badly formed request #2', function (done) {
-            var params = helper.getParamsObj(utils.getName('bad-request'), utils.admin);
+            var params = helper.getParamsObj(utils.getName('bad-request'), adminWithNetwork);
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
