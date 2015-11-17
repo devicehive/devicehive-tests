@@ -142,7 +142,7 @@ describe('REST API Device Unit', function () {
             });
         }
 
-        function createAminWithNetwork(callback) {
+        function createAdminWithNetwork(callback) {
             utils.createUser2(0, networkForAdminId, function (err, result) {
                 if (err) {
                     return callback(err);
@@ -162,7 +162,7 @@ describe('REST API Device Unit', function () {
             createUser,
             createNonNetworkUser,
             createOtherNetworkUser,
-            createAminWithNetwork
+            createAdminWithNetwork
         ], done);
     });
 
