@@ -10,7 +10,8 @@ var status = {
     NOT_AUTHORIZED: 401,
     FORBIDDEN: 403,
     NOT_FOUND: 404,
-    METHOD_NOT_ALLOWED: 405
+    METHOD_NOT_ALLOWED: 405,
+    PRECONDITION_FAILED: 412
 };
 
 function Http(baseUrl, path, loggingOff) {

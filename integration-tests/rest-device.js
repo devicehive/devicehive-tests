@@ -11,14 +11,15 @@ describe('REST API Device Unit', function () {
     var helper = utils.device;
 
     var NETWORK = utils.getName('network-device');
-    var NON_NETWORK_USER_NETWORK = utils.getName('non-network-user-network-device');
+    var OTHER_NETWORK = utils.getName('other-network');
     var DEVICE = utils.getName('device');
     var DEVICE_CLASS_VERSION = '1';
     var DEVICE_GUID = utils.getName('guid-111');
 
     var networkId = null;
-    var nonNetworkUserNetworkId = null;
+    var otherNetworkId = null;
     var user = null;
+    var otherNetworkUser = null;
     var nonNetworkUser = null;
     var deviceClassId = null;
     var equipment = {
@@ -48,11 +49,11 @@ describe('REST API Device Unit', function () {
             });
         }
 
-        function createNonNetworkUserNetwork(callback) {
+        function createOtherNetwork(callback) {
             var params = {
                 user: utils.admin,
                 data: {
-                    name: NON_NETWORK_USER_NETWORK
+                    name: OTHER_NETWORK
                 }
             };
 
@@ -61,7 +62,7 @@ describe('REST API Device Unit', function () {
                     return callback(err);
                 }
 
-                nonNetworkUserNetworkId = result.id;
+                otherNetworkId = result.id;
                 callback();
             });
         }
@@ -99,7 +100,7 @@ describe('REST API Device Unit', function () {
         }
 
         function createNonNetworkUser(callback) {
-            utils.createUser2(1, nonNetworkUserNetworkId, function (err, result) {
+            utils.createUser2(1, null, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -109,13 +110,25 @@ describe('REST API Device Unit', function () {
             });
         }
 
+        function createOtherNetworkUser(callback) {
+            utils.createUser2(1, otherNetworkId, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                otherNetworkUser = result.user;
+                callback();
+            });
+        }
+
         async.series([
             createNetwork,
-            createNonNetworkUserNetwork,
+            createOtherNetwork,
             createDeviceClass,
             createDevice,
             createUser,
-            createNonNetworkUser
+            createNonNetworkUser,
+            createOtherNetworkUser
         ], done);
     });
 
@@ -879,13 +892,25 @@ describe('REST API Device Unit', function () {
         });
 
         it('should fail with 403 when updating with wrong user', function (done) {
-            var params = {user: nonNetworkUser};
+            var params = {user: otherNetworkUser};
             params.data = {status: 'modified'};
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, 'No access to device');
                 assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+                done();
+            });
+        });
+
+        it('should fail with 412 when updating with user without networks', function (done) {
+            var params = {user: nonNetworkUser};
+            params.data = {status: 'modified'};
+            params.id = NEW_DEVICE_GUID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'No access to network!');
+                assert.strictEqual(err.httpStatus, status.PRECONDITION_FAILED);
                 done();
             });
         });
@@ -938,35 +963,33 @@ describe('REST API Device Unit', function () {
             });
         });
 
-        it('should fail with 401 #1', function (done) {
+        it('should fail with 403 #1', function (done) {
             var params = {accessKey: invalidAccessKey1};
             params.data = {status: 'modified_access_key'};
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error,
-                    format('Device with such guid = %s not found', NEW_DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                assert.strictEqual(err.error, "No access to network!");
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
 
                 done();
             });
         });
 
-        it('should fail with 401 #2', function (done) {
+        it('should fail with 403 #2', function (done) {
             var params = {accessKey: invalidAccessKey2};
             params.data = {status: 'modified_access_key'};
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error,
-                    format('Device with such guid = %s not found', NEW_DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                assert.strictEqual(err.error, "No access to network!");
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
 
                 done();
             });
         });
 
-        it('should fail with 403', function (done) {
+        it('should fail with 403 #3', function (done) {
             var params = {accessKey: invalidAccessKey3};
             params.data = {status: 'modified_access_key'};
             params.id = NEW_DEVICE_GUID;
