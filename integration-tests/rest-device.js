@@ -954,7 +954,7 @@ describe('REST API Device Unit', function () {
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'No access to network!');
+                assert.strictEqual(err.error, 'User has no networks assigned to him');
                 assert.strictEqual(err.httpStatus, status.PRECONDITION_FAILED);
                 done();
             });
