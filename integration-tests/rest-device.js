@@ -17,7 +17,7 @@ describe('REST API Device Unit', function () {
     var DEVICE_GUID = utils.getName('guid-111');
     var NETWORK_FOR_ADMIN = utils.getName('admin-with-network');
 
-    var networkForAdminId = null;
+    var adminNetworkId = null;
     var networkId = null;
     var otherNetworkId = null;
     var user = null;
@@ -83,7 +83,7 @@ describe('REST API Device Unit', function () {
                     return callback(err);
                 }
 
-                networkForAdminId = result.id;
+                adminNetworkId = result.id;
                 callback();
             });
         }
@@ -143,7 +143,7 @@ describe('REST API Device Unit', function () {
         }
 
         function createAdminWithNetwork(callback) {
-            utils.createUser2(0, networkForAdminId, function (err, result) {
+            utils.createUser2(0, adminNetworkId, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
