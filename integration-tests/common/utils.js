@@ -256,7 +256,8 @@ var utils = {
             });
     },
 
-    get: function ($path, params, cb) {
+    get: function ($path, params, cb, responseStatus) {
+        if(!responseStatus){responseStatus = status.EXPECTED_READ};
         new Http(this.url, path.get($path, params.id, params.query), this.loggingOff)
             .get(params, function (err, result, xhr) {
                 if (err) {
@@ -264,7 +265,7 @@ var utils = {
                     return cb(err);
                 }
 
-                assert.strictEqual(xhr.status, status.EXPECTED_READ);
+                assert.strictEqual(xhr.status, responseStatus);
 
                 cb(null, result);
             });
