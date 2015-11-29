@@ -19,6 +19,7 @@ describe('REST API Device Command', function () {
     var user = null;
     var nonNetworkUser = null;
     var commandId = null;
+    var beforeCreateCommandsTimestamp = new Date().getTime();
 
     function hasCommand(item) {
         return item.id === commandId && item.command === COMMAND;
@@ -340,6 +341,16 @@ describe('REST API Device Command', function () {
                 assert.strictEqual(utils.core.isEmptyArray(result), true);
                 done();
             })
+        });
+        it('should return immediately array with commands when poll with waitTimeout=0 and timestamp', function (done) {
+            var params = {user: user};
+            var $path = path.combine(path.current, path.POLL);
+            params.query = path.query('waitTimeout', 0, 'timestamp', beforeCreateCommandsTimestamp);
+            utils.get($path, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.length > 0, true);
+                done();
+            });
         })
     });
 
