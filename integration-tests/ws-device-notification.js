@@ -102,7 +102,7 @@ describe('WebSocket API Device Notification', function () {
                     requestId: requestId
                 })
                 .assert(function (result) {
-                    utils.hasPropsWithValues(result.notification, ['id', 'notification', 'deviceGuid', 'timestamp']);
+                    utils.hasPropsWithValues(result.notification, ['id', 'timestamp']);
                 })
                 .send(onInsert);
 
@@ -120,16 +120,23 @@ describe('WebSocket API Device Notification', function () {
             }
         });
 
-        it('should fail when using wrong access key', function (done) {
+        it('should authenticate fail when using wrong access key', function (done) {
+            device.params({
+                    action: 'authenticate',
+                    requestId: getRequestId(),
+                    accessKey: 'invalid-device-key'
+                })
+                .expectError(401, 'Invalid credentials')
+                .send(done);
+        });
+        it('should fail when using wrong deviceGuid', function (done) {
             device.params({
                     action: 'notification/insert',
                     requestId: getRequestId(),
-                    //deviceId: 'invalid-device-id', // TODO: test fails since 'deviceId' param is used. 'deviceGuid' won't work as well
                     deviceGuid: 'invalid-device-id',
-                    deviceKey: 'invalid-device-key',
                     notification: notification
                 })
-                .expectError(401, 'Unauthorized')
+                .expectError(403, 'Device guid is wrong or empty')
                 .send(done);
         });
     });
