@@ -200,7 +200,7 @@ describe('WebSocket API Client Notification', function () {
                     requestId: requestId
                 })
                 .assert(function (result) {
-                    utils.hasPropsWithValues(result.notification, ['id', 'notification', 'deviceGuid', 'timestamp']);
+                    utils.hasPropsWithValues(result.notification, ['id', 'timestamp']);
                 })
                 .send(onInsert);
 
