@@ -19,6 +19,7 @@ describe('REST API Device Notification', function () {
     var user = null;
     var nonNetworkUser = null;
     var notificationId = null;
+   var beforeCreateNotificationTimestamp =  new Date().getTime();
 
     function hasNotification(item) {
         return item.id === notificationId && item.notification === NOTIFICATION;
@@ -350,6 +351,17 @@ describe('REST API Device Notification', function () {
             utils.get($path, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isEmptyArray(result), true);
+                done();
+            })
+        });
+
+        it('should return immediately array with notifications when poll with waitTimeout=0 and timestamp', function (done) {
+            var params = {user: user};
+            var $path = path.combine(path.current, path.POLL);
+            params.query = path.query('waitTimeout', '0', 'timestamp', beforeCreateNotificationTimestamp);
+            utils.get($path, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.length > 0, true);
                 done();
             })
         })

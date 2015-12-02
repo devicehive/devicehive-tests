@@ -19,6 +19,7 @@ describe('REST API Device Command', function () {
     var user = null;
     var nonNetworkUser = null;
     var commandId = null;
+    var beforeCreateCommandsTimestamp = new Date().getTime();
 
     function hasCommand(item) {
         return item.id === commandId && item.command === COMMAND;
@@ -340,6 +341,16 @@ describe('REST API Device Command', function () {
                 assert.strictEqual(utils.core.isEmptyArray(result), true);
                 done();
             })
+        });
+        it('should return immediately array with commands when poll with waitTimeout=0 and timestamp', function (done) {
+            var params = {user: user};
+            var $path = path.combine(path.current, path.POLL);
+            params.query = path.query('waitTimeout', 0, 'timestamp', beforeCreateCommandsTimestamp);
+            utils.get($path, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.length > 0, true);
+                done();
+            });
         })
     });
 
@@ -494,6 +505,17 @@ describe('REST API Device Command', function () {
             result: 'OK'
         };
 
+        it('should return empty response with status 204 when polling not processed command', function (done) {
+            var params = {user: user};
+            var $path = path.combine(path.current, commandId, path.POLL);
+            params.query = path.query('waitTimeout',0);
+            utils.get($path, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result, null);
+                done();
+            }, status.EXPECTED_UPDATED);
+        });
+
         it('should return command with updated status/result values', function (done) {
             var params = {user: user};
             var $path = path.combine(path.current, commandId, path.POLL);
@@ -511,7 +533,25 @@ describe('REST API Device Command', function () {
                 params.data = commandUpdate;
                 utils.update(path.current, params, function () {});
             }, 100);
-        })
+        });
+
+        it('should return processed command when polling processed command with waitTimeout = 0', function (done) {
+            var params = {user: user};
+            params.id = commandId;
+            params.data = commandUpdate;
+            utils.update(path.current, params, function () {});
+            setTimeout(function () {
+                var params = {user: user};
+                var $path = path.combine(path.current, commandId, path.POLL);
+                params.query = path.query('waitTimeout', 0);
+                utils.get($path, params, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    assert.strictEqual(result.status, commandUpdate.status);
+                    assert.strictEqual(result.result, commandUpdate.result);
+                    done();
+                });
+            },10);
+        });
     });
 
     describe('#Create', function () {
