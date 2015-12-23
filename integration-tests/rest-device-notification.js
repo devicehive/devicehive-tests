@@ -375,7 +375,7 @@ describe('REST API Device Notification', function () {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
                 assert.strictEqual(result.every(function (item) {
-                    return item.notification.notification === NOTIFICATION && item.deviceGuid === DEVICE_GUID;
+                    return item.notification === NOTIFICATION && item.deviceGuid === DEVICE_GUID;
                 }), true);
                 done();
             });
@@ -439,7 +439,7 @@ describe('REST API Device Notification', function () {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
                 assert.strictEqual(result.every(function (item) {
-                    return item.notification.notification === NOTIFICATION_2 && item.deviceGuid === DEVICE_GUID;
+                    return item.notification === NOTIFICATION_2 && item.deviceGuid === DEVICE_GUID;
                 }), true);
                 done();
             });

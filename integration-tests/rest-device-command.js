@@ -362,7 +362,7 @@ describe('REST API Device Command', function () {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
                 assert.strictEqual(result.every(function (item) {
-                    return item.command.command === COMMAND && item.deviceGuid === DEVICE_GUID;
+                    return item.command === COMMAND && item.deviceGuid === DEVICE_GUID;
                 }), true);
                 done();
             });
@@ -469,7 +469,7 @@ describe('REST API Device Command', function () {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
                 assert.strictEqual(result.every(function (item) {
-                    return item.command.command === COMMAND_2 && item.deviceGuid === DEVICE_GUID;
+                    return item.command === COMMAND_2 && item.deviceGuid === DEVICE_GUID;
                 }), true);
                 done();
             });
