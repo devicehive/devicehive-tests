@@ -24,7 +24,7 @@ var utils = {
 
     core: $utils,
 
-    url:  "http://" + getParam("ip") + ":" + getParam("port") + "/dh/rest" ,
+    url:  getParam("restUrl") ,
 
     admin: {
         login: 'dhadmin',
