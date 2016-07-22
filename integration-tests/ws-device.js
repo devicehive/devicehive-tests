@@ -23,7 +23,6 @@ describe('WebSocket API Device Unit', function () {
         },
         deviceClass: {
             name: DEVICE,
-            version: '1',
             isPermanent: true,
             offlineTimeout: 1234,
             data: {c: '3', d: '4'},

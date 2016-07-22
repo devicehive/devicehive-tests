@@ -81,7 +81,7 @@ describe('REST API Device Class', function () {
             var params = {user: user, id: deviceClassId};
             utils.get(path.DEVICE_CLASS, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
-                utils.matches(result, {name: DEVICE_CLASS, version: VERSION});
+                utils.matches(result, {name: DEVICE_CLASS});
                 done();
             })
         });
@@ -100,7 +100,7 @@ describe('REST API Device Class', function () {
                 var params = {accessKey: result.key, id: deviceClassId};
                 utils.get(path.DEVICE_CLASS, params, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
-                    utils.matches(result, {name: DEVICE_CLASS, version: VERSION});
+                    utils.matches(result, {name: DEVICE_CLASS});
                     done();
                 })
             })
@@ -122,7 +122,7 @@ describe('REST API Device Class', function () {
                 var params = {user: utils.admin, id: result.id};
                 utils.get(path.DEVICE_CLASS, params, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
-                    utils.matches(result, {name: DEVICE_CLASS, version: VERSION});
+                    utils.matches(result, {name: DEVICE_CLASS});
                     done();
                 })
             })
@@ -152,7 +152,7 @@ describe('REST API Device Class', function () {
             var params = {
                 user: utils.admin,
                 data: {
-                    name: utils.getName('device-class-br')
+
                 }
             };
             utils.create(path.DEVICE_CLASS, params, function (err) {

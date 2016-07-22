@@ -453,7 +453,7 @@ describe('REST API User', function () {
     });
 
     describe('#Delete', function () {
-        var cantDeleteYourselfMessage = "You can not delete current user or owner of current access key";
+        var cantDeleteYourselfMessage = "You can not delete a user or access key that you use to authenticate this request";
 
         var user = null;
 

@@ -161,8 +161,7 @@ var utils = {
             var params = {
                 user: user,
                 data: {
-                    name: name,
-                    version: version
+                    name: name
                 }
             };
 

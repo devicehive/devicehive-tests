@@ -351,8 +351,7 @@ describe('REST API Network', function () {
                         //},
                         deviceClass: {
                             id: deviceClassId,
-                            name: DEVICE,
-                            version: DEVICE_CLASS_VERSION
+                            name: DEVICE
                         }
                     }]
                 })

@@ -418,7 +418,6 @@ describe('REST API Device Unit', function () {
                     },
                     deviceClass: {
                         name: DEVICE,
-                        version: DEVICE_CLASS_VERSION,
                         equipment: [
                             {
                                 name: equipment.name,
@@ -448,8 +447,7 @@ describe('REST API Device Unit', function () {
                         },
                         deviceClass: {
                             id: deviceClassId,
-                            name: DEVICE,
-                            version: DEVICE_CLASS_VERSION
+                            name: DEVICE
                         }
                     }
                 });
@@ -496,7 +494,6 @@ describe('REST API Device Unit', function () {
                         },
                         deviceClass: {
                             name: DEVICE,
-                            version: DEVICE_CLASS_VERSION,
                             equipment: [
                                 {
                                     name: equipment.name,
@@ -564,7 +561,6 @@ describe('REST API Device Unit', function () {
                         },
                         deviceClass: {
                             name: DEVICE,
-                            version: DEVICE_CLASS_VERSION,
                             equipment: [
                                 {
                                     name: equipment.name,
@@ -633,7 +629,6 @@ describe('REST API Device Unit', function () {
                         },
                         deviceClass: {
                             name: NEW_DEVICE_CLASS,
-                            version: NEW_DEVICE_CLASS_VERSION,
                             equipment: [
                                 {
                                     name: equipment.name,
@@ -739,7 +734,6 @@ describe('REST API Device Unit', function () {
                 },
                 {
                     name: utils.getName('new-device-class-update'),
-                    version: '2',
                     equipment: [equipment]
                 });
             params.data.status = 'updated';
@@ -801,8 +795,7 @@ describe('REST API Device Unit', function () {
                             name: NETWORK
                         },
                         deviceClass: {
-                            name: DEVICE,
-                            version: DEVICE_CLASS_VERSION
+                            name: DEVICE
                         }
                     });
 
@@ -862,8 +855,7 @@ describe('REST API Device Unit', function () {
                             name: NETWORK
                         },
                         deviceClass: {
-                            name: DEVICE,
-                            version: DEVICE_CLASS_VERSION
+                            name: DEVICE
                         }
                     });
 
@@ -998,7 +990,6 @@ describe('REST API Device Unit', function () {
                         },
                         deviceClass: {
                             name: NEW_DEVICE,
-                            version: '1',
                             offlineTimeout: 10
                         }
                     });
@@ -1066,8 +1057,7 @@ describe('REST API Device Unit', function () {
                             name: NETWORK
                         },
                         deviceClass: {
-                            name: NEW_DEVICE,
-                            version: '1'
+                            name: NEW_DEVICE
                         }
                     });
 
