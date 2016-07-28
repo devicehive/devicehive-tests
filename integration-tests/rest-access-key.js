@@ -7,7 +7,7 @@ var status = require('./common/http').status;
 var req = require('./common/request');
 
 describe('REST API Access Key', function () {
-    this.timeout(30000);
+    this.timeout(90000);
 
     var helper = utils.accessKey;
     var user = null;

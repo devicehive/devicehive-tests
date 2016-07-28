@@ -6,7 +6,7 @@ var status = require('./common/http').status;
 var req = require('./common/request');
 
 describe('REST API Network', function () {
-    this.timeout(30000);
+    this.timeout(90000);
 
     var NETWORK_1 = utils.getName('network-1');
     var NETWORK_2 = utils.getName('network-2');
@@ -124,6 +124,7 @@ describe('REST API Network', function () {
                     return utils.core.isArrayNonEmpty(result);
                 })
                 .expectTrue(function (result) {
+                    console.log(networkId1);
                     return result.some(function (item) {
                         return item.id === networkId1;
                     });
@@ -159,6 +160,7 @@ describe('REST API Network', function () {
         });
 
         it('should get none of networks', function (done) {
+            console.log(accessKey2);
             req.get(path.current)
                 .params({accessKey: accessKey2})
                 .expectTrue(function (result) {
@@ -490,7 +492,7 @@ describe('REST API Network', function () {
             req.create(path.current)
                 .params({
                     user: utils.admin,
-                    data: {invalidProp: utils.getName('network-invalid')}
+                    data: {users: 'invalid', invalidProp: utils.getName('network-invalid')}
                 })
                 .expectError(status.BAD_REQUEST)
                 .send(done);

@@ -6,7 +6,7 @@ var path = require('./common/path');
 var status = require('./common/http').status;
 
 describe('REST API Device Unit', function () {
-    this.timeout(30000);
+    this.timeout(90000);
 
     var helper = utils.device;
 
@@ -1123,7 +1123,7 @@ describe('REST API Device Unit', function () {
 
         it('should fail with 400 when trying to create device with badly formed request #1', function (done) {
             var params = {user: adminWithNetwork};
-            params.data = {wrongProp: utils.getName('bad-request')};
+            params.data = {network: 'invalid', wrongProp: utils.getName('bad-request')};
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -1145,7 +1145,7 @@ describe('REST API Device Unit', function () {
         });
 
         it('should fail with 400 when trying to create device with badly formed request #3', function (done) {
-            var params = helper.getParamsObj(utils.getName('bad-request'), utils.admin, {}, {});
+            var params = helper.getParamsObj(utils.getName('bad-request'), utils.admin, 'invalid', {name: utils.getName('bad-request')});
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');

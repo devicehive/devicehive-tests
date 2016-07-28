@@ -6,7 +6,7 @@ var status = require('./common/http').status;
 var req = require('./common/request');
 
 describe('REST API OAuth Client', function () {
-    this.timeout(30000);
+    this.timeout(90000);
 
     before(function () {
         path.current = path.combine('/', 'oauth', 'client');
@@ -301,10 +301,12 @@ describe('REST API OAuth Client', function () {
 
     describe('#Bad Request', function () {
         it('should fail with 400 when specifying invalid keys in request', function (done) {
+
+            console.log(path.current);
             req.create(path.current)
                 .params({
                     user: utils.admin,
-                    data: { invalidProp: utils.getName('client-invalid') }
+                    data: { entityVersion: 'invalid', invalidProp: utils.getName('client-invalid') }
                 })
                 .expectError(status.BAD_REQUEST)
                 .send(done);

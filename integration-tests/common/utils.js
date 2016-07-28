@@ -187,11 +187,11 @@ var utils = {
 
     device: {
         getParamsObj: function (name, user, network, deviceClass, accessKey) {
-
             var params = {
                 user: user,
                 data: {
-                    name: name
+                    name: name,
+                    network: 'invalid'
                 }
             };
 
@@ -203,7 +203,7 @@ var utils = {
                 params.data.deviceClass = deviceClass;
             }
 
-            if(accessKey){
+            if (accessKey) {
                 params.accessKey = accessKey;
             }
 
@@ -378,7 +378,7 @@ var utils = {
                 }
 
                 async.eachSeries(result, function (item, cb) {
-                    if (item[name].indexOf(self.NAME_PREFIX) < 0) {
+                    if (item[name] == null || item[name].indexOf(self.NAME_PREFIX) < 0) {
                         return cb();
                     }
 

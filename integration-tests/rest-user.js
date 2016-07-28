@@ -6,7 +6,7 @@ var status = require('./common/http').status;
 var req = require('./common/request');
 
 describe('REST API User', function () {
-    this.timeout(30000);
+    this.timeout(90000);
 
     before(function () {
         path.current = path.USER;

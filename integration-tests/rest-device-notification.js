@@ -6,7 +6,7 @@ var path = require('./common/path');
 var status = require('./common/http').status;
 
 describe('REST API Device Notification', function () {
-    this.timeout(30000);
+    this.timeout(90000);
 
     var helper = utils.notification;
 

@@ -6,7 +6,7 @@ var path = require('./common/path');
 var status = require('./common/http').status;
 
 describe('REST API Device Equipment', function () {
-    this.timeout(30000);
+    this.timeout(90000);
 
     var DEVICE_GUID = utils.getName('device-guid-12345');
     var EQUIPMENT = utils.getName('device-eqpmnt');

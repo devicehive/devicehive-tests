@@ -6,7 +6,7 @@ var path = require('./common/path');
 var status = require('./common/http').status;
 
 describe('REST API Device Class', function () {
-    this.timeout(30000);
+    this.timeout(90000);
 
     var helper = utils.deviceClass;
 
@@ -152,7 +152,7 @@ describe('REST API Device Class', function () {
             var params = {
                 user: utils.admin,
                 data: {
-
+                    name: utils.getName('device-class-br')
                 }
             };
             utils.create(path.DEVICE_CLASS, params, function (err) {

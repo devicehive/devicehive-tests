@@ -7,7 +7,7 @@ var status = require('./common/http').status;
 var req = require('./common/request');
 
 describe('REST API OAuth Grant', function () {
-    this.timeout(30000);
+    this.timeout(90000);
 
     var user = null;
     var client = {

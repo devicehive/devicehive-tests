@@ -6,7 +6,7 @@ var status = require('./common/http').status;
 var req = require('./common/request');
 
 describe('REST API User Network', function () {
-    this.timeout(30000);
+    this.timeout(90000);
 
     var NETWORK = utils.getName('user-network');
     var networkId = null;
