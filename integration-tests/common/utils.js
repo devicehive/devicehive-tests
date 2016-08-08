@@ -324,6 +324,11 @@ var utils = {
         return [this.NAME_PREFIX, $for, '-', (+new Date() + '').substr(7)].join('');
     },
 
+    getInvalidName: function () {
+        //Name will be longer than constraints allow
+        return (Math.random()*1e256).toString(36)
+    },
+
     createUser2: function (role, networkIds, callback) {
 
         var self = this;

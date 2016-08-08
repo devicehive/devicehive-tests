@@ -152,7 +152,7 @@ describe('REST API Device Class', function () {
             var params = {
                 user: utils.admin,
                 data: {
-                    name: utils.getName('device-class-br')
+                    name: utils.getInvalidName()
                 }
             };
             utils.create(path.DEVICE_CLASS, params, function (err) {
