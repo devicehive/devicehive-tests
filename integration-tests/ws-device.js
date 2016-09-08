@@ -126,7 +126,8 @@ describe('WebSocket API Device Unit', function () {
                 .send(done);
         });
 
-        it('should fail when using wrong access key', function (done) {
+        //we no longer support device auth
+        it.skip('should fail when using wrong key', function (done) {
             conn2.params({
                     action: 'device/get',
                     requestId: getRequestId(),
