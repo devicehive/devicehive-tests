@@ -370,7 +370,7 @@ describe('REST API Device Notification', function () {
     describe('#Poll Many', function () {
         it('should return result with deviceGuid', function (done) {
             var params = {user: user};
-            params.query = path.query('names', NOTIFICATION, 'deviceGuid', DEVICE_GUID);
+            params.query = path.query('names', NOTIFICATION, 'deviceGuids', DEVICE_GUID);
             utils.get(path.NOTIFICATION.poll(), params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
