@@ -388,7 +388,7 @@ describe('REST API Device Command', function () {
                 utils.get(path.COMMAND.poll(), params, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
                     assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
-                    callback(err);
+                    callback(result);
                 });
             }
 
