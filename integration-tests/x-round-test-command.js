@@ -295,10 +295,14 @@ describe('Round tests for command', function () {
                     result: {done: 'yes'}
                 };
 
-                req.get(waitPath)
-                    .params({user: user})
-                    .expect(update)
-                    .send(callback);
+                utils.get(waitPath, {user: user}, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    assert.strictEqual(result.command, update.command);
+                    assert.strictEqual(result.lifetime, update.lifetime);
+                    assert.strictEqual(result.status, update.status);
+
+                    callback();
+                });
 
                 setTimeout(function () {
                     deviceConn.params({
@@ -456,10 +460,14 @@ describe('Round tests for command', function () {
                     result: {done: 'yes'}
                 };
 
-                req.get(waitPath)
-                    .params(utils.core.clone(clientAuth))
-                    .expect(update)
-                    .send(callback);
+                utils.get(waitPath, utils.core.clone(clientAuth), function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    assert.strictEqual(result.command, update.command);
+                    assert.strictEqual(result.lifetime, update.lifetime);
+                    assert.strictEqual(result.status, update.status);
+
+                    callback();
+                });
 
                 setTimeout(function () {
                     var updatePath = path.get(createPath, cmnd.id);
