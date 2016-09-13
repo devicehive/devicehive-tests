@@ -88,7 +88,7 @@ describe('WebSocket API Device Command', function () {
 
     describe('#command/subscribe', function () {
 
-        it('should subscribe to device commands, device auth', function (done) {
+        it('should subscribe to all device commands, device auth', function (done) {
             var requestId = getRequestId();
 
             device.params({
@@ -129,6 +129,54 @@ describe('WebSocket API Device Command', function () {
                             action: 'command/unsubscribe',
                             requestId: getRequestId()
                         })
+                        .send(done);
+                }
+            }
+        });
+
+        it('should subscribe to device commands for single device', function (done) {
+            var requestId = getRequestId();
+
+            device.params({
+                action: 'command/subscribe',
+                deviceGuids: [deviceId],
+                requestId: requestId
+            })
+                .expect({
+                    action: 'command/subscribe',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .send(onSubscribed);
+
+            function onSubscribed(err) {
+                if (err) {
+                    return done(err);
+                }
+
+                device.waitFor('command/insert', cleanUp)
+                    .expect({
+                        action: 'command/insert',
+                        deviceGuid: deviceId,
+                        command: { command: COMMAND }
+                    });
+
+                req.create(path.COMMAND.get(deviceId))
+                    .params({
+                        user: utils.admin,
+                        data: {command: COMMAND}
+                    })
+                    .send();
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    device.params({
+                        action: 'command/unsubscribe',
+                        requestId: getRequestId()
+                    })
                         .send(done);
                 }
             }

@@ -141,6 +141,102 @@ describe('WebSocket API Device Notification', function () {
         });
     });
 
+    describe('#notification/subscribe', function () {
+        it('should subscribe to all device notifications, device auth', function (done) {
+            var requestId = getRequestId();
+
+            device.params({
+                action: 'notification/subscribe',
+                requestId: requestId
+            })
+                .expect({
+                    action: 'notification/subscribe',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .send(onSubscribed);
+
+            function onSubscribed(err) {
+                if (err) {
+                    return done(err);
+                }
+
+                device.waitFor('notification/insert', cleanUp)
+                    .expect({
+                        action: 'notification/insert',
+                        notification: { notification: NOTIFICATION }
+                    });
+
+                req.create(path.NOTIFICATION.get(deviceId))
+                    .params({
+                        user: utils.admin,
+                        data: { notification: NOTIFICATION}
+                    })
+                    .send();
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    device.params({
+                        action: 'notification/unsubscribe',
+                        requestId: getRequestId()
+                    })
+                        .send(done);
+                }
+            }
+        });
+
+        it('should subscribe to device notifications for single device', function (done) {
+            var requestId = getRequestId();
+
+            device.params({
+                action: 'notification/subscribe',
+                deviceGuids: [deviceId],
+                requestId: requestId
+            })
+                .expect({
+                    action: 'notification/subscribe',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .send(onSubscribed);
+
+            function onSubscribed(err) {
+                if (err) {
+                    return done(err);
+                }
+
+                device.waitFor('notification/insert', cleanUp)
+                    .expect({
+                        action: 'notification/insert',
+                        deviceGuid: deviceId,
+                        notification: { notification: NOTIFICATION }
+                    });
+
+                req.create(path.NOTIFICATION.get(deviceId))
+                    .params({
+                        user: utils.admin,
+                        data: {notification: NOTIFICATION}
+                    })
+                    .send();
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    device.params({
+                        action: 'notification/unsubscribe',
+                        requestId: getRequestId()
+                    })
+                        .send(done);
+                }
+            }
+        });
+    });
+
     after(function (done) {
         device.close();
         utils.clearData(done);
