@@ -212,19 +212,20 @@ var utils = {
     },
 
     notification: {
-        getParamsObj: function (notification, user, parameters) {
+        getParamsObj: function (notification, user, parameters, timestamp) {
             return {
                 user: user,
                 data: {
                     notification: notification,
-                    parameters: parameters
+                    parameters: parameters,
+                    timestamp: timestamp
                 }
             };
         }
     },
 
     command: {
-        getParamsObj: function (command, user, parameters) {
+        getParamsObj: function (command, user, parameters, timestamp) {
             var params = {
                 user: user,
                 data: {
@@ -234,6 +235,10 @@ var utils = {
 
             if (parameters) {
                 params.data.parameters = parameters;
+            }
+
+            if (timestamp) {
+                params.data.timestamp = timestamp;
             }
 
             return params;

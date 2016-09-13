@@ -667,6 +667,20 @@ describe('REST API Device Command', function () {
                 done();
             });
         });
+
+        it('should succeed when trying to create command with timestamp', function (done) {
+            var timestamp = new Date().toISOString();
+            var params = helper.getParamsObj(COMMAND, null, null, timestamp);
+            params.accessKey = accessKey;
+            utils.create(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.userId, user.id);
+                var resultDate = new Date(result.timestamp).toISOString();
+                assert.strictEqual(resultDate, timestamp);
+
+                done();
+            });
+        });
     });
 
     describe('#Update', function () {

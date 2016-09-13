@@ -579,6 +579,19 @@ describe('REST API Device Notification', function () {
                 done();
             });
         });
+
+        it('should succeed when trying to create notification with timestamp', function (done) {
+            var timestamp = new Date().toISOString();
+            var params = helper.getParamsObj(NOTIFICATION, null, null, timestamp);
+            params.accessKey = accessKey;
+            utils.create(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                var resultDate = new Date(result.timestamp).toISOString();
+                assert.strictEqual(resultDate, timestamp);
+
+                done();
+            });
+        });
     });
 
     describe('#Update', function () {
