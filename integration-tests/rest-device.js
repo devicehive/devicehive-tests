@@ -804,7 +804,7 @@ describe('REST API Device Unit', function () {
         });
 
         it('should fail with 412 when admin without assigned networks', function (done) {
-            var params = {user: utils.admin};
+            var params = {user: nonNetworkUser};
             params.data = {status: 'modified'};
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
