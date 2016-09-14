@@ -340,6 +340,22 @@ describe('REST API Device Notification', function () {
                 var params = helper.getParamsObj(NOTIFICATION, user);
                 utils.create(path.current, params, function () {});
             }, 100);
+        });
+
+        it('should return array with notifications when poll with waitTimeout=3', function (done) {
+            var params = {user: user};
+            var $path = path.combine(path.current, path.POLL);
+            params.query = path.query('waitTimeout', 3, 'deviceGuid', DEVICE);
+            utils.get($path, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.length > 0, true);
+                done();
+            });
+
+            setTimeout(function () {
+                var params = helper.getParamsObj(NOTIFICATION, user);
+                utils.create(path.current, params, function () {});
+            }, 100);
         })
     });
 
@@ -525,7 +541,7 @@ describe('REST API Device Notification', function () {
         });
 
         it('should succeed when creating notification with allowed user', function (done) {
-            var params = helper.getParamsObj(NOTIFICATION, user);
+            var params = helper.getParamsObj(NOTIFICATION, user, {parameter1: 'SomeValue1', parameter2: 'SomeValue2'});
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), false, 'No error');
                 done();

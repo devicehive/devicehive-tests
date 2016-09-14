@@ -328,6 +328,22 @@ describe('REST API Device Command', function () {
                 var params = helper.getParamsObj(COMMAND, user);
                 utils.create(path.current, params, function () {});
             }, 100);
+        });
+
+        it('should return array with commands when poll with waitTimeout=3', function (done) {
+            var params = {user: user};
+            var $path = path.combine(path.current, path.POLL);
+            params.query = path.query('waitTimeout', 3);
+            utils.get($path, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.length > 0, true);
+                done();
+            });
+
+            setTimeout(function () {
+                var params = helper.getParamsObj(COMMAND, user);
+                utils.create(path.current, params, function () {});
+            }, 100);
         })
     });
 
@@ -611,7 +627,7 @@ describe('REST API Device Command', function () {
         });
 
         it('should succeed when creating command with allowed user', function (done) {
-            var params = helper.getParamsObj(COMMAND, user);
+            var params = helper.getParamsObj(COMMAND, user, {parameter1: 'SomeValue1', parameter2: 'SomeValue2'});
             utils.create(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 done();

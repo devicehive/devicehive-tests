@@ -397,7 +397,7 @@ describe('REST API Device Unit', function () {
 
         before(function (done) {
             var params = helper.getParamsObj(NEW_DEVICE, utils.admin,
-                {name: NETWORK}, {name: DEVICE, version: '1'});
+                {name: NETWORK}, {name: DEVICE, version: '1', offlineTimeout: 120});
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 done(err);
@@ -686,7 +686,6 @@ describe('REST API Device Unit', function () {
                     assert.strictEqual(!(!err), false, 'No error');
 
                     utils.matches(result, {
-                        offlineTimeout: null,
                         equipment: [
                             {
                                 name: equipment.name,
