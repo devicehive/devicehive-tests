@@ -86,12 +86,12 @@ describe('REST API Device Class', function () {
             })
         });
 
-        /* should be admin user and admin accessKey with ManageDeviceClass permission */
+        /* should be admin user and admin accessKey with GetDeviceClass permission */
         it('should allow access key authorization', function (done) {
             var expDate = new Date();
             expDate.setFullYear(expDate.getFullYear() + 10);
             var params = utils.accessKey.getParamsObj(
-                utils.getName('device-class-ak'), utils.admin, expDate, void 0, void 0, ['ManageDeviceClass']);
+                utils.getName('device-class-ak'), utils.admin, expDate, void 0, void 0, ['GetDeviceClass']);
             utils.create(path.CURRENT_ACCESS_KEY, params, function (err, result) {
                 if (err) {
                     return done(err);
