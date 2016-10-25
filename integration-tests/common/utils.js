@@ -34,27 +34,78 @@ var utils = {
 
     loggingOff: false,
 
-    accessKey: {
-
-        admin: "1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=",
+    jwt: {
+        admin: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyJHZXROZXR3b3JrIiwiR2V0RGV2aWNlIiwiR2V0RGV2aWNlU3RhdGUiLCJHZXREZXZpY2VOb3RpZmljYXRpb24iLCJHZXREZXZpY2VDb21tYW5kIiwiR2V0RGV2aWNlQ2xhc3MiLCJSZWdpc3RlckRldmljZSIsIkNyZWF0ZURldmljZU5vdGlmaWNhdGlvbiIsIkNyZWF0ZURldmljZUNvbW1hbmQiLCJVcGRhdGVEZXZpY2VDb21tYW5kIiwiR2V0Q3VycmVudFVzZXIiLCJVcGRhdGVDdXJyZW50VXNlciIsIk1hbmFnZUFjY2Vzc0tleSIsIk1hbmFnZU9BdXRoR3JhbnQiLCJNYW5hZ2VVc2VyIiwiTWFuYWdlRGV2aWNlQ2xhc3MiLCJNYW5hZ2VOZXR3b3JrIiwiTWFuYWdlT0F1dGhDbGllbnQiLCJNYW5hZ2VUb2tlbiJdLCJuZXR3b3JrSWRzIjpbIioiXSwiZGV2aWNlR3VpZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNDgxOTY5NjAyNzMyfX0.0tpY32Mu7VDxKW83RAPae3T_daejpVHovcvoJHJLgz0',
 
         createMany: function (params, done) {
-
-            function createAccessKey(callback) {
-                var p = params.shift();
-                utils.accessKey.create(p.user, p.label, p.actions, p.deviceIds, p.networkIds,
+            var paramsCopy = params.slice(0);
+            function createJWT(callback) {
+                var p = paramsCopy.shift();
+                utils.jwt.create(p.user.id, p.actions, p.networkIds, p.deviceIds,
                     function (err, result) {
                         if (err) {
                             callback(err);
                         }
 
-                        callback(null, result.key);
+                        callback(null, result.jwt_token);
                     });
             }
 
             var callbacks = [];
+            for (var i = 0; i < paramsCopy.length; i++) {
+                callbacks.push(createJWT);
+            }
+
+            async.series(callbacks, done);
+        },
+
+        create: function (userId, actions, networkIds, deviceIds, callback) {
+
+            if (actions && !Array.isArray(actions)) {
+                actions = [actions];
+            }
+
+            if (networkIds && !Array.isArray(networkIds)) {
+                networkIds = [networkIds];
+            }
+
+            if (deviceIds && !Array.isArray(deviceIds)) {
+                deviceIds = [deviceIds];
+            }
+
+            var expDate = new Date();
+            expDate.setFullYear(expDate.getFullYear() + 10);
+
+            utils.create(path.JWT, {jwt: utils.jwt.admin, data: {userId: userId, actions: actions, networkIds: networkIds, deviceGuids: deviceIds, expiration: expDate }}, callback);
+        }
+    },
+
+    accessKey: {
+
+        admin: "1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=",
+
+        createMany: function (params, done) {
+            var paramsCopy = params.slice(0);
+
+            function createAccessKey(callback) {
+                var p = paramsCopy.shift();
+                setTimeout(function () {
+                    utils.accessKey.create(p.user, p.label, p.actions, p.deviceIds, p.networkIds,
+                        function (err, result) {
+                            if (err) {
+                                callback(err);
+                            }
+
+                            callback(null, result.key);
+                        })
+                }, 10);
+            }
+
+            var callbacks = [];
             for (var i = 0; i < params.length; i++) {
-                callbacks.push(createAccessKey);
+                callbacks.push(
+                    createAccessKey
+                );
             }
 
             async.series(callbacks, done);
@@ -326,7 +377,7 @@ var utils = {
     },
 
     getName: function ($for) {
-        return [this.NAME_PREFIX, $for, '-', (+new Date() + '').substr(7)].join('');
+        return [this.NAME_PREFIX, $for, '-', (+new Date() + '')].join('');
     },
 
     getInvalidName: function () {
@@ -393,6 +444,66 @@ var utils = {
                     }
 
                     utils.delete(path, {user: utils.admin, id: item.id}, cb);
+                }, callback)
+            });
+        }
+
+        function clearAccessKeys(callback) {
+            clearEntities(path.CURRENT_ACCESS_KEY, 'label', callback);
+        }
+
+        function clearUsers(callback) {
+            clearEntities(path.USER, 'login', callback);
+        }
+
+        function clearDevices(callback) {
+            clearEntities(path.DEVICE, 'name', callback);
+        }
+
+        function clearDeviceClasses(callback) {
+            clearEntities(path.DEVICE_CLASS, 'name', callback);
+        }
+
+        function clearNetworks(callback) {
+            clearEntities(path.NETWORK, 'name', callback);
+        }
+
+        function clearOAuthClients(callback) {
+            clearEntities(path.combine('/', 'oauth', 'client'), 'name', callback);
+        }
+
+        self.loggingOff = true;
+        async.series([
+            clearAccessKeys,
+            clearUsers,
+            clearDevices,
+            clearDeviceClasses,
+            clearNetworks,
+            clearOAuthClients
+        ], function (err) {
+            if (err) {
+                done(err);
+            }
+            self.loggingOff = false;
+            done();
+        });
+    },
+
+    clearDataJWT: function (done) {
+
+        var self = this;
+        function clearEntities(path, name, callback) {
+            utils.get(path, {jwt: utils.jwt.admin}, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                async.eachSeries(result, function (item, cb) {
+                    if (item[name] == null || item[name].indexOf(self.NAME_PREFIX) < 0) {
+                        return cb();
+                    }
+
+                    utils.delete(path, {jwt: utils.jwt.admin, id: item.id}, cb);
                 }, callback)
             });
         }

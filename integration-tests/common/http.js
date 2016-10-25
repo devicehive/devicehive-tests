@@ -97,6 +97,9 @@ Http.prototype = {
             this.log('-> device: \'%s\'', JSON.stringify(params.device));
             xhr.setRequestHeader('Auth-DeviceID', params.device.id);
             xhr.setRequestHeader('Auth-DeviceKey', params.device.key);
+        } else if (params.jwt) {
+            this.log('-> jwt: \'%s\'', params.jwt);
+            xhr.setRequestHeader('Authorization', 'Bearer ' + params.jwt);
         }
 
         if (jsonData) {
