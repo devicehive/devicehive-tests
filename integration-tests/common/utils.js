@@ -237,7 +237,7 @@ var utils = {
     },
 
     device: {
-        getParamsObj: function (name, user, network, deviceClass, accessKey) {
+        getParamsObj: function (name, user, network, deviceClass, accessKey, jwt) {
             var params = {
                 user: user,
                 data: {
@@ -256,6 +256,10 @@ var utils = {
 
             if (accessKey) {
                 params.accessKey = accessKey;
+            }
+
+            if (jwt) {
+                params.jwt = jwt;
             }
 
             return params;
