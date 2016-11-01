@@ -10,13 +10,8 @@ describe('WebSocket API Client Authentication', function () {
     var url = null;
 
     var user = null;
-    var accessKey = null;
-
-    var invalidUser = {
-        login: 'invalidUser',
-        password: 'invalidPass'
-    };
-    var invalidAccessKey = 'qwertyuiopasdfghjklzxcvbnm1234567890ASDFGHJ=';
+    var token = null;
+    var invalidToken = 'invalidToken';
 
     var NETWORK = utils.getName('ws-client-network');
     var NETWORK_KEY = utils.getName('ws-client-network-key');
@@ -27,7 +22,7 @@ describe('WebSocket API Client Authentication', function () {
 
         function getWsUrl(callback) {
 
-            req.get(path.INFO).params({user: utils.admin}).send(function (err, result) {
+            req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -38,7 +33,7 @@ describe('WebSocket API Client Authentication', function () {
 
         function createNetwork(callback) {
             var params = {
-                user: utils.admin,
+                jwt: utils.jwt.admin,
                 data: { name: NETWORK, key: NETWORK_KEY }
             };
 
@@ -63,9 +58,8 @@ describe('WebSocket API Client Authentication', function () {
             });
         }
 
-        function createAccessKey(callback) {
+        function createToken(callback) {
             var args = {
-                label: utils.getName('ws-access-key'),
                 actions: [
                     'GetDeviceNotification',
                     'GetDeviceCommand',
@@ -73,30 +67,29 @@ describe('WebSocket API Client Authentication', function () {
                     'CreateDeviceCommand',
                     'UpdateDeviceCommand'
                 ],
-                networkIds: networkId
+                networkIds: networkId,
+                deviceGuid: void 0
             };
-            utils.accessKey.create(utils.admin, args.label, args.actions, void 0, args.networkIds,
-                function (err, result) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    accessKey = result.key;
-                    callback();
-                })
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceGuid, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+                token = result.access_token;
+                callback()
+            })
         }
 
         async.series([
             getWsUrl,
             createNetwork,
             createUser,
-            createAccessKey
+            createToken
         ], done);
     });
 
     describe('#authenticate', function () {
 
-        it('should authenticate using login and password', function (done) {
+        it('should authenticate using jwt', function (done) {
             var client = null;
             var requestId = getRequestId();
 
@@ -107,11 +100,10 @@ describe('WebSocket API Client Authentication', function () {
 
             function runTest(callback) {
                 client.params({
-                        action: 'authenticate',
-                        requestId: requestId,
-                        login:  user.login,
-                        password: user.password
-                    })
+                    action: 'authenticate',
+                    requestId: requestId,
+                    token: token
+                })
                     .expect({
                         action: 'authenticate',
                         status: 'success',
@@ -132,42 +124,7 @@ describe('WebSocket API Client Authentication', function () {
             });
         });
 
-        it('should authenticate using access key', function (done) {
-            var client = null;
-            var requestId = getRequestId();
-
-            function createConnection(callback) {
-                client = new Websocket(url, 'client');
-                client.connect(callback);
-            }
-
-            function runTest(callback) {
-                client.params({
-                        action: 'authenticate',
-                        requestId: requestId,
-                        accessKey:  accessKey
-                    })
-                    .expect({
-                        action: 'authenticate',
-                        status: 'success',
-                        requestId: requestId
-                    })
-                    .send(callback);
-            }
-
-            async.series([
-                createConnection,
-                runTest
-            ], function (err) {
-                if (client) {
-                    client.close();
-                }
-
-                done(err);
-            });
-        });
-
-        it('should return error when using invalid login and password', function (done) {
+        it('should return error when using invalid jwt', function (done) {
             var client = null;
 
             function createConnection(callback) {
@@ -177,41 +134,10 @@ describe('WebSocket API Client Authentication', function () {
 
             function runTest(callback) {
                 client.params({
-                        action: 'authenticate',
-                        requestId: getRequestId(),
-                        login:  invalidUser.login,
-                        password: invalidUser.password
-                    })
-                    .expectError(401, 'Invalid credentials')
-                    .send(callback);
-            }
-
-            async.series([
-                createConnection,
-                runTest
-            ], function (err) {
-                if (client) {
-                    client.close();
-                }
-
-                done(err);
-            });
-        });
-
-        it('should return error when using invalid access key', function (done) {
-            var client = null;
-
-            function createConnection(callback) {
-                client = new Websocket(url, 'client');
-                client.connect(callback);
-            }
-
-            function runTest(callback) {
-                client.params({
-                        action: 'authenticate',
-                        requestId: getRequestId(),
-                        accessKey:  invalidAccessKey
-                    })
+                    action: 'authenticate',
+                    requestId: getRequestId(),
+                    token:  invalidToken
+                })
                     .expectError(401, 'Invalid credentials')
                     .send(callback);
             }
@@ -230,6 +156,6 @@ describe('WebSocket API Client Authentication', function () {
     });
 
     after(function (done) {
-        utils.clearData(done);
+        utils.clearDataJWT(done);
     });
 });

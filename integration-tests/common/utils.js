@@ -28,14 +28,15 @@ var utils = {
 
     admin: {
         login: 'dhadmin',
-        password: 'dhadmin_#911'
+        password: 'dhadmin_#911',
+        id:1
         //password: 'Password1@'
     },
 
     loggingOff: false,
 
     jwt: {
-        admin: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyJHZXROZXR3b3JrIiwiR2V0RGV2aWNlIiwiR2V0RGV2aWNlU3RhdGUiLCJHZXREZXZpY2VOb3RpZmljYXRpb24iLCJHZXREZXZpY2VDb21tYW5kIiwiR2V0RGV2aWNlQ2xhc3MiLCJSZWdpc3RlckRldmljZSIsIkNyZWF0ZURldmljZU5vdGlmaWNhdGlvbiIsIkNyZWF0ZURldmljZUNvbW1hbmQiLCJVcGRhdGVEZXZpY2VDb21tYW5kIiwiR2V0Q3VycmVudFVzZXIiLCJVcGRhdGVDdXJyZW50VXNlciIsIk1hbmFnZUFjY2Vzc0tleSIsIk1hbmFnZU9BdXRoR3JhbnQiLCJNYW5hZ2VVc2VyIiwiTWFuYWdlRGV2aWNlQ2xhc3MiLCJNYW5hZ2VOZXR3b3JrIiwiTWFuYWdlT0F1dGhDbGllbnQiLCJNYW5hZ2VUb2tlbiJdLCJuZXR3b3JrSWRzIjpbIioiXSwiZGV2aWNlR3VpZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNDgxOTY5NjAyNzMyfX0.0tpY32Mu7VDxKW83RAPae3T_daejpVHovcvoJHJLgz0',
+        admin: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VHdWlkcyI6WyIqIl0sImV4cGlyYXRpb24iOjE0OTM2NTA5NTg4NDAsInRva2VuVHlwZSI6IkFDQ0VTUyJ9fQ.0fbLviLytYSrVv0EHCvvJrdhrQ33cHgOe5QZj5s3vz8',
 
         createMany: function (params, done) {
             var paramsCopy = params.slice(0);
@@ -47,7 +48,7 @@ var utils = {
                             callback(err);
                         }
 
-                        callback(null, result.jwt_token);
+                        callback(null, result.access_token);
                     });
             }
 
@@ -207,10 +208,10 @@ var utils = {
                 });
         },
 
-        getParamsObj: function (name, user, version, isPermanent, offlineTimeout, equipment, data) {
+        getParamsObj: function (name, jwt, version, isPermanent, offlineTimeout, equipment, data) {
 
             var params = {
-                user: user,
+                jwt: jwt,
                 data: {
                     name: name
                 }
@@ -237,9 +238,9 @@ var utils = {
     },
 
     device: {
-        getParamsObj: function (name, user, network, deviceClass, accessKey, jwt) {
+        getParamsObj: function (name, jwt, network, deviceClass) {
             var params = {
-                user: user,
+                jwt: jwt,
                 data: {
                     name: name,
                     network: 'invalid'
@@ -252,10 +253,6 @@ var utils = {
 
             if (deviceClass) {
                 params.data.deviceClass = deviceClass;
-            }
-
-            if (accessKey) {
-                params.accessKey = accessKey;
             }
 
             if (jwt) {
@@ -316,7 +313,7 @@ var utils = {
     },
 
     get: function ($path, params, cb, responseStatus) {
-        if(!responseStatus){responseStatus = status.EXPECTED_READ};
+        if(!responseStatus){responseStatus = status.EXPECTED_READ}
         new Http(this.url, path.get($path, params.id, params.query), this.loggingOff)
             .get(params, function (err, result, xhr) {
                 if (err) {
@@ -366,7 +363,7 @@ var utils = {
     createUser: function (login, password, role, status, callback) {
 
         var params = {
-            user: this.admin,
+            jwt: this.jwt.admin,
             data: {
                 login: login,
                 password: password,
@@ -411,7 +408,7 @@ var utils = {
             user.id = result.id;
             async.eachSeries(networkIds,
                 function (networkId, cb) {
-                    var params = { user: self.admin };
+                    var params = { jwt: self.jwt.admin };
                     var $path = path.combine(path.USER, user.id, path.NETWORK, networkId);
                     new Http(self.url, $path)
                         .put(params, function (err, result, xhr) {
@@ -512,10 +509,6 @@ var utils = {
             });
         }
 
-        function clearAccessKeys(callback) {
-            clearEntities(path.CURRENT_ACCESS_KEY, 'label', callback);
-        }
-
         function clearUsers(callback) {
             clearEntities(path.USER, 'login', callback);
         }
@@ -538,7 +531,6 @@ var utils = {
 
         self.loggingOff = true;
         async.series([
-            clearAccessKeys,
             clearUsers,
             clearDevices,
             clearDeviceClasses,

@@ -15,7 +15,7 @@ describe('WebSocket API Device Command', function () {
     var COMMAND = utils.getName('ws-command');
 
     var deviceId = utils.getName('ws-device-cmd-id');
-    var accessKey= null;
+    var token= null;
 
     var device = null;
 
@@ -27,7 +27,7 @@ describe('WebSocket API Device Command', function () {
 
         function getWsUrl(callback) {
 
-            req.get(path.INFO).params({user: utils.admin}).send(function (err, result) {
+            req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -38,27 +38,28 @@ describe('WebSocket API Device Command', function () {
 
         function createDevice(callback) {
             req.update(path.get(path.DEVICE, deviceId))
-                .params(utils.device.getParamsObj(DEVICE, utils.admin,
+                .params(utils.device.getParamsObj(DEVICE, utils.jwt.admin,
                     {name: NETWORK}, {name: DEVICE, version: '1'}))
                 .send(callback);
         }
 
-        function createAccessKey(callback) {
+        function createToken(callback) {
             var args = {
-                label: utils.getName('ws-access-key'),
                 actions: [
                     'GetDeviceCommand',
                     'CreateDeviceCommand',
                     'UpdateDeviceCommand'
-                ]
+                ],
+                deviceIds: void 0,
+                networkIds: void 0
             };
-            utils.accessKey.create(utils.admin, args.label, args.actions, void 0, args.networkIds,
+            utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceIds,
                 function (err, result) {
                     if (err) {
                         return callback(err);
                     }
 
-                    accessKey = result.key;
+                    token = result.access_token;
                     callback();
                 })
         }
@@ -72,7 +73,7 @@ describe('WebSocket API Device Command', function () {
             device.params({
                     action: 'authenticate',
                     requestId: getRequestId(),
-                    accessKey: accessKey
+                    token: token
                 })
                 .send(callback);
         }
@@ -80,7 +81,7 @@ describe('WebSocket API Device Command', function () {
         async.series([
             getWsUrl,
             createDevice,
-            createAccessKey,
+            createToken,
             createConn,
             authenticateConn
         ], done);
@@ -115,7 +116,7 @@ describe('WebSocket API Device Command', function () {
 
                 req.create(path.COMMAND.get(deviceId))
                     .params({
-                        user: utils.admin,
+                        jwt: utils.jwt.admin,
                         data: {command: COMMAND}
                     })
                     .send();
@@ -163,7 +164,7 @@ describe('WebSocket API Device Command', function () {
 
                 req.create(path.COMMAND.get(deviceId))
                     .params({
-                        user: utils.admin,
+                        jwt: utils.jwt.admin,
                         data: {command: COMMAND}
                     })
                     .send();
@@ -224,7 +225,7 @@ describe('WebSocket API Device Command', function () {
 
                 req.create(path.COMMAND.get(deviceId))
                     .params({
-                        user: utils.admin,
+                        jwt: utils.jwt.admin,
                         data: {command: COMMAND}
                     })
                     .send();
@@ -238,7 +239,7 @@ describe('WebSocket API Device Command', function () {
         before(function (done) {
             req.create(path.COMMAND.get(deviceId))
                 .params({
-                    user: utils.admin,
+                    jwt: utils.jwt.admin,
                     data: {command: COMMAND}
                 })
                 .send(function (err, result) {
@@ -251,7 +252,7 @@ describe('WebSocket API Device Command', function () {
                 });
         });
 
-        it('should update existing command, access key auth', function (done) {
+        it('should update existing command, jwt auth', function (done) {
 
             var update = {
                 command: COMMAND + '-UPD',
@@ -310,7 +311,7 @@ describe('WebSocket API Device Command', function () {
 
                 req.create(path.COMMAND.get(deviceId))
                     .params({
-                        user: utils.admin,
+                        jwt: utils.jwt.admin,
                         data: command
                     })
                     .send();
@@ -346,7 +347,7 @@ describe('WebSocket API Device Command', function () {
 
             req.create(path.COMMAND.get(deviceId))
                 .params({
-                    user: utils.admin,
+                    jwt: utils.jwt.admin,
                     data: command
                 })
                 .send();
@@ -355,6 +356,6 @@ describe('WebSocket API Device Command', function () {
 
     after(function (done) {
         device.close();
-        utils.clearData(done);
+        utils.clearDataJWT(done);
     });
 });
