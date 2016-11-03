@@ -131,7 +131,7 @@ describe('WebSocket API Device Notification', function () {
                 .send(done);
         });
 
-        it.skip('should fail when using wrong deviceGuid', function (done) {
+        it('should fail when using wrong deviceGuid', function (done) {
             device.params({
                     action: 'notification/insert',
                     requestId: getRequestId(),

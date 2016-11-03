@@ -5,7 +5,7 @@ var path = require('./common/path');
 var status = require('./common/http').status;
 var req = require('./common/request');
 
-describe('REST API OAuth Client', function () {
+describe.skip('REST API OAuth Client', function () {
     this.timeout(90000);
 
     before(function () {
@@ -246,7 +246,7 @@ describe('REST API OAuth Client', function () {
         });
 
         it('should partially update existing client', function (done) {
-            var update = {subnet: '127.0.0.0/24'}
+            var update = {subnet: '127.0.0.0/24'};
             req.update(path.current)
                 .params({user: utils.admin, id: client.id, data: update})
                 .send(function (err) {

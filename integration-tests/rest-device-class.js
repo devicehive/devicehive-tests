@@ -15,14 +15,14 @@ describe('REST API Device Class', function () {
         var DEVICE_CLASS = utils.getName('device-class');
 
         before(function (done) {
-            var params = helper.getParams(DEVICE_CLASS, utils.admin, '1');
+            var params = helper.getParams(DEVICE_CLASS, utils.jwt.admin, '1');
             utils.create(path.DEVICE_CLASS, params, function (err) {
                 done(err);
             })
         });
 
-        it('should get when using admin authorization', function (done) {
-            utils.get(path.DEVICE_CLASS, {user: utils.admin}, function (err, result) {
+        it('should get when using admin jwt', function (done) {
+            utils.get(path.DEVICE_CLASS, {jwt: utils.jwt.admin}, function (err, result) {
                 if (err) {
                     return done(err);
                 }
@@ -45,6 +45,7 @@ describe('REST API Device Class', function () {
         var VERSION = '1';
         var user = null;
         var deviceClassId = null;
+        var jwt = null;
 
         before(function (done) {
 
@@ -60,7 +61,7 @@ describe('REST API Device Class', function () {
             }
 
             function createDeviceClass(callback) {
-                var params = helper.getParams(DEVICE_CLASS, utils.admin, VERSION);
+                var params = helper.getParams(DEVICE_CLASS, utils.jwt.admin, VERSION);
                 utils.create(path.DEVICE_CLASS, params, function (err, result) {
                     if (err) {
                         return callback(err);
@@ -71,55 +72,46 @@ describe('REST API Device Class', function () {
                 })
             }
 
+            function createJWT(callback) {
+                utils.jwt.create(user.id, 'GetDeviceClass', void 0, void 0, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    jwt = result.access_token;
+                    callback()
+                })
+            }
+
             async.series([
                 createUser,
-                createDeviceClass
+                createDeviceClass,
+                createJWT
             ], done);
         });
 
-        it('should get device class for user', function (done) {
-            var params = {user: user, id: deviceClassId};
+        it('should get device class', function (done) {
+            var params = {jwt: jwt, id: deviceClassId};
             utils.get(path.DEVICE_CLASS, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 utils.matches(result, {name: DEVICE_CLASS});
                 done();
             })
         });
-
-        /* should be admin user and admin accessKey with GetDeviceClass permission */
-        it('should allow access key authorization', function (done) {
-            var expDate = new Date();
-            expDate.setFullYear(expDate.getFullYear() + 10);
-            var params = utils.accessKey.getParamsObj(
-                utils.getName('device-class-ak'), utils.admin, expDate, void 0, void 0, ['GetDeviceClass']);
-            utils.create(path.CURRENT_ACCESS_KEY, params, function (err, result) {
-                if (err) {
-                    return done(err);
-                }
-
-                var params = {accessKey: result.key, id: deviceClassId};
-                utils.get(path.DEVICE_CLASS, params, function (err, result) {
-                    assert.strictEqual(!(!err), false, 'No error');
-                    utils.matches(result, {name: DEVICE_CLASS});
-                    done();
-                })
-            })
-        })
     });
 
     describe('#Create', function () {
 
-        it('should create device class with user credentials', function (done) {
+        it('should create device class with admin credentials', function (done) {
             var DEVICE_CLASS = utils.getName('device-class-2');
             var VERSION = '1';
 
-            var params = helper.getParams(DEVICE_CLASS, utils.admin, VERSION);
+            var params = helper.getParams(DEVICE_CLASS, utils.jwt.admin, VERSION);
             utils.create(path.DEVICE_CLASS, params, function (err, result) {
                 if (err) {
                     return done(err);
                 }
 
-                var params = {user: utils.admin, id: result.id};
+                var params = {jwt: utils.jwt.admin, id: result.id};
                 utils.get(path.DEVICE_CLASS, params, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
                     utils.matches(result, {name: DEVICE_CLASS});
@@ -132,13 +124,13 @@ describe('REST API Device Class', function () {
             var DEVICE_CLASS = utils.getName('device-class-3');
             var VERSION = '1';
 
-            var params = helper.getParams(DEVICE_CLASS, utils.admin, VERSION);
+            var params = helper.getParams(DEVICE_CLASS, utils.jwt.admin, VERSION);
             utils.create(path.DEVICE_CLASS, params, function (err) {
                 if (err) {
                     return done(err);
                 }
 
-                var params = helper.getParams(DEVICE_CLASS, utils.admin, VERSION);
+                var params = helper.getParams(DEVICE_CLASS, utils.jwt.admin, VERSION);
                 utils.create(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'DeviceClass cannot be created. Device class with such name and version already exists');
@@ -150,7 +142,7 @@ describe('REST API Device Class', function () {
 
         it('should return bad request', function (done) {
             var params = {
-                user: utils.admin,
+                jwt: utils.jwt.admin,
                 data: {
                     name: utils.getInvalidName()
                 }
@@ -168,7 +160,7 @@ describe('REST API Device Class', function () {
         var deviceClassId = null;
 
         before(function (done) {
-            var params = helper.getParamsObj(utils.getName('device-class-4'), utils.admin, '1');
+            var params = helper.getParamsObj(utils.getName('device-class-4'), utils.jwt.admin, '1');
             utils.create(path.DEVICE_CLASS, params, function (err, result) {
                 if (err) {
                     return done(err);
@@ -180,7 +172,7 @@ describe('REST API Device Class', function () {
         });
 
         it('should update using admin authorization', function (done) {
-            var params = helper.getParamsObj(utils.getName('device-class-4-upd-1'), utils.admin, '2', true, 3600,
+            var params = helper.getParamsObj(utils.getName('device-class-4-upd-1'), utils.jwt.admin, '2', true, 3600,
                 {
                     name: utils.getName('eqpmnt-1'),
                     type: utils.getName('type-1'),
@@ -194,7 +186,7 @@ describe('REST API Device Class', function () {
                     return done(err);
                 }
 
-                var params = {user: utils.admin, id: deviceClassId};
+                var params = {jwt: utils.jwt.admin, id: deviceClassId};
                 utils.get(path.DEVICE_CLASS, params, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
                     utils.matches(result, update);
@@ -205,7 +197,7 @@ describe('REST API Device Class', function () {
 
         it('should partially update using admin authorization', function (done) {
 
-            var params = helper.getParamsObj(utils.getName('device-class-4-upd-2'), utils.admin, '3', false);
+            var params = helper.getParamsObj(utils.getName('device-class-4-upd-2'), utils.jwt.admin, '3', false);
             params.id = deviceClassId;
             var update = params.data;
 
@@ -214,7 +206,7 @@ describe('REST API Device Class', function () {
                     return done(err);
                 }
 
-                var params = {user: utils.admin, id: deviceClassId};
+                var params = {jwt: utils.jwt.admin, id: deviceClassId};
                 utils.get(path.DEVICE_CLASS, params, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
                     utils.matches(result, update);
@@ -226,14 +218,14 @@ describe('REST API Device Class', function () {
 
     describe('#Delete', function () {
         it('should delete device class using admin authorization', function (done) {
-            var params = helper.getParamsObj(utils.getName('device-class-5'), utils.admin, '1');
+            var params = helper.getParamsObj(utils.getName('device-class-5'), utils.jwt.admin, '1');
             utils.create(path.DEVICE_CLASS, params, function (err, result) {
                 if (err) {
                     return done(err);
                 }
 
                 var deviceClassId = result.id;
-                var params = {user: utils.admin, id: deviceClassId};
+                var params = {jwt: utils.jwt.admin, id: deviceClassId};
                 utils.delete(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), false, 'No error');
 
@@ -305,20 +297,39 @@ describe('REST API Device Class', function () {
 
         describe('#Another User Authorization', function () {
             var user = null;
+            var jwt = null;
 
             before(function (done) {
-                utils.createUser2(1, void 0, function (err, result) {
-                    if (err) {
-                        return done(err);
-                    }
 
-                    user = result.user;
-                    done();
-                })
+                function createUser(callback) {
+                    utils.createUser2(1, void 0, function (err, result) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        user = result.user;
+                        callback();
+                    })
+                }
+
+                function createJWT(callback) {
+                    utils.jwt.create(user.id, 'GetDeviceClass', void 0, void 0, function (err, result) {
+                        if (err) {
+                            return callback(err);
+                        }
+                        jwt = result.access_token;
+                        callback()
+                    })
+                }
+
+                async.series([
+                    createUser,
+                    createJWT
+                ], done);
             });
 
             it('should return error when accessing device class with another user', function (done) {
-                var params = {user: user};
+                var params = {jwt: jwt};
                 utils.get(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'Unauthorized');
@@ -349,7 +360,7 @@ describe('REST API Device Class', function () {
             });
 
             it('should return error when deleting non-existing device class', function (done) {
-                var params = {user: user, id: utils.NON_EXISTING_ID};
+                var params = {jwt: jwt, id: utils.NON_EXISTING_ID};
                 utils.delete(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'Unauthorized');
@@ -363,7 +374,7 @@ describe('REST API Device Class', function () {
     describe('#Not Found', function () {
 
         it('should return error when accessing non-existing device class', function (done) {
-            var params = {user: utils.admin, id: utils.NON_EXISTING_ID };
+            var params = {jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID };
             utils.get(path.DEVICE_CLASS, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, format('DeviceClass with id = %d not found',
@@ -374,7 +385,7 @@ describe('REST API Device Class', function () {
         });
 
         it('should return error when updating non-existing device class', function (done) {
-            var params = helper.getParamsObj(utils.getName('update-non-existing'), utils.admin, '1');
+            var params = helper.getParamsObj(utils.getName('update-non-existing'), utils.jwt.admin, '1');
             params.id = utils.NON_EXISTING_ID;
             utils.update(path.DEVICE_CLASS, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -386,7 +397,7 @@ describe('REST API Device Class', function () {
         });
 
         it('should not return error when deleting non-existing device class', function (done) {
-            var params = {user: utils.admin, id: utils.NON_EXISTING_ID};
+            var params = {jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID};
             utils.delete(path.DEVICE_CLASS, params, function (err) {
                 assert.strictEqual(!(!err), false, 'No error');
                 done();
@@ -395,6 +406,6 @@ describe('REST API Device Class', function () {
     });
 
     after(function (done) {
-        utils.clearData(done);
+        utils.clearDataJWT(done);
     })
 });

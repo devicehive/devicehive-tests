@@ -36,8 +36,8 @@ var utils = {
     loggingOff: false,
 
     jwt: {
-        admin: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VHdWlkcyI6WyIqIl0sImV4cGlyYXRpb24iOjE0OTM2NTA5NTg4NDAsInRva2VuVHlwZSI6IkFDQ0VTUyJ9fQ.0fbLviLytYSrVv0EHCvvJrdhrQ33cHgOe5QZj5s3vz8',
-
+        admin: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VHdWlkcyI6WyIqIl0sImV4cGlyYXRpb24iOjE0OTM4MTU3Njc3MzcsInRva2VuVHlwZSI6IkFDQ0VTUyJ9fQ.pxzIS0cNnZ3Vbuvz6JemSh0JEeU2iKio3xrDdlc-ImA',
+        admin_refresh: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VHdWlkcyI6WyIqIl0sImV4cGlyYXRpb24iOjE0OTM4MTk1NjI5NjMsInRva2VuVHlwZSI6IlJFRlJFU0gifX0.rGWqfXT7ujtVWfBj7blZ4Ldr3v2J9Edvu5Qxr_poirA',
         createMany: function (params, done) {
             var paramsCopy = params.slice(0);
             function createJWT(callback) {
@@ -49,6 +49,28 @@ var utils = {
                         }
 
                         callback(null, result.access_token);
+                    });
+            }
+
+            var callbacks = [];
+            for (var i = 0; i < paramsCopy.length; i++) {
+                callbacks.push(createJWT);
+            }
+
+            async.series(callbacks, done);
+        },
+
+        createManyRefresh: function (params, done) {
+            var paramsCopy = params.slice(0);
+            function createJWT(callback) {
+                var p = paramsCopy.shift();
+                utils.jwt.create(p.user.id, p.actions, p.networkIds, p.deviceIds,
+                    function (err, result) {
+                        if (err) {
+                            callback(err);
+                        }
+
+                        callback(null, result.refresh_token);
                     });
             }
 
@@ -199,8 +221,8 @@ var utils = {
 
     deviceClass: {
 
-        getParams: function (name, user, version) {
-            return this.getParamsObj(name, user, version, void 0, 3600,
+        getParams: function (name, jwt, version) {
+            return this.getParamsObj(name, jwt, version, void 0, 3600,
                 {
                     name: utils.getName('eqpmnt'),
                     type: utils.getName('type'),
@@ -264,9 +286,9 @@ var utils = {
     },
 
     notification: {
-        getParamsObj: function (notification, user, parameters, timestamp) {
+        getParamsObj: function (notification, jwt, parameters, timestamp) {
             return {
-                user: user,
+                jwt: jwt,
                 data: {
                     notification: notification,
                     parameters: parameters,
@@ -277,9 +299,9 @@ var utils = {
     },
 
     command: {
-        getParamsObj: function (command, user, parameters, timestamp) {
+        getParamsObj: function (command, jwt, parameters, timestamp) {
             var params = {
-                user: user,
+                jwt: jwt,
                 data: {
                     command: command
                 }

@@ -6,7 +6,7 @@ var path = require('./common/path');
 var status = require('./common/http').status;
 var req = require('./common/request');
 
-describe('REST API OAuth Grant', function () {
+describe.skip('REST API OAuth Grant', function () {
     this.timeout(90000);
 
     var user = null;
