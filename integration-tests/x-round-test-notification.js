@@ -114,9 +114,10 @@ describe('Round tests for notification', function () {
                     'GetDeviceNotification',
                     'CreateDeviceNotification'
                 ],
-                networkIds: networkId
+                networkIds: networkId,
+                deviceGuids: deviceId
             };
-            utils.jwt.create(utils.admin.id, args.actions, args.networkIds, void 0,
+            utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceGuids,
                 function (err, result) {
                     if (err) {
                         return callback(err);

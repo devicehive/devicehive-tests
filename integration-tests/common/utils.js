@@ -38,6 +38,8 @@ var utils = {
     jwt: {
         admin: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VHdWlkcyI6WyIqIl0sImV4cGlyYXRpb24iOjE0OTM4MTU3Njc3MzcsInRva2VuVHlwZSI6IkFDQ0VTUyJ9fQ.pxzIS0cNnZ3Vbuvz6JemSh0JEeU2iKio3xrDdlc-ImA',
         admin_refresh: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VHdWlkcyI6WyIqIl0sImV4cGlyYXRpb24iOjE0OTM4MTk1NjI5NjMsInRva2VuVHlwZSI6IlJFRlJFU0gifX0.rGWqfXT7ujtVWfBj7blZ4Ldr3v2J9Edvu5Qxr_poirA',
+        admin_refresh_exp: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6IDEsICJhY3Rpb25zIjogWyIqIl0sICJuZXR3b3JrSWRzIjogWyIqIl0sICJkZXZpY2VHdWlkcyI6IFsiKiJdLCAiZXhwaXJhdGlvbiI6IDE0Nzg1OTU3MzI4MTksICJ0b2tlblR5cGUiOiAiUkVGUkVTSCJ9fQ.LolmhB5Ca8ejwiRjFnsgYmUwT1Du-t4E1icS5VLXHic',
+        admin_refresh_invalid: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6IDEsICJhY3Rpb25zIjogWyIqIl0sICJuZXR3b3JrSWRzIjogWyIqIl0sICJkZXZpY2VHdWlkcyI6IFsiKiJdLCAiZXhwaXJhdGlvbiI6IDE0OTM4MTk1NjI5NjMsICJ0b2tlblR5cGUiOiAiQUNDRVNTIn19.JRbvZrImGADruDEWRbgHbUt1BAgYmekdiNgTo-YJwBo',
         createMany: function (params, done) {
             var paramsCopy = params.slice(0);
             function createJWT(callback) {
@@ -400,7 +402,7 @@ var utils = {
     },
 
     getName: function ($for) {
-        return [this.NAME_PREFIX, $for, '-', (+new Date() + '')].join('');
+        return [this.NAME_PREFIX, $for, '-', (Date.now())].join('');
     },
 
     getInvalidName: function () {
@@ -439,6 +441,48 @@ var utils = {
                             }
 
                             assert.strictEqual(xhr.status, status.EXPECTED_UPDATED);
+                            cb();
+                        })
+                },
+                function (err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    callback(null, {user: user});
+                })
+        });
+    },
+
+    createUser3: function (role, networkIds, status, callback) {
+
+        var self = this;
+
+        var user = {
+            login: this.getName('user'),
+            password: this.NEW_USER_PASSWORD
+        };
+
+        networkIds || (networkIds = []);
+        if (!Array.isArray(networkIds)) {
+            networkIds = [networkIds];
+        }
+
+        this.createUser(user.login, user.password, role, status, function (err, result) {
+            if (err) {
+                return callback(err);
+            }
+
+            user.id = result.id;
+            async.eachSeries(networkIds,
+                function (networkId, cb) {
+                    var params = { jwt: self.jwt.admin };
+                    var $path = path.combine(path.USER, user.id, path.NETWORK, networkId);
+                    new Http(self.url, $path)
+                        .put(params, function (err) {
+                            if (err) {
+                                return cb(err);
+                            }
                             cb();
                         })
                 },
@@ -556,8 +600,8 @@ var utils = {
             clearUsers,
             clearDevices,
             clearDeviceClasses,
-            clearNetworks,
-            clearOAuthClients
+            clearNetworks
+            // clearOAuthClients
         ], function (err) {
             if (err) {
                 done(err);
