@@ -85,7 +85,7 @@ describe('WebSocket API Client Notification', function () {
                     'CreateDeviceNotification'
                 ],
                 deviceIds: deviceId,
-                networkIds: void 0
+                networkIds: networkId
             };
             utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceIds , function (err, result) {
                 if (err) {

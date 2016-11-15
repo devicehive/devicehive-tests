@@ -264,7 +264,7 @@ describe('REST API Device Unit', function () {
             })
         });
 
-        it('should get zero devices when using jwt with no access #1', function (done) {
+        it.only('should get zero devices when using jwt with no access #1', function (done) {
             utils.get(path.current, {jwt: jwt1}, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isEmptyArray(result), true);
@@ -295,6 +295,7 @@ describe('REST API Device Unit', function () {
             var params = [
                 {
                     user: nonNetworkUser,
+                    networkIds: [networkId],
                     actions: 'GetDevice'
                 },
                 {
@@ -305,11 +306,13 @@ describe('REST API Device Unit', function () {
                 {
                     user: user,
                     actions: 'GetDevice',
+                    networkIds: [networkId],
                     deviceIds: utils.NON_EXISTING_ID
                 },
                 {
                     user: user,
                     actions: 'GetDevice',
+                    networkIds: [networkId],
                     deviceIds: [DEVICE_GUID]
                 }
             ];
@@ -394,7 +397,7 @@ describe('REST API Device Unit', function () {
             }
 
             function createJWT(callback) {
-                utils.jwt.create(user.id, 'GetDeviceNotification',void 0, NEW_DEVICE_GUID, function (err, result) {
+                utils.jwt.create(user.id, 'GetDeviceNotification', networkId, NEW_DEVICE_GUID, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -1141,6 +1144,7 @@ describe('REST API Device Unit', function () {
                 {
                     user: user,
                     actions: 'RegisterDevice',
+                    networkIds: [networkId],
                     deviceIds: [NEW_DEVICE_GUID]
                 }
             ];

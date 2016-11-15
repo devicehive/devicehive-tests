@@ -21,6 +21,8 @@ describe('REST API Device Notification', function () {
     var notificationId = null;
     var beforeCreateNotificationTimestamp = new Date().getTime();
 
+    var networkId = null;
+
     var jwt1 = null;
     var jwt2 = null;
 
@@ -30,7 +32,6 @@ describe('REST API Device Notification', function () {
 
     before(function (done) {
         path.current = path.NOTIFICATION.get(DEVICE_GUID);
-        var networkId = null;
 
         function createNetwork(callback) {
             var params = {
@@ -93,12 +94,14 @@ describe('REST API Device Notification', function () {
                 {
                     user: user,
                     actions: ['GetDeviceNotification','CreateDeviceNotification'],
-                    networkIds: networkId
+                    networkIds: networkId,
+                    deviceIds: DEVICE_GUID
                 },
                 {
                     user: nonNetworkUser,
                     actions: ['GetDeviceNotification','CreateDeviceNotification'],
-                    networkIds: void 0
+                    networkIds: void 0,
+                    deviceIds: DEVICE_GUID
                 }
             ];
 
@@ -249,7 +252,9 @@ describe('REST API Device Notification', function () {
                 },
                 {
                     user: user,
-                    actions: 'GetDeviceNotification'
+                    actions: 'GetDeviceNotification',
+                    networkIds: networkId,
+                    deviceIds: DEVICE_GUID
                 }
             ];
 
@@ -280,9 +285,8 @@ describe('REST API Device Notification', function () {
             var params = {jwt: invalidJWT1};
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
@@ -292,9 +296,8 @@ describe('REST API Device Notification', function () {
             var params = {jwt: invalidJWT2};
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
@@ -304,9 +307,8 @@ describe('REST API Device Notification', function () {
             var params = {jwt: invalidJWT3};
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
@@ -517,7 +519,9 @@ describe('REST API Device Notification', function () {
                 },
                 {
                     user: user,
-                    actions: 'CreateDeviceNotification'
+                    actions: 'CreateDeviceNotification',
+                    networkIds: networkId,
+                    deviceIds: DEVICE_GUID
                 }
             ];
 
@@ -540,9 +544,8 @@ describe('REST API Device Notification', function () {
             params.jwt = invalidJWT1;
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
@@ -553,9 +556,8 @@ describe('REST API Device Notification', function () {
             params.jwt = invalidJWT2;
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
@@ -566,9 +568,8 @@ describe('REST API Device Notification', function () {
             params.jwt = invalidJWT3;
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });

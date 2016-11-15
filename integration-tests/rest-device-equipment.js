@@ -107,7 +107,7 @@ describe('REST API Device Equipment', function () {
             });
         });
 
-        it('should fail with 404 when using jwt related to wrong user', function (done) {
+        it('should fail with 401 when using jwt related to wrong user', function (done) {
             utils.jwt.create(user1.id, 'GetDeviceState', void 0, DEVICE_GUID,
                 function (err, result) {
                     if (err) {
@@ -116,16 +116,15 @@ describe('REST API Device Equipment', function () {
 
                     utils.get(path.current, {jwt: result.access_token}, function (err) {
                         assert.strictEqual(!(!err), true, 'Error object created');
-                        assert.strictEqual(err.error,
-                            format('Device with such guid = %s not found', DEVICE_GUID));
-                        assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                        assert.strictEqual(err.error, 'Unauthorized');
+                        assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                         done();
                     });
                 });
         });
 
-        it('should fail with 404 when using jwt related to wrong network', function (done) {
-            utils.jwt.create(user2.id, 'GetDeviceState', '1', DEVICE_GUID,
+        it('should fail with 401 when using jwt related to wrong network', function (done) {
+            utils.jwt.create(user2.id, 'GetDeviceState', '1', void 0,
                 function (err, result) {
                     if (err) {
                         return done(err);
@@ -133,9 +132,8 @@ describe('REST API Device Equipment', function () {
 
                     utils.get(path.current, {jwt: result.access_token}, function (err) {
                         assert.strictEqual(!(!err), true, 'Error object created');
-                        assert.strictEqual(err.error,
-                            format('Device with such guid = %s not found', DEVICE_GUID));
-                        assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                        assert.strictEqual(err.error, 'Unauthorized');
+                        assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                         done();
                     });
                 });
@@ -158,7 +156,7 @@ describe('REST API Device Equipment', function () {
         });
 
         it('should succeed when using valid user access key', function (done) {
-            utils.jwt.create(user2.id, 'GetDeviceState', void 0, DEVICE_GUID,
+            utils.jwt.create(user2.id, 'GetDeviceState', networkId, DEVICE_GUID,
                 function (err, result) {
                     if (err) {
                         return done(err);

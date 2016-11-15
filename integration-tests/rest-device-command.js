@@ -21,6 +21,7 @@ describe('REST API Device Command', function () {
     var nonNetworkUser = null;
     var commandId = null;
     var beforeCreateCommandsTimestamp = new Date().getTime();
+    var networkId = null;
 
     function hasCommand(item) {
         return item.id === commandId && item.command === COMMAND;
@@ -28,7 +29,6 @@ describe('REST API Device Command', function () {
 
     before(function (done) {
         path.current = path.COMMAND.get(DEVICE_GUID);
-        var networkId = null;
 
         function createNetwork(callback) {
             var params = {
@@ -76,7 +76,7 @@ describe('REST API Device Command', function () {
         }
 
         function createJWT(callback) {
-            utils.jwt.create(user.id, ['CreateDeviceCommand', 'GetDeviceCommand', 'UpdateDeviceCommand'], void 0, void 0, function (err, result) {
+            utils.jwt.create(user.id, ['CreateDeviceCommand', 'GetDeviceCommand', 'UpdateDeviceCommand'], [networkId], [DEVICE_GUID], function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -217,7 +217,9 @@ describe('REST API Device Command', function () {
                 },
                 {
                     user: user,
-                    actions: 'GetDeviceCommand'
+                    actions: 'GetDeviceCommand',
+                    deviceIds: DEVICE_GUID,
+                    networkIds: networkId
                 }
             ];
 
@@ -239,9 +241,8 @@ describe('REST API Device Command', function () {
             var params = {jwt: invalidJWT1};
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
@@ -251,9 +252,8 @@ describe('REST API Device Command', function () {
             var params = {jwt: invalidJWT2};
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
@@ -263,9 +263,8 @@ describe('REST API Device Command', function () {
             var params = {jwt: invalidJWT3};
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
@@ -388,7 +387,7 @@ describe('REST API Device Command', function () {
 
             function updateCommand(callback){
                 var params = {jwt: jwt, data: {"newField": "newValue"}};
-                utils.update(path.combine(path.COMMAND.get(DEVICE_GUID), globalId), params, function (err, result) {
+                utils.update(path.combine(path.COMMAND.get(DEVICE_GUID), globalId), params, function (err) {
                     assert.strictEqual(!(!err), false, 'No error');
                     callback(err);
                 });
@@ -574,7 +573,9 @@ describe('REST API Device Command', function () {
                 },
                 {
                     user: user,
-                    actions: 'CreateDeviceCommand'
+                    actions: 'CreateDeviceCommand',
+                    networkIds: networkId,
+                    deviceIds: DEVICE_GUID
                 }
             ];
 
@@ -597,9 +598,8 @@ describe('REST API Device Command', function () {
             params.jwt = invalidJWT1;
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
@@ -610,9 +610,8 @@ describe('REST API Device Command', function () {
             params.jwt = invalidJWT2;
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
@@ -623,15 +622,14 @@ describe('REST API Device Command', function () {
             params.jwt = invalidJWT3;
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
         });
 
-        it('should succeed when using valid access key', function (done) {
+        it('should succeed when using valid jwt', function (done) {
             var params = helper.getParamsObj(COMMAND);
             params.jwt = jwt;
             utils.create(path.current, params, function (err, result) {
@@ -682,7 +680,9 @@ describe('REST API Device Command', function () {
                 },
                 {
                     user: user,
-                    actions: 'UpdateDeviceCommand'
+                    actions: 'UpdateDeviceCommand',
+                    networkIds: networkId,
+                    deviceIds: DEVICE_GUID
                 }
             ];
 
@@ -714,9 +714,8 @@ describe('REST API Device Command', function () {
             params.id = commandId;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
@@ -728,9 +727,8 @@ describe('REST API Device Command', function () {
             params.id = commandId;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
@@ -742,9 +740,8 @@ describe('REST API Device Command', function () {
             params.id = commandId;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });

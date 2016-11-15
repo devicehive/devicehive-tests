@@ -113,9 +113,10 @@ describe('Round tests for command', function () {
                     'CreateDeviceCommand',
                     'UpdateDeviceCommand'
                 ],
-                networkIds: networkId
+                networkIds: networkId,
+                deviceIds: deviceId
             };
-            utils.jwt.create(utils.admin.id, args.actions, args.networkIds, void 0,
+            utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceIds,
                 function (err, result) {
                     if (err) {
                         return callback(err);

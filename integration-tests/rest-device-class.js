@@ -244,7 +244,7 @@ describe('REST API Device Class', function () {
 
         describe('#No Authorization', function () {
             it('should return error when accessing device class without authorization', function (done) {
-                var params = {user: null};
+                var params = {jwt: null};
                 utils.get(path.DEVICE_CLASS, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'Unauthorized');
