@@ -264,7 +264,7 @@ describe('REST API Device Unit', function () {
             })
         });
 
-        it.only('should get zero devices when using jwt with no access #1', function (done) {
+        it('should get zero devices when using jwt with no access #1', function (done) {
             utils.get(path.current, {jwt: jwt1}, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isEmptyArray(result), true);
