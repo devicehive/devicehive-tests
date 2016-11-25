@@ -59,7 +59,7 @@ describe('WebSocket API Device Command', function () {
                         return callback(err);
                     }
 
-                    token = result.access_token;
+                    token = result.accessToken;
                     callback();
                 })
         }

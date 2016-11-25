@@ -123,7 +123,7 @@ describe('Round tests for notification', function () {
                         return callback(err);
                     }
 
-                    jwt = result.access_token;
+                    jwt = result.accessToken;
                     callback();
                 })
         }

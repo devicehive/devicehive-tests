@@ -77,7 +77,7 @@ describe('REST API Device Class', function () {
                     if (err) {
                         return callback(err);
                     }
-                    jwt = result.access_token;
+                    jwt = result.accessToken;
                     callback()
                 })
             }
@@ -317,7 +317,7 @@ describe('REST API Device Class', function () {
                         if (err) {
                             return callback(err);
                         }
-                        jwt = result.access_token;
+                        jwt = result.accessToken;
                         callback()
                     })
                 }

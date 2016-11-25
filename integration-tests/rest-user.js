@@ -85,7 +85,7 @@ describe('REST API User', function () {
                     if (err) {
                         return callback(err);
                     }
-                    jwt = result.access_token;
+                    jwt = result.accessToken;
                     callback()
                 })
             }
@@ -514,7 +514,7 @@ describe('REST API User', function () {
                         done(err);
                     }
                     req.delete(path.current)
-                        .params({jwt: jwt.access_token, id: user.id})
+                        .params({jwt: jwt.accessToken, id: user.id})
                         .expectError(status.FORBIDDEN, cantDeleteYourselfMessage)
                         .send(done);
                 });
@@ -532,7 +532,7 @@ describe('REST API User', function () {
                         done(err);
                     }
                     req.delete(path.current)
-                        .params({jwt: jwt.access_token, id: user.id})
+                        .params({jwt: jwt.accessToken, id: user.id})
                         .expectError(status.NOT_AUTHORIZED, "Unauthorized")
                         .send(done);
                 });
@@ -624,7 +624,7 @@ describe('REST API User', function () {
                         if (err) {
                             return callback(err);
                         }
-                        nonNetworkUserJwt = result.access_token;
+                        nonNetworkUserJwt = result.accessToken;
                         callback()
                     })
                 }
@@ -681,7 +681,7 @@ describe('REST API User', function () {
                     if (err) {
                         return done(err);
                     }
-                    jwt = result.access_token;
+                    jwt = result.accessToken;
                     done()
                 })
             });

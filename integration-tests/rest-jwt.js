@@ -80,8 +80,8 @@ describe('REST API JSON Web Tokens', function () {
                     return done(err);
                 }
 
-                assert(result.access_token != null);
-                assert(result.refresh_token != null);
+                assert(result.accessToken != null);
+                assert(result.refreshToken != null);
 
                 done();
             });
@@ -100,8 +100,8 @@ describe('REST API JSON Web Tokens', function () {
                     return done(err);
                 }
 
-                assert(result.access_token != null);
-                assert(result.refresh_token != null);
+                assert(result.accessToken != null);
+                assert(result.refreshToken != null);
 
                 done();
             });
@@ -181,7 +181,7 @@ describe('REST API JSON Web Tokens', function () {
         it('should not refresh token with error refresh token is not valid', function (done) {
             utils.create(path.JWT + '/refresh', {
                 data: {
-                    refresh_token: utils.jwt.admin_refresh_invalid
+                    refreshToken: utils.jwt.admin_refresh_invalid
                 }
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -194,7 +194,7 @@ describe('REST API JSON Web Tokens', function () {
         it('should not refresh token with error refresh token has expired', function (done) {
             utils.create(path.JWT + '/refresh', {
                 data: {
-                    refresh_token: utils.jwt.admin_refresh_exp
+                    refreshToken: utils.jwt.admin_refresh_exp
                 }
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');

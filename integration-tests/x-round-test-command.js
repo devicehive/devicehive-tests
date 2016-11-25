@@ -122,7 +122,7 @@ describe('Round tests for command', function () {
                         return callback(err);
                     }
 
-                    jwt = result.access_token;
+                    jwt = result.accessToken;
                     callback();
                 })
         }

@@ -560,7 +560,7 @@ describe('REST API Network', function () {
                     if (err) {
                         return done(err);
                     }
-                    jwt = result.access_token;
+                    jwt = result.accessToken;
                     done()
                 })
             });

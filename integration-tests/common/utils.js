@@ -50,7 +50,7 @@ var utils = {
                             callback(err);
                         }
 
-                        callback(null, result.access_token);
+                        callback(null, result.accessToken);
                     });
             }
 
@@ -72,7 +72,7 @@ var utils = {
                             callback(err);
                         }
 
-                        callback(null, result.refresh_token);
+                        callback(null, result.refreshToken);
                     });
             }
 

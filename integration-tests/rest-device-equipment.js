@@ -114,7 +114,7 @@ describe('REST API Device Equipment', function () {
                         return done(err);
                     }
 
-                    utils.get(path.current, {jwt: result.access_token}, function (err) {
+                    utils.get(path.current, {jwt: result.accessToken}, function (err) {
                         assert.strictEqual(!(!err), true, 'Error object created');
                         assert.strictEqual(err.error, 'Unauthorized');
                         assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
@@ -130,7 +130,7 @@ describe('REST API Device Equipment', function () {
                         return done(err);
                     }
 
-                    utils.get(path.current, {jwt: result.access_token}, function (err) {
+                    utils.get(path.current, {jwt: result.accessToken}, function (err) {
                         assert.strictEqual(!(!err), true, 'Error object created');
                         assert.strictEqual(err.error, 'Unauthorized');
                         assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
@@ -146,7 +146,7 @@ describe('REST API Device Equipment', function () {
                         return done(err);
                     }
 
-                    utils.get(path.current, {jwt: result.access_token}, function (err) {
+                    utils.get(path.current, {jwt: result.accessToken}, function (err) {
                         assert.strictEqual(!(!err), true, 'Error object created');
                         assert.strictEqual(err.error, 'Unauthorized');
                         assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
@@ -162,7 +162,7 @@ describe('REST API Device Equipment', function () {
                         return done(err);
                     }
 
-                    utils.get(path.current, {jwt: result.access_token}, function (err, result) {
+                    utils.get(path.current, {jwt: result.accessToken}, function (err, result) {
                         assert.strictEqual(!(!err), false, 'No error');
                         assert.strictEqual(!(!result), true, 'Has result');
                         done();

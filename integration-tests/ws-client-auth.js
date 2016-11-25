@@ -74,7 +74,7 @@ describe('WebSocket API Client Authentication', function () {
                 if (err) {
                     return callback(err);
                 }
-                token = result.access_token;
+                token = result.accessToken;
                 callback()
             })
         }

@@ -401,7 +401,7 @@ describe('REST API Device Unit', function () {
                     if (err) {
                         return callback(err);
                     }
-                    jwt = result.access_token;
+                    jwt = result.accessToken;
                     callback()
                 })
             }

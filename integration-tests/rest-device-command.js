@@ -80,7 +80,7 @@ describe('REST API Device Command', function () {
                 if (err) {
                     return callback(err);
                 }
-                jwt = result.access_token;
+                jwt = result.accessToken;
                 callback()
             })
         }

@@ -50,7 +50,7 @@ describe('WebSocket API Device Authentication', function () {
                 if (err) {
                     return callback(err);
                 }
-                token = result.access_token;
+                token = result.accessToken;
                 callback()
             })
         }

@@ -76,7 +76,7 @@ describe('WebSocket API Device Unit', function () {
                     if (err) {
                         return callback(err);
                     }
-                    token = result.access_token;
+                    token = result.accessToken;
                     callback()
                 })
             }
@@ -155,7 +155,7 @@ describe('WebSocket API Device Unit', function () {
                     if (err) {
                         return callback(err);
                     }
-                    token = result.access_token;
+                    token = result.accessToken;
                     callback()
                 })
             }
