@@ -214,20 +214,31 @@ describe('WebSocket API Client Command', function () {
 
     describe('#command/subscribe', function () {
 
-        function runTest(client, done) {
+        function runTest(client, ts, done) {
             var requestId = getRequestId();
             var subscriptionId = null;
-            client.params({
+            var clientParams = null;
+            if (ts != null) {
+                clientParams = client.params({
+                    action: 'command/subscribe',
+                    requestId: requestId,
+                    deviceGuids: [deviceId],
+                    names: [COMMAND],
+                    timestamp: ts
+                });
+            } else {
+                clientParams = client.params({
                     action: 'command/subscribe',
                     requestId: requestId,
                     deviceGuids: [deviceId],
                     names: [COMMAND]
-                })
-                .expect({
-                    action: 'command/subscribe',
-                    requestId: requestId,
-                    status: 'success'
-                })
+                });
+            }
+            clientParams.expect({
+                action: 'command/subscribe',
+                requestId: requestId,
+                status: 'success'
+            })
                 .expectTrue(function (result) {
                     return utils.core.hasStringValue(result.subscriptionId);
                 })
@@ -270,7 +281,10 @@ describe('WebSocket API Client Command', function () {
         }
 
         it('should subscribe to device commands, jwt authorization', function (done) {
-            runTest(clientToken, done);
+            runTest(clientToken, null, done);
+        });
+        it('should subscribe to device commands with timestamp, jwt authorization', function (done) {
+            runTest(clientToken, new Date().toISOString(), done);
         });
     });
 

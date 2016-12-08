@@ -88,15 +88,23 @@ describe('WebSocket API Device Command', function () {
     });
 
     describe('#command/subscribe', function () {
-
-        it('should subscribe to all device commands, device auth', function (done) {
+        function runTest(ts, done) {
             var requestId = getRequestId();
-
-            device.params({
+            var deviceParams = null;
+            
+            if (ts != null) {
+                deviceParams = device.params({
+                    action: 'command/subscribe',
+                    requestId: requestId,
+                    timestamp: ts
+                });
+            } else {
+                deviceParams = device.params({
                     action: 'command/subscribe',
                     requestId: requestId
-                })
-                .expect({
+                });
+            }
+            deviceParams.expect({
                     action: 'command/subscribe',
                     requestId: requestId,
                     status: 'success'
@@ -127,12 +135,19 @@ describe('WebSocket API Device Command', function () {
                     }
 
                     device.params({
-                            action: 'command/unsubscribe',
-                            requestId: getRequestId()
-                        })
+                        action: 'command/unsubscribe',
+                        requestId: getRequestId()
+                    })
                         .send(done);
                 }
             }
+        }
+
+        it('should subscribe to all device commands with timestamp, device auth', function (done) {
+            runTest(new Date().toISOString(), done);
+        });
+        it('should subscribe to all device commands, device auth', function (done) {
+            runTest(null, done);
         });
 
         it('should subscribe to device commands for single device', function (done) {
