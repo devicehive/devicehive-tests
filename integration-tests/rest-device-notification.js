@@ -658,6 +658,15 @@ describe('REST API Device Notification', function () {
                 })
             });
 
+            it('should return error when getting notifications with jwt refresh token', function (done) {
+                utils.get(path.current, {jwt: utils.jwt.admin_refresh}, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'Unauthorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            });
+
             it('should return error when accessing non-existing notification without authorization', function (done) {
                 var params = {jwt: null };
                 params.id = utils.NON_EXISTING_ID;

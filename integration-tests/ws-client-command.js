@@ -142,6 +142,16 @@ describe('WebSocket API Client Command', function () {
                 .send(callback);
         }
 
+        function authenticateWithValidRefreshToken(done) {
+            clientInvalidToken.params({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: utils.jwt.admin_refresh
+            })
+                .expectError(401, 'Invalid credentials')
+                .send(done);
+        }
+
         async.series([
             getWsUrl,
             createNetwork,
@@ -153,7 +163,8 @@ describe('WebSocket API Client Command', function () {
             createConnTokenAuth,
             createConnInvalidTokenAuth,
             authenticateWithToken,
-            authenticateWithInvalidToken
+            authenticateWithInvalidToken,
+            authenticateWithValidRefreshToken
         ], done);
     });
 

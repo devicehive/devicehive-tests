@@ -253,6 +253,16 @@ describe('REST API Device Class', function () {
                 })
             });
 
+            it('should return error when accessing device class with valid refresh token', function (done) {
+                var params = {jwt: utils.jwt.admin_refresh};
+                utils.get(path.DEVICE_CLASS, params, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'Unauthorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            });
+
             it('should return error when accessing non-existing device class without authorization', function (done) {
                 var params = {user: null, id: utils.NON_EXISTING_ID };
                 utils.get(path.DEVICE_CLASS, params, function (err) {

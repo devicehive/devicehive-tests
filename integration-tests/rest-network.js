@@ -522,6 +522,13 @@ describe('REST API Network', function () {
                     .send(done);
             });
 
+            it('should fail with 401 if auth parameters omitted', function (done) {
+                req.get(path.current)
+                    .params({jwt: utils.jwt.admin_refresh})
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .send(done);
+            });
+
             it('should fail with 401 when selecting network by id, auth parameters omitted', function (done) {
                 req.get(path.current)
                     .params({jwt: null, id: utils.NON_EXISTING_ID})

@@ -131,6 +131,16 @@ describe('WebSocket API Device Notification', function () {
                 .send(done);
         });
 
+        it('should authenticate fail when using refresh token', function (done) {
+            device.params({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: utils.jwt.admin_refresh
+            })
+                .expectError(401, 'Invalid credentials')
+                .send(done);
+        });
+
         it('should fail when using wrong deviceGuid', function (done) {
             device.params({
                     action: 'notification/insert',

@@ -138,6 +138,14 @@ describe('WebSocket API Client Notification', function () {
                 })
                 .send(callback);
         }
+        function authenticateWithValidRefreshToken(callback) {
+            clientInvalidToken.params({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: utils.jwt.admin_refresh
+            })
+                .send(callback);
+        }
 
         async.series([
             getWsUrl,
@@ -150,7 +158,8 @@ describe('WebSocket API Client Notification', function () {
             createConnTokenAuth,
             createConnInvalidTokenAuth,
             authenticateWithToken,
-            authenticateWithInvalidToken
+            authenticateWithInvalidToken,
+            authenticateWithValidRefreshToken
         ], done);
     });
 

@@ -99,6 +99,14 @@ describe('WebSocket API Device Unit', function () {
             ], done);
         });
 
+        it('should return 401 error for valid refresh jwt', function (done) {
+            req.update(path.get(path.DEVICE, deviceId))
+                .params({jwt: utils.jwt.admin_refresh, data: device})
+                .expectError(401, 'Unauthorized')
+                .send(done);
+ 
+        });
+
         it('should get information about current device', function (done) {
             var requestId = getRequestId();
 

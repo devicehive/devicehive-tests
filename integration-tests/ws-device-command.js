@@ -78,12 +78,23 @@ describe('WebSocket API Device Command', function () {
                 .send(callback);
         }
 
+        function authenticateConnWithRefreshToken(done) {
+            device.params({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: utils.jwt.admin_refresh
+            })
+                .expectError(401, 'Invalid credentials')
+                .send(done);
+        }
+
         async.series([
             getWsUrl,
             createDevice,
             createToken,
             createConn,
-            authenticateConn
+            authenticateConn,
+            authenticateConnWithRefreshToken
         ], done);
     });
 
