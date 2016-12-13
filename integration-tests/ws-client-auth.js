@@ -155,6 +155,103 @@ describe('WebSocket API Client Authentication', function () {
         });
     });
 
+    describe('#token/refresh', function () {
+        it('should refresh access token using refresh jwt', function (done) {
+            var client = null;
+            var requestId = getRequestId();
+
+            function createConnection(callback) {
+                client = new Websocket(url, 'client');
+                client.connect(callback);
+            }
+
+            function runTest(callback) {
+                client.params({
+                    action: 'token/refresh',
+                    requestId: requestId,
+                    refreshToken: utils.jwt.admin_refresh
+                })
+                    .expect({
+                        action: 'token/refresh',
+                        status: 'success',
+                        requestId: requestId
+                    })
+                    .send(callback);
+            }
+
+            async.series([
+                createConnection,
+                runTest
+            ], function (err) {
+                if (client) {
+                    client.close();
+                }
+
+                done(err);
+            });
+        });
+
+        it('should return error when refreshing access token with invalid jwt', function (done) {
+            var client = null;
+
+            function createConnection(callback) {
+                client = new Websocket(url, 'client');
+                client.connect(callback);
+            }
+
+            function runTest(callback) {
+                client.params({
+                    action: 'token/refresh',
+                    requestId: getRequestId(),
+                    token:  utils.jwt.admin_refresh_invalid
+                })
+                    .expectError(401, 'Invalid credentials')
+                    .send(callback);
+            }
+
+            async.series([
+                createConnection,
+                runTest
+            ], function (err) {
+                if (client) {
+                    client.close();
+                }
+
+                done(err);
+            });
+        });
+
+        it('should return error when refreshing access token with expired jwt', function (done) {
+            var client = null;
+
+            function createConnection(callback) {
+                client = new Websocket(url, 'client');
+                client.connect(callback);
+            }
+
+            function runTest(callback) {
+                client.params({
+                    action: 'token/refresh',
+                    requestId: getRequestId(),
+                    token:  utils.jwt.admin_refresh_exp
+                })
+                    .expectError(401, 'Invalid credentials')
+                    .send(callback);
+            }
+
+            async.series([
+                createConnection,
+                runTest
+            ], function (err) {
+                if (client) {
+                    client.close();
+                }
+
+                done(err);
+            });
+        });
+    });
+
     after(function (done) {
         utils.clearDataJWT(done);
     });
