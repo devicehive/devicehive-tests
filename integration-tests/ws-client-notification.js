@@ -138,14 +138,6 @@ describe('WebSocket API Client Notification', function () {
                 })
                 .send(callback);
         }
-        function authenticateWithValidRefreshToken(callback) {
-            clientInvalidToken.params({
-                action: 'authenticate',
-                requestId: getRequestId(),
-                token: utils.jwt.admin_refresh
-            })
-                .send(callback);
-        }
 
         async.series([
             getWsUrl,
@@ -158,9 +150,20 @@ describe('WebSocket API Client Notification', function () {
             createConnTokenAuth,
             createConnInvalidTokenAuth,
             authenticateWithToken,
-            authenticateWithInvalidToken,
-            authenticateWithValidRefreshToken
+            authenticateWithInvalidToken
         ], done);
+    });
+
+    describe('#Invalid credentials', function(done) {
+        it('should return error with refresh token', function() {
+            clientToken.params({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: utils.jwt.admin_refresh
+            })
+                .expectError(401, 'Invalid credentials')
+                .send(done);
+        });
     });
 
     describe('#notification/insert', function () {

@@ -186,6 +186,15 @@ describe('WebSocket API Device Unit', function () {
             ], done);
         });
 
+        describe('#unauthorized', function(done) {
+            it('should return error using refresh jwt', function() {
+                req.get(path.DEVICE)
+                    .params({jwt: utils.jwt.admin_refresh, id: deviceId})
+                    .expectError(401, 'Unauthorized')
+                    .send(done);
+            });
+        });
+
         it('should save information about device', function (done) {
 
             function saveDevice(callback) {
