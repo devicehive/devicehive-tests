@@ -221,6 +221,14 @@ describe('REST API Device Equipment', function () {
             })
         });
 
+        it('should fail when request with refresh jwt token', function () {
+            utils.get(path.current, {jwt: utils.jwt.admin_refresh}, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+            })
+        });
+
         it('should fail when request Unauthorized', function () {
             var $path = path.combine(path.DEVICE, 'none', 'equipment');
             utils.get($path, {}, function (err) {

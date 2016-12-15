@@ -783,6 +783,15 @@ describe('REST API Device Command', function () {
                 })
             });
 
+            it('should return error when getting commands with refresh jwt', function (done) {
+                utils.get(path.current, {user: user, jwt: utils.jwt.admin_refresh }, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'Unauthorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            });
+
             it('should return error when accessing non-existing command without authorization', function (done) {
                 var params = {user: null, id: utils.NON_EXISTING_ID };
                 utils.get(path.current, params, function (err) {

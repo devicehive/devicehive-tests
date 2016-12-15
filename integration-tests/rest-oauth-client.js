@@ -367,6 +367,13 @@ describe.skip('REST API OAuth Client', function () {
                     .send(done);
             });
 
+            it('should fail with 401 wit refresh jwt token', function (done) {
+                req.create(path.current)
+                    .params({user: utils.admin, data: client, jwt: utils.jwt.admin_refresh})
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .send(done);
+            });
+
             it('should fail with 401 when updating client with invalid user', function (done) {
                 req.update(path.current)
                     .params({user: nonNetworkUser, id: utils.NON_EXISTING_ID, data: client})

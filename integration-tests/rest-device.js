@@ -1263,6 +1263,15 @@ describe('REST API Device Unit', function () {
                 })
             });
 
+            it('should return error when getting devices with refresh jwt', function (done) {
+                utils.get(path.current, {jwt: utils.jwt.admin_refresh}, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'Unauthorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            });
+
             it('should return error when accessing device without jwt', function (done) {
                 var params = {jwt: null};
                 params.id = DEVICE_GUID;

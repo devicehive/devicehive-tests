@@ -128,6 +128,36 @@ describe('WebSocket API Device Authentication', function () {
                 done(err);
             });
         });
+
+        it('should return error when using refresh jwt token', function (done) {
+            var device = null;
+
+            function createConnection(callback) {
+                device = new Websocket(url, 'device');
+                device.connect(callback);
+            }
+
+            function runTest(callback) {
+                device.params({
+                    action: 'authenticate',
+                    requestId: getRequestId(),
+                    token: utils.jwt.admin_refresh
+                })
+                    .expectError(401, 'Invalid credentials')
+                    .send(callback);
+            }
+
+            async.series([
+                createConnection,
+                runTest
+            ], function (err) {
+                if (device) {
+                    device.close();
+                }
+
+                done(err);
+            });
+        });
     });
 
     after(function (done) {

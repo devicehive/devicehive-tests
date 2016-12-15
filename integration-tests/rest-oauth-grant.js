@@ -571,6 +571,14 @@ describe.skip('REST API OAuth Grant', function () {
                     .send(done);
             });
 
+            it('should fail with 401 when refresh jwt', function (done) {
+                req.get(path.current)
+                    .params({user: utils.admin, jwt: utils.jwt.admin_refresh})
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .send(done);
+            });
+
+
             it('should fail with 401 when getting grant with invalid user', function (done) {
                 req.get(path.current)
                     .params({user: nonNetworkUser, id: utils.NON_EXISTING_ID})

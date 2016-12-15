@@ -153,6 +153,36 @@ describe('WebSocket API Client Authentication', function () {
                 done(err);
             });
         });
+
+        it('should return error when using refresh jwt', function (done) {
+            var client = null;
+
+            function createConnection(callback) {
+                client = new Websocket(url, 'client');
+                client.connect(callback);
+            }
+
+            function runTest(callback) {
+                client.params({
+                    action: 'authenticate',
+                    requestId: getRequestId(),
+                    token:  utils.jwt.admin_refresh
+                })
+                    .expectError(401, 'Invalid credentials')
+                    .send(callback);
+            }
+
+            async.series([
+                createConnection,
+                runTest
+            ], function (err) {
+                if (client) {
+                    client.close();
+                }
+
+                done(err);
+            });
+        });
     });
 
     describe('#token/refresh', function () {

@@ -22,6 +22,7 @@ describe('WebSocket API Client Notification', function () {
     var invalidToken = null;
 
     var clientToken = null;
+    var refreshToken = null;
     var clientInvalidToken = null;
 
     before(function (done) {
@@ -121,6 +122,11 @@ describe('WebSocket API Client Notification', function () {
             clientInvalidToken.connect(callback);
         }
 
+        function createConnRefreshTokenAuth(callback) {
+            refreshToken = new Websocket(url, 'client');
+            refreshToken.connect(callback);
+        }
+
         function authenticateWithToken(callback) {
             clientToken.params({
                     action: 'authenticate',
@@ -149,9 +155,22 @@ describe('WebSocket API Client Notification', function () {
             createInvalidToken,
             createConnTokenAuth,
             createConnInvalidTokenAuth,
+            createConnRefreshTokenAuth,
             authenticateWithToken,
             authenticateWithInvalidToken
         ], done);
+    });
+
+    describe('#Invalid credentials', function(done) {
+        it('should return error with refresh token', function() {
+            refreshToken.params({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: utils.jwt.admin_refresh
+            })
+                .expectError(401, 'Invalid credentials')
+                .send(done);
+        });
     });
 
     describe('#notification/insert', function () {

@@ -87,6 +87,18 @@ describe('WebSocket API Device Command', function () {
         ], done);
     });
 
+    describe('#unauthorized', function(done) {
+        it('should return error with refresh jwt token', function() {
+            req.create(path.COMMAND.get(deviceId))
+                .params({
+                    jwt: utils.jwt.admin_refresh,
+                    data: {command: COMMAND}
+                })
+                .expectError(401, 'Unauthorized')
+                .send(done);
+        });
+    });
+
     describe('#command/subscribe', function () {
         function runTest(ts, done) {
             var requestId = getRequestId();

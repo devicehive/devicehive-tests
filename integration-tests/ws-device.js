@@ -99,6 +99,14 @@ describe('WebSocket API Device Unit', function () {
             ], done);
         });
 
+        it('should return 401 error for valid refresh jwt', function (done) {
+            req.update(path.get(path.DEVICE, deviceId))
+                .params({jwt: utils.jwt.admin_refresh, data: device})
+                .expectError(401, 'Unauthorized')
+                .send(done);
+ 
+        });
+
         it('should get information about current device', function (done) {
             var requestId = getRequestId();
 
@@ -176,6 +184,15 @@ describe('WebSocket API Device Unit', function () {
                 createConn,
                 authenticateConn
             ], done);
+        });
+
+        describe('#unauthorized', function(done) {
+            it('should return error using refresh jwt', function() {
+                req.get(path.DEVICE)
+                    .params({jwt: utils.jwt.admin_refresh, id: deviceId})
+                    .expectError(401, 'Unauthorized')
+                    .send(done);
+            });
         });
 
         it('should save information about device', function (done) {

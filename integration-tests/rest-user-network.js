@@ -145,6 +145,14 @@ describe('REST API User Network', function () {
                     .send(done);
             });
 
+            it('should fail with 401 when selecting user network by id using refresh jwt', function (done) {
+                req.get(path.current)
+                    .params({jwt: utils.jwt.admin_refresh, id: networkId})
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .send(done);
+            });
+
+
             it('should fail with 401 when updating user network using invalid access key', function (done) {
                 req.update(path.current)
                     .params({jwt: jwt, id: utils.NON_EXISTING_ID})

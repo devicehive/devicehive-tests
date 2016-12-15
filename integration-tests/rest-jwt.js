@@ -87,6 +87,21 @@ describe('REST API JSON Web Tokens', function () {
             });
         });
 
+        it('should return error when creating token with refresh jwt', function (done) {
+            utils.create(path.JWT, {jwt: utils.jwt.admin_refresh,
+                data: {
+                    userId: 1,
+                    actions: ['*'],
+                    networkIds: ['*'],
+                    deviceGuids: ['*']
+                }
+            }, function (err) {
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                done();
+            });
+        });
+
         it('should create token with ManageToken permission', function (done) {
             utils.create(path.JWT, {jwt: jwt1,
                 data: {

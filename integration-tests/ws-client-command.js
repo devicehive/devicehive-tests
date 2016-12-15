@@ -141,7 +141,7 @@ describe('WebSocket API Client Command', function () {
             })
                 .send(callback);
         }
-
+        
         async.series([
             getWsUrl,
             createNetwork,
@@ -155,6 +155,18 @@ describe('WebSocket API Client Command', function () {
             authenticateWithToken,
             authenticateWithInvalidToken
         ], done);
+    });
+    
+    describe('#Invalid credentials', function(done) {
+        it('should return error with refresh token', function() {
+            clientToken.params({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: utils.jwt.admin_refresh
+            })
+                .expectError(401, 'Invalid credentials')
+                .send(done);
+        });
     });
 
     describe('#command/insert', function () {
@@ -210,6 +222,7 @@ describe('WebSocket API Client Command', function () {
                 .expectError(401, 'Unauthorized')
                 .send(done);
         });
+        
     });
 
     describe('#command/subscribe', function () {
