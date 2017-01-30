@@ -1210,6 +1210,80 @@ describe('REST API Device Unit', function () {
         });
     });
 
+    describe('#Get device with client jwt', function () {
+
+        var NEW_DEVICE_GUID = utils.getName('guid-999');
+        var NEW_DEVICE = utils.getName('dev-update-4');
+
+        var jwt = null;
+        var invalidJwt = null;
+
+        before(function (done) {
+
+            var params = [
+                {
+                    user: user,
+                    actions: 'GetDevice',
+                    networkIds: [networkId],
+                    deviceIds: ['*'] // Allow all devices for user
+                },
+                {
+                    user: user,
+                    actions: 'GetDevice',
+                    networkIds: [networkId],
+                    deviceIds: ['999999999'] // Wrong device id
+                }
+            ];
+
+            function createDevice(callback) {
+                var params = helper.getParamsObj(NEW_DEVICE, utils.jwt.admin,
+                    {name: NETWORK},
+                    {
+                        name: DEVICE,
+                        version: DEVICE_CLASS_VERSION
+                    });
+                params.id = NEW_DEVICE_GUID;
+                utils.update(path.current, params, function (err) {
+                    callback(err)
+                });
+            }
+
+            function createJWT(callback) {
+                utils.jwt.createMany(params, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    jwt = result[0];
+                    invalidJwt = result[1];
+                    callback();
+                })
+            }
+
+            async.series([
+                createDevice,
+                createJWT
+            ], done);
+
+        });
+
+        it('should return device', function (done) {
+            var params = {jwt: jwt};
+            params.id = NEW_DEVICE_GUID;
+            utils.get(path.current, params, function (err, result) {
+                assert.strictEqual(result.id, NEW_DEVICE_GUID);
+                done();
+            });
+        });
+        it('should return unauthorized error', function (done) {
+            var params = {jwt: invalidJwt};
+            params.id = NEW_DEVICE_GUID;
+            utils.get(path.current, params, function (err) {
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                done();
+            });
+        });
+    });
+
 
     describe('#Bad Request', function () {
 
@@ -1324,6 +1398,10 @@ describe('REST API Device Unit', function () {
             })
         });
     });
+
+
+
+
 
     after(function (done) {
         utils.clearDataJWT(done);
