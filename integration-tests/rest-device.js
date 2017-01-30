@@ -1399,10 +1399,6 @@ describe('REST API Device Unit', function () {
         });
     });
 
-
-
-
-
     after(function (done) {
         utils.clearDataJWT(done);
     });
