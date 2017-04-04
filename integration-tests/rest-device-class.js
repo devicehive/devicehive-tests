@@ -172,7 +172,7 @@ describe('REST API Device Class', function () {
         });
 
         it('should update using admin authorization', function (done) {
-            var params = helper.getParamsObj(utils.getName('device-class-4-upd-1'), utils.jwt.admin, '2', true, 3600,
+            var params = helper.getParamsObj(utils.getName('device-class-4-upd-1'), utils.jwt.admin, true,
                 {
                     name: utils.getName('eqpmnt-1'),
                     type: utils.getName('type-1'),

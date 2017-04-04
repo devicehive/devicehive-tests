@@ -15,7 +15,6 @@ describe('WebSocket API Device Unit', function () {
 
     var device = {
         name: DEVICE,
-        status: 'Online',
         data: {a: '1', b: '2'},
         network: {
             name: utils.getName('ws-network'),
@@ -24,7 +23,6 @@ describe('WebSocket API Device Unit', function () {
         deviceClass: {
             name: DEVICE,
             isPermanent: true,
-            offlineTimeout: 1234,
             data: {c: '3', d: '4'},
             equipment: [{
                 name: "_integr-test-eq",

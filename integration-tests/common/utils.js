@@ -224,7 +224,7 @@ var utils = {
     deviceClass: {
 
         getParams: function (name, jwt, version) {
-            return this.getParamsObj(name, jwt, version, void 0, 3600,
+            return this.getParamsObj(name, jwt, void 0,
                 {
                     name: utils.getName('eqpmnt'),
                     type: utils.getName('type'),
@@ -232,7 +232,7 @@ var utils = {
                 });
         },
 
-        getParamsObj: function (name, jwt, version, isPermanent, offlineTimeout, equipment, data) {
+        getParamsObj: function (name, jwt, isPermanent, equipment, data) {
 
             var params = {
                 jwt: jwt,
@@ -243,10 +243,6 @@ var utils = {
 
             if (typeof (isPermanent) === 'boolean') {
                 params.data.isPermanent = isPermanent;
-            }
-
-            if (offlineTimeout) {
-                params.data.offlineTimeout = offlineTimeout;
             }
 
             if (equipment) {
