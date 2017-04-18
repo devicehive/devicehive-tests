@@ -167,19 +167,6 @@ describe('REST API User', function () {
                 });
         });
 
-        it.skip('should get oauth user by id using admin', function (done) {
-            req.get(path.current)
-                .params({jwt: utils.jwt.admin, id: user.id})
-                .expect({
-                    id: user.id,
-                    login: user.login,
-                    facebookLogin: 'facebook', // TODO: No 'facebookLogin' key
-                    role: 0,
-                    status: 0,
-                    lastLogin: null
-                })
-                .send(done);
-        });
     });
 
     describe('#Create Existing', function () {
@@ -207,21 +194,6 @@ describe('REST API User', function () {
                     data: {
                         login: LOGIN,
                         password: utils.NEW_USER_PASSWORD,
-                        role: 0,
-                        status: 0 }
-                })
-                .expectError(status.FORBIDDEN, 'User with such login already exists. Please, select another one')
-                .send(done);
-        });
-
-        it.skip('should fail with 403 when trying to create user with existing oauth login', function (done) {
-            req.create(path.current)
-                .params({
-                    jwt: utils.jwt.admin,
-                    data: {
-                        login: utils.getName('oauth-usr-2-1'),
-                        password: utils.NEW_USER_PASSWORD,
-                        facebookLogin: 'facebook-2', // TODO: No fail when using same oauth login 'facebook-2'
                         role: 0,
                         status: 0 }
                 })
@@ -299,64 +271,6 @@ describe('REST API User', function () {
         });
     });
 
-    describe('#Update', function () {
-
-        var user = {
-            login: utils.getName('usr-4'),
-            password: utils.NEW_USER_PASSWORD
-        };
-
-        before(function (done) {
-            req.create(path.current)
-                .params({
-                    jwt: utils.jwt.admin,
-                    data: {
-                        login: user.login,
-                        password: user.password,
-                        googleLogin: 'google-4',
-                        facebookLogin: 'facebook-4',
-                        githubLogin: 'github-4',
-                        role: 0,
-                        status: 0
-                    }
-                })
-                .send(function (err, result) {
-                    if (err) {
-                        return done(err);
-                    }
-
-                    user.id = result.id;
-                    done();
-                });
-        });
-
-        it.skip('should update user account', function (done) { // TODO: Oauth logins don't return (googleLogin, facebookLogin etc.)
-
-            var update = {
-                login: utils.getName('usr-4-upd'),
-                googleLogin: 'google-4-upd',
-                facebookLogin: 'facebook-4-upd',
-                githubLogin: 'github-4-upd',
-                role: 1,
-                status: 1
-            };
-
-            req.update(path.current)
-                .params({jwt: utils.jwt.admin, id: user.id, data: update})
-                .send(function (err) {
-                    if (err) {
-                        return done(err);
-                    }
-
-                    req.get(path.current)
-                        .params({jwt: utils.jwt.admin, id: user.id})
-                        .expect(update)
-                        .expect({lastLogin: null})
-                        .send(done);
-                });
-        });
-    });
-
     describe('#Update Partial', function () {
 
         var user = null;
@@ -391,84 +305,6 @@ describe('REST API User', function () {
                         })
                         .send(done);
                 });
-        });
-    });
-
-    describe('#Update Current', function () {
-
-        var user = {
-            login: utils.getName('usr-5'),
-            password: utils.NEW_USER_PASSWORD
-        };
-
-        before(function (done) {
-            req.create(path.current)
-                .params({
-                    jwt: utils.jwt.admin,
-                    data: {
-                        login: user.login,
-                        password: user.password,
-                        googleLogin: 'google-5',
-                        facebookLogin: 'facebook-5',
-                        githubLogin: 'github-5',
-                        role: 1,
-                        status: 0
-                    }
-                })
-                .send(function (err, result) {
-                    if (err) {
-                        return done(err);
-                    }
-
-                    user.id = result.id;
-                    done();
-                });
-        });
-
-        it.skip('should update user account at \'/current\' path', function (done) { // TODO: Oauth logins don't return (googleLogin, facebookLogin etc.)
-
-            var update = {
-                login: utils.getName('usr-5-upd'),
-                password: utils.NEW_USER_PASSWORD + '*',
-                googleLogin: 'google-5-upd',
-                facebookLogin: 'facebook-5-upd',
-                githubLogin: 'github-5-upd',
-                role: 0,
-                status: 1
-            };
-
-            function updateUser(callback) {
-                req.update(path.combine(path.current, path.CURRENT))
-                    .params({user: user, data: update})
-                    .send(callback);
-            }
-
-            function failGetWithOldCredentials(callback) {
-                req.get(path.combine(path.current, path.CURRENT))
-                    .params({user: user})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(callback);
-            }
-
-            function getOtherPropsUnchanged(callback) {
-                req.get(path.current)
-                    .params({jwt: utils.jwt.admin, id: user.id})
-                    .expect({
-                        login: utils.getName('usr-5-upd'),
-                        googleLogin: 'google-5-upd',
-                        facebookLogin: 'facebook-5-upd',
-                        githubLogin: 'github-5-upd',
-                        role: 0,
-                        status: 1
-                    })
-                    .send(callback);
-            }
-
-            async.series([
-                updateUser,
-                failGetWithOldCredentials,
-                getOtherPropsUnchanged
-            ], done);
         });
     });
 
