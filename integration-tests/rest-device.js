@@ -6,7 +6,7 @@ var path = require('./common/path');
 var status = require('./common/http').status;
 
 describe('REST API Device Unit', function () {
-    this.timeout(30000);
+    this.timeout(90000);
 
     var helper = utils.device;
 
@@ -36,7 +36,7 @@ describe('REST API Device Unit', function () {
 
         function createNetwork(callback) {
             var params = {
-                user: utils.admin,
+                jwt: utils.jwt.admin,
                 data: {
                     name: NETWORK
                 }
@@ -54,7 +54,7 @@ describe('REST API Device Unit', function () {
 
         function createOtherNetwork(callback) {
             var params = {
-                user: utils.admin,
+                jwt: utils.jwt.admin,
                 data: {
                     name: OTHER_NETWORK
                 }
@@ -72,7 +72,7 @@ describe('REST API Device Unit', function () {
 
         function createNetworkForAdmin(callback) {
             var params = {
-                user: utils.admin,
+                jwt: utils.jwt.admin,
                 data: {
                     name: NETWORK_FOR_ADMIN
                 }
@@ -89,7 +89,7 @@ describe('REST API Device Unit', function () {
         }
 
         function createDeviceClass(callback) {
-            var params = utils.deviceClass.getParamsObj(DEVICE, utils.admin, DEVICE_CLASS_VERSION, void 0, void 0, equipment);
+            var params = utils.deviceClass.getParamsObj(DEVICE, utils.jwt.admin, DEVICE_CLASS_VERSION, void 0, void 0, equipment);
             utils.create(path.DEVICE_CLASS, params, function (err, result) {
                 if (err) {
                     return callback(err);
@@ -101,8 +101,7 @@ describe('REST API Device Unit', function () {
         }
 
         function createDevice(callback) {
-            var params = helper.getParamsObj(DEVICE, utils.admin,
-                {name: NETWORK}, {name: DEVICE, version: '1'});
+            var params = helper.getParamsObj(DEVICE, utils.jwt.admin, {name: NETWORK}, {name: DEVICE, version: '1'});
             params.id = DEVICE_GUID;
             utils.update(path.DEVICE, params, function (err) {
                 callback(err);
@@ -168,8 +167,9 @@ describe('REST API Device Unit', function () {
 
     describe('#Get All', function () {
 
-        var accessKey1 = null;
-        var accessKey2 = null;
+        var jwt1 = null;
+        var jwt2 = null;
+        var jwt3 = null;
 
         before(function (done) {
             var params = [
@@ -182,23 +182,36 @@ describe('REST API Device Unit', function () {
                     user: user,
                     actions: 'GetDevice',
                     deviceIds: utils.NON_EXISTING_ID
+                },
+                {
+                    user: user,
+                    actions: 'GetDevice',
+                    networkIds: [networkId]
                 }
             ];
 
-            utils.accessKey.createMany(params, function (err, result) {
-                if (err) {
-                    return done(err);
-                }
+            function createJWTs(callback) {
+                utils.jwt.createMany(params, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
 
-                accessKey1 = result[0];
-                accessKey2 = result[1];
+                    jwt1 = result[0];
+                    jwt2 = result[1];
+                    jwt3 = result[2];
 
-                done();
-            });
+                    callback();
+                })
+            }
+
+            async.series([
+                createJWTs
+            ], done);
+
         });
 
         it('should get device by name', function (done) {
-            var params = {user: utils.admin};
+            var params = {jwt: utils.jwt.admin};
             params.query = path.query('name', DEVICE);
             utils.get(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
@@ -212,7 +225,7 @@ describe('REST API Device Unit', function () {
         });
 
         it('should get device by network', function (done) {
-            var params = {user: utils.admin};
+            var params = {jwt: utils.jwt.admin};
             params.query = path.query('networkId', networkId);
             utils.get(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
@@ -226,7 +239,7 @@ describe('REST API Device Unit', function () {
         });
 
         it('should get device by device class', function (done) {
-            var params = {user: utils.admin};
+            var params = {jwt: utils.jwt.admin};
             params.query = path.query('deviceClassId', deviceClassId);
             utils.get(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
@@ -240,7 +253,7 @@ describe('REST API Device Unit', function () {
         });
 
         it('should get all devices', function (done) {
-            utils.get(path.current, {user: user}, function (err, result) {
+            utils.get(path.current, {jwt: jwt3}, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
                 utils.matches(result[0], {
@@ -251,8 +264,8 @@ describe('REST API Device Unit', function () {
             })
         });
 
-        it('should get zero devices when using key with no access #1', function (done) {
-            utils.get(path.current, {accessKey: accessKey1}, function (err, result) {
+        it('should get zero devices when using jwt with no access #1', function (done) {
+            utils.get(path.current, {jwt: jwt1}, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isEmptyArray(result), true);
 
@@ -260,27 +273,29 @@ describe('REST API Device Unit', function () {
             })
         });
 
-        it('should get zero devices when using key with no access #2', function (done) {
-            utils.get(path.current, {accessKey: accessKey2}, function (err, result) {
+        it('should get zero devices when using jwt with no access #2', function (done) {
+            utils.get(path.current, {jwt: jwt2}, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isEmptyArray(result), true);
 
                 done();
             })
         });
+
     });
 
     describe('#Get', function () {
 
-        var invalidAccessKey1 = null;
-        var invalidAccessKey2 = null;
-        var invalidAccessKey3 = null;
-        var accessKey = null;
+        var invalidJWT1 = null;
+        var invalidJWT2 = null;
+        var invalidJWT3 = null;
+        var jwt = null;
 
         before(function (done) {
             var params = [
                 {
                     user: nonNetworkUser,
+                    networkIds: [networkId],
                     actions: 'GetDevice'
                 },
                 {
@@ -291,94 +306,70 @@ describe('REST API Device Unit', function () {
                 {
                     user: user,
                     actions: 'GetDevice',
+                    networkIds: [networkId],
                     deviceIds: utils.NON_EXISTING_ID
                 },
                 {
                     user: user,
-                    actions: 'GetDevice'
+                    actions: 'GetDevice',
+                    networkIds: [networkId],
+                    deviceIds: [DEVICE_GUID]
                 }
             ];
 
-            utils.accessKey.createMany(params, function (err, result) {
-                if (err) {
-                    return done(err);
-                }
+            function createJWTs(callback) {
+                utils.jwt.createMany(params, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
 
-                invalidAccessKey1 = result[0];
-                invalidAccessKey2 = result[1];
-                invalidAccessKey3 = result[2];
-                accessKey = result[3];
+                    invalidJWT1 = result[0];
+                    invalidJWT2 = result[1];
+                    invalidJWT3 = result[2];
+                    jwt = result[3];
 
-                done();
-            });
-        });
+                    callback();
+                })
+            }
 
-        it('should return error when accessing device with wrong user', function (done) {
-            var params = {user: nonNetworkUser};
-            params.id = DEVICE_GUID;
-            utils.get(path.current, params, function (err) {
-                assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error,
-                    format('Device with such guid = %s not found', DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+            async.series([
+                createJWTs
+            ], done);
 
-                done();
-            })
-        });
-
-        it('should succeed when accessing device with allowed user', function (done) {
-            var params = {user: user};
-            params.id = DEVICE_GUID;
-            utils.get(path.current, params, function (err, result) {
-                assert.strictEqual(!(!err), false, 'No error');
-                assert.strictEqual(result.id, DEVICE_GUID);
-                assert.strictEqual(result.name, DEVICE);
-
-                done();
-            })
         });
 
         it('should fail with 404 #1', function (done) {
-            var params = {accessKey: invalidAccessKey1};
+            var params = {jwt: invalidJWT1};
             params.id = DEVICE_GUID;
             utils.get(path.current, params, function (err) {
-                assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
         });
 
         it('should fail with 404 #2', function (done) {
-            var params = {accessKey: invalidAccessKey2};
+            var params = {jwt: invalidJWT2};
             params.id = DEVICE_GUID;
             utils.get(path.current, params, function (err) {
-                assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
         });
 
         it('should fail with 404 #3', function (done) {
-            var params = {accessKey: invalidAccessKey3};
+            var params = {jwt: invalidJWT3};
             params.id = DEVICE_GUID;
             utils.get(path.current, params, function (err) {
-                assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
         });
 
-        it('should succeed when using valid access key', function (done) {
-            var params = {accessKey: accessKey};
+        it('should succeed when using valid jwt', function (done) {
+            var params = {jwt: jwt};
             params.id = DEVICE_GUID;
             utils.get(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
@@ -394,18 +385,35 @@ describe('REST API Device Unit', function () {
 
         var NEW_DEVICE = utils.getName('new-device');
         var NEW_DEVICE_GUID = utils.getName('guid-222');
+        var jwt = null;
 
         before(function (done) {
-            var params = helper.getParamsObj(NEW_DEVICE, utils.admin,
-                {name: NETWORK}, {name: DEVICE, version: '1'});
-            params.id = NEW_DEVICE_GUID;
-            utils.update(path.current, params, function (err) {
-                done(err);
-            });
+            function createDevice(callback) {
+                var params = helper.getParamsObj(NEW_DEVICE, utils.jwt.admin, {name: NETWORK}, {name: DEVICE, equipment: [equipment]});
+                params.id = NEW_DEVICE_GUID;
+                utils.update(path.current, params, function (err) {
+                    callback(err);
+                });
+            }
+
+            function createJWT(callback) {
+                utils.jwt.create(user.id, 'GetDeviceNotification', networkId, NEW_DEVICE_GUID, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    jwt = result.accessToken;
+                    callback()
+                })
+            }
+
+            async.series([
+                createDevice,
+                createJWT
+            ], done);
         });
 
         it('should return newly created device', function (done) {
-            var params = {user: utils.admin};
+            var params = {jwt: utils.jwt.admin};
             params.id = NEW_DEVICE_GUID;
             utils.get(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
@@ -418,7 +426,6 @@ describe('REST API Device Unit', function () {
                     },
                     deviceClass: {
                         name: DEVICE,
-                        version: DEVICE_CLASS_VERSION,
                         equipment: [
                             {
                                 name: equipment.name,
@@ -434,7 +441,7 @@ describe('REST API Device Unit', function () {
         });
 
         it('should verify device-add notification', function (done) {
-            utils.get(path.NOTIFICATION.get(NEW_DEVICE_GUID), {user: user}, function (err, result) {
+            utils.get(path.NOTIFICATION.get(NEW_DEVICE_GUID), {jwt: jwt}, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
                 utils.matches(result[0], {
@@ -448,8 +455,7 @@ describe('REST API Device Unit', function () {
                         },
                         deviceClass: {
                             id: deviceClassId,
-                            name: DEVICE,
-                            version: DEVICE_CLASS_VERSION
+                            name: DEVICE
                         }
                     }
                 });
@@ -463,10 +469,40 @@ describe('REST API Device Unit', function () {
 
         var NEW_DEVICE = utils.getName('new-device-1');
         var NEW_DEVICE_GUID = utils.getName('guid-333');
+        var nonNetworkJWT = null;
+        var jwt = null;
 
-        it('should fail device creation for invalid user', function (done) {
-            var params = helper.getParamsObj(NEW_DEVICE, nonNetworkUser,
-                {name: NETWORK}, {name: DEVICE, version: '1'});
+        before(function (done) {
+
+            var params = [
+                {
+                    user: nonNetworkUser,
+                    actions: 'RegisterDevice'
+                },
+                {
+                    user: user,
+                    actions: 'RegisterDevice'
+                }
+            ];
+
+            function createJWTs(callback) {
+                utils.jwt.createMany(params, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    nonNetworkJWT = result[0];
+                    jwt = result[1];
+                    callback();
+                });
+            }
+
+            async.series([
+                createJWTs
+            ], done);
+        });
+
+        it('should fail device creation for invalid jwt', function (done) {
+            var params = helper.getParamsObj(NEW_DEVICE, nonNetworkJWT, {name: NETWORK}, {name: DEVICE, equipment: [equipment]});
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -476,14 +512,13 @@ describe('REST API Device Unit', function () {
             });
         });
 
-        it('should allow device creation for valid user', function (done) {
-            var params = helper.getParamsObj(NEW_DEVICE, user,
-                {name: NETWORK}, {name: DEVICE, version: '1'});
+        it('should allow device creation for valid jwt', function (done) {
+            var params = helper.getParamsObj(NEW_DEVICE, jwt, {name: NETWORK}, {name: DEVICE, equipment: [equipment]});
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), false, 'No error');
 
-                var params = {user: utils.admin};
+                var params = {jwt: utils.jwt.admin};
                 params.id = NEW_DEVICE_GUID;
                 utils.get(path.current, params, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
@@ -496,7 +531,6 @@ describe('REST API Device Unit', function () {
                         },
                         deviceClass: {
                             name: DEVICE,
-                            version: DEVICE_CLASS_VERSION,
                             equipment: [
                                 {
                                     name: equipment.name,
@@ -518,9 +552,8 @@ describe('REST API Device Unit', function () {
         var NETWORK_KEY = utils.getName('network-key');
 
         before(function (done) {
-            // Set a key to the network
             var params = {
-                user: utils.admin,
+                jwt: utils.jwt.admin,
                 data: {
                     key: NETWORK_KEY
                 }
@@ -532,8 +565,7 @@ describe('REST API Device Unit', function () {
         });
 
         it('should fail when referencing network without network key', function (done) {
-            var params = helper.getParamsObj(DEVICE, null,
-                {name: NETWORK}, {name: DEVICE, version: '1'}, utils.accessKey.admin);
+            var params = helper.getParamsObj(DEVICE, utils.jwt.admin, {name: NETWORK}, {name: DEVICE});
             params.id = DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -544,13 +576,12 @@ describe('REST API Device Unit', function () {
         });
 
         it('should succeed when network key is passed', function (done) {
-            var params = helper.getParamsObj(DEVICE, null,
-                {name: NETWORK, key: NETWORK_KEY}, {name: DEVICE, version: '1'}, utils.accessKey.admin);
+            var params = helper.getParamsObj(DEVICE, utils.jwt.admin, {name: NETWORK, key: NETWORK_KEY}, {name: DEVICE, equipment: [equipment]});
             params.id = DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), false, 'No error');
 
-                var params = {user: utils.admin};
+                var params = {jwt: utils.jwt.admin};
                 params.id = DEVICE_GUID;
                 utils.get(path.current, params, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
@@ -564,7 +595,6 @@ describe('REST API Device Unit', function () {
                         },
                         deviceClass: {
                             name: DEVICE,
-                            version: DEVICE_CLASS_VERSION,
                             equipment: [
                                 {
                                     name: equipment.name,
@@ -583,7 +613,7 @@ describe('REST API Device Unit', function () {
         after(function (done) {
             // Remove network key
             var params = {
-                user: utils.admin,
+                jwt: utils.jwt.admin,
                 data: {
                     key: null
                 }
@@ -609,7 +639,7 @@ describe('REST API Device Unit', function () {
         };
 
         it('should auto-create network and device class', function (done) {
-            var params = helper.getParamsObj(NEW_DEVICE, utils.admin,
+            var params = helper.getParamsObj(NEW_DEVICE, utils.jwt.admin,
                 {name: NEW_NETWORK},
                 {
                     name: NEW_DEVICE_CLASS,
@@ -620,7 +650,7 @@ describe('REST API Device Unit', function () {
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), false, 'No error');
 
-                var params = {user: utils.admin};
+                var params = {jwt: utils.jwt.admin};
                 params.id = DEVICE_GUID;
                 utils.get(path.current, params, function (err, result) {
 
@@ -633,7 +663,6 @@ describe('REST API Device Unit', function () {
                         },
                         deviceClass: {
                             name: NEW_DEVICE_CLASS,
-                            version: NEW_DEVICE_CLASS_VERSION,
                             equipment: [
                                 {
                                     name: equipment.name,
@@ -664,7 +693,7 @@ describe('REST API Device Unit', function () {
                     isPermanent: true
                 }
             };
-            params.user = utils.admin;
+            params.jwt = utils.jwt.admin;
             params.id = deviceClassId;
             utils.update(path.DEVICE_CLASS, params, function () {
                 done();
@@ -672,26 +701,23 @@ describe('REST API Device Unit', function () {
         });
 
         it('should not change permanent device class', function (done) {
-            var params = helper.getParamsObj(DEVICE, null,
+            var params = helper.getParamsObj(DEVICE, utils.jwt.admin,
                 {name: NETWORK},
                 {
                     name: DEVICE,
-                    version: DEVICE_CLASS_VERSION,
-                    offlineTimeout: 10,
                     equipment: [newEquipment]
-                }, utils.accessKey.admin);
+                });
             params.id = DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), false, 'No error');
 
-                var params = {user: utils.admin};
+                var params = {jwt: utils.jwt.admin};
                 params.id = deviceClassId;
                 utils.get(path.DEVICE_CLASS, params, function (err, result) {
 
                     assert.strictEqual(!(!err), false, 'No error');
 
                     utils.matches(result, {
-                        offlineTimeout: null,
                         equipment: [
                             {
                                 name: equipment.name,
@@ -712,7 +738,7 @@ describe('REST API Device Unit', function () {
         var NEW_DEVICE_GUID = utils.getName('guid-555');
 
         before(function (done) {
-            var params = helper.getParamsObj(utils.getName('dev-update-0'), utils.admin,
+            var params = helper.getParamsObj(utils.getName('dev-update-0'), utils.jwt.admin,
                 {name: utils.getName('network-update-0')},
                 {
                     name: utils.getName('dev-update-0'),
@@ -720,9 +746,9 @@ describe('REST API Device Unit', function () {
                 });
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function () {
-                var params = {user: utils.admin};
+                var params = {jwt: utils.jwt.admin};
                 params.id = NEW_DEVICE_GUID;
-                utils.get(path.current, params, function (err, result) {
+                utils.get(path.current, params, function (err) {
                     if (err) {
                         done(err);
                     }
@@ -732,17 +758,15 @@ describe('REST API Device Unit', function () {
         });
 
         it('should modify device, auto-create new network and device-class', function (done) {
-            var params = helper.getParamsObj(utils.getName('new-device-update'), utils.admin,
+            var params = helper.getParamsObj(utils.getName('new-device-update'), utils.jwt.admin,
                 {
                     name: utils.getName('network-update'),
                     description: 'description'
                 },
                 {
                     name: utils.getName('new-device-class-update'),
-                    version: '2',
                     equipment: [equipment]
                 });
-            params.data.status = 'updated';
             params.data.data = {key: 'value'};
             params.id = NEW_DEVICE_GUID;
 
@@ -751,7 +775,7 @@ describe('REST API Device Unit', function () {
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), false, 'No error');
 
-                var params = {user: utils.admin};
+                var params = {jwt: utils.jwt.admin};
                 params.id = NEW_DEVICE_GUID;
                 utils.get(path.current, params, function (err, result) {
 
@@ -768,51 +792,53 @@ describe('REST API Device Unit', function () {
 
         var NEW_DEVICE_GUID = utils.getName('guid-666');
         var NEW_DEVICE = utils.getName('dev-update-1');
+        var adminWithNetworkJWT = null;
+        var nonNetworkUserJWT = null;
 
         before(function (done) {
-            var params = helper.getParamsObj(NEW_DEVICE, utils.admin,
-                {name: NETWORK},
+
+            var params = [
                 {
-                    name: DEVICE,
-                    version: DEVICE_CLASS_VERSION
-                });
-            params.id = NEW_DEVICE_GUID;
-            utils.update(path.current, params, done);
-        });
+                    user: adminWithNetwork,
+                    actions: '*'
+                },
+                {
+                    user: nonNetworkUser,
+                    actions: ['*']
+                }
+            ];
 
-        it('should modify device status only', function (done) {
-            var params = {user: adminWithNetwork};
-            params.data = {status: 'modified'};
-            params.id = NEW_DEVICE_GUID;
-            utils.update(path.current, params, function (err) {
-                assert.strictEqual(!(!err), false, 'No error');
-
-                var params = {user: utils.admin};
-                params.id = NEW_DEVICE_GUID;
-                utils.get(path.current, params, function (err, result) {
-
-                    assert.strictEqual(!(!err), false, 'No error');
-
-                    utils.matches(result, {
-                        id: NEW_DEVICE_GUID,
-                        name: NEW_DEVICE,
-                        status: 'modified',
-                        network: {
-                            name: NETWORK
-                        },
-                        deviceClass: {
-                            name: DEVICE,
-                            version: DEVICE_CLASS_VERSION
-                        }
+            function createDevice(callback) {
+                var params = helper.getParamsObj(NEW_DEVICE, utils.jwt.admin,
+                    {name: NETWORK},
+                    {
+                        name: DEVICE,
+                        version: DEVICE_CLASS_VERSION
                     });
+                params.id = NEW_DEVICE_GUID;
+                utils.update(path.current, params, callback);
+            }
 
-                    done();
+            function createJWT(callback) {
+                utils.jwt.createMany(params, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    adminWithNetworkJWT = result[0];
+                    nonNetworkUserJWT = result[1];
+                    callback();
                 });
-            });
+            }
+
+            async.series([
+                createDevice,
+                createJWT
+            ], done);
+
         });
 
         it('should fail with 412 when admin without assigned networks', function (done) {
-            var params = {user: utils.admin};
+            var params = {jwt: nonNetworkUserJWT};
             params.data = {status: 'modified'};
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
@@ -827,59 +853,53 @@ describe('REST API Device Unit', function () {
 
         var NEW_DEVICE_GUID = utils.getName('guid-777');
         var NEW_DEVICE = utils.getName('dev-update-2');
+        var userJWT = null;
 
         before(function (done) {
-            var params = helper.getParamsObj(NEW_DEVICE, utils.admin,
-                {name: NETWORK},
+
+            var params = [
                 {
-                    name: DEVICE,
-                    version: DEVICE_CLASS_VERSION
-                });
-            params.id = NEW_DEVICE_GUID;
-            utils.update(path.current, params, done);
-        });
+                    user: user,
+                    actions: 'RegisterDevice'
+                }
+            ];
 
-        it('should modify device status using user auth', function (done) {
-            var params = {
-                user: user
-            };
-            params.data = {status: 'modified_device_auth'};
-            params.id = NEW_DEVICE_GUID;
-            utils.update(path.current, params, function (err) {
-                assert.strictEqual(!(!err), false, 'No error');
-
-                var params = {user: utils.admin};
-                params.id = NEW_DEVICE_GUID;
-                utils.get(path.current, params, function (err, result) {
-
-                    assert.strictEqual(!(!err), false, 'No error');
-
-                    utils.matches(result, {
-                        id: NEW_DEVICE_GUID,
-                        name: NEW_DEVICE,
-                        status: 'modified_device_auth',
-                        network: {
-                            name: NETWORK
-                        },
-                        deviceClass: {
-                            name: DEVICE,
-                            version: DEVICE_CLASS_VERSION
-                        }
+            function createDevice(callback) {
+                var params = helper.getParamsObj(NEW_DEVICE, utils.jwt.admin,
+                    {name: NETWORK},
+                    {
+                        name: DEVICE,
+                        version: DEVICE_CLASS_VERSION
                     });
+                params.id = NEW_DEVICE_GUID;
+                utils.update(path.current, params, callback);
+            }
 
-                    done();
+            function createJWT(callback) {
+                utils.jwt.createMany(params, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    userJWT = result[0];
+                    callback();
                 });
-            });
+            }
+
+            async.series([
+                createDevice,
+                createJWT
+            ], done);
+
+
         });
     });
 
     describe('#Update Client Auth', function () {
 
-
-        var invalidAccessKey1 = null;
-        var invalidAccessKey2 = null;
-        var invalidAccessKey3 = null;
-        var accessKey = null;
+        var otherNetworkUserJWT = null;
+        var nonNetworkUserJWT = null;
+        var invalidJWT = null;
+        var jwt = null;
 
         var NEW_DEVICE_GUID = utils.getName('guid-888');
         var NEW_DEVICE = utils.getName('dev-update-3');
@@ -888,13 +908,12 @@ describe('REST API Device Unit', function () {
 
             var params = [
                 {
-                    user: nonNetworkUser,
+                    user: otherNetworkUser,
                     actions: 'RegisterDevice'
                 },
                 {
-                    user: user,
-                    actions: 'RegisterDevice',
-                    networkIds: [0]
+                    user: nonNetworkUser,
+                    actions: 'RegisterDevice'
                 },
                 {
                     user: user,
@@ -907,21 +926,8 @@ describe('REST API Device Unit', function () {
                 }
             ];
 
-            utils.accessKey.createMany(params, function (err, result) {
-                if (err) {
-                    return done(err);
-                }
-
-                invalidAccessKey1 = result[0];
-                invalidAccessKey2 = result[1];
-                invalidAccessKey3 = result[2];
-                accessKey = result[3];
-
-                createDevice();
-            });
-
-            function createDevice() {
-                var params = helper.getParamsObj(NEW_DEVICE, utils.admin,
+            function createDevice(callback) {
+                var params = helper.getParamsObj(NEW_DEVICE, utils.jwt.admin,
                     {name: NETWORK},
                     {
                         name: NEW_DEVICE,
@@ -929,15 +935,34 @@ describe('REST API Device Unit', function () {
                     });
                 params.id = NEW_DEVICE_GUID;
                 utils.update(path.current, params, function () {
-                    var params = {user: utils.admin};
+                    var params = {jwt: utils.jwt.admin};
                     params.id = NEW_DEVICE_GUID;
-                    utils.get(path.current, params, done);
+                    utils.get(path.current, params, callback);
                 });
             }
+
+            function createJWTs(callback) {
+                utils.jwt.createMany(params, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    otherNetworkUserJWT = result[0];
+                    nonNetworkUserJWT = result[1];
+                    invalidJWT = result[2];
+                    jwt = result[3];
+                    callback();
+                })
+            }
+
+            async.series([
+                createDevice,
+                createJWTs
+            ], done);
+
         });
 
-        it('should fail with 403 when updating with wrong user', function (done) {
-            var params = {user: otherNetworkUser};
+        it('should fail with 403 when updating with wrong jwt', function (done) {
+            var params = {jwt: otherNetworkUserJWT};
             params.data = {status: 'modified'};
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
@@ -948,8 +973,8 @@ describe('REST API Device Unit', function () {
             });
         });
 
-        it('should fail with 412 when updating with user without networks', function (done) {
-            var params = {user: nonNetworkUser};
+        it('should fail with 412 when updating with jwt without networks', function (done) {
+            var params = {jwt: nonNetworkUserJWT};
             params.data = {status: 'modified'};
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
@@ -960,10 +985,9 @@ describe('REST API Device Unit', function () {
             });
         });
 
-        it('should modify device properties when accessing with allowed user', function (done) {
-            var params = {user: user};
+        it('should modify device properties when accessing with allowed jwt', function (done) {
+            var params = {jwt: jwt};
             params.data = {
-                status: 'modified',
                 data: {
                     par: 'value'
                 },
@@ -972,15 +996,13 @@ describe('REST API Device Unit', function () {
                 },
                 deviceClass: {
                     name: NEW_DEVICE,
-                    version: '1',
-                    offlineTimeout: 10
                 }
             };
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), false, 'No error');
 
-                var params = {user: utils.admin};
+                var params = {jwt: utils.jwt.admin};
                 params.id = NEW_DEVICE_GUID;
                 utils.get(path.current, params, function (err, result) {
 
@@ -989,7 +1011,6 @@ describe('REST API Device Unit', function () {
                     utils.matches(result, {
                         id: NEW_DEVICE_GUID,
                         name: NEW_DEVICE,
-                        status: 'modified',
                         data: {
                             par: 'value'
                         },
@@ -997,9 +1018,7 @@ describe('REST API Device Unit', function () {
                             name: NETWORK
                         },
                         deviceClass: {
-                            name: NEW_DEVICE,
-                            version: '1',
-                            offlineTimeout: 10
+                            name: NEW_DEVICE
                         }
                     });
 
@@ -1008,66 +1027,25 @@ describe('REST API Device Unit', function () {
             });
         });
 
-        it('should fail with 403 #1', function (done) {
-            var params = {accessKey: invalidAccessKey1};
-            params.data = {status: 'modified_access_key'};
-            params.id = NEW_DEVICE_GUID;
-            utils.update(path.current, params, function (err) {
-                assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, "No access to network!");
-                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
-
-                done();
-            });
-        });
-
-        it('should fail with 403 #2', function (done) {
-            var params = {accessKey: invalidAccessKey2};
-            params.data = {status: 'modified_access_key'};
-            params.id = NEW_DEVICE_GUID;
-            utils.update(path.current, params, function (err) {
-                assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, "No access to network!");
-                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
-
-                done();
-            });
-        });
-
-        it('should fail with 403 #3', function (done) {
-            var params = {accessKey: invalidAccessKey3};
-            params.data = {status: 'modified_access_key'};
-            params.id = NEW_DEVICE_GUID;
-            utils.update(path.current, params, function (err) {
-                assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, "No access to device");
-                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
-
-                done();
-            });
-        });
-
-        it('should succeed when using valid access key', function (done) {
-            var params = {accessKey: accessKey};
-            params.data = {status: 'modified_access_key'};
+        it('should succeed when using valid jwt', function (done) {
+            var params = {jwt: jwt};
+            params.data = {};
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), false, 'No error');
 
-                var params = {user: utils.admin};
+                var params = {jwt: utils.jwt.admin};
                 params.id = NEW_DEVICE_GUID;
                 utils.get(path.current, params, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
                     utils.matches(result, {
                         id: NEW_DEVICE_GUID,
                         name: NEW_DEVICE,
-                        status: 'modified_access_key',
                         network: {
                             name: NETWORK
                         },
                         deviceClass: {
-                            name: NEW_DEVICE,
-                            version: '1'
+                            name: NEW_DEVICE
                         }
                     });
 
@@ -1082,37 +1060,72 @@ describe('REST API Device Unit', function () {
         var NEW_DEVICE_GUID = utils.getName('guid-999');
         var NEW_DEVICE = utils.getName('dev-update-4');
 
+        var invalidJWT = null;
+        var jwt = null;
+
         before(function (done) {
-            var params = helper.getParamsObj(NEW_DEVICE, utils.admin,
-                {name: NETWORK},
+
+            var params = [
                 {
-                    name: DEVICE,
-                    version: DEVICE_CLASS_VERSION
+                    user: nonNetworkUser,
+                    actions: 'RegisterDevice'
+                },
+                {
+                    user: user,
+                    actions: 'RegisterDevice',
+                    networkIds: [networkId],
+                    deviceIds: [NEW_DEVICE_GUID]
+                }
+            ];
+
+            function createDevice(callback) {
+                var params = helper.getParamsObj(NEW_DEVICE, utils.jwt.admin,
+                    {name: NETWORK},
+                    {
+                        name: DEVICE,
+                        version: DEVICE_CLASS_VERSION
+                    });
+                params.id = NEW_DEVICE_GUID;
+                utils.update(path.current, params, function (err) {
+                    callback(err)
                 });
-            params.id = NEW_DEVICE_GUID;
-            utils.update(path.current, params, done);
+            }
+
+            function createJWTs(callback) {
+                utils.jwt.createMany(params, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    invalidJWT = result[0];
+                    jwt = result[1];
+                    callback();
+                })
+            }
+
+            async.series([
+                createDevice,
+                createJWTs
+            ], done);
+
+
         });
 
-        it('should return error when deleting device with invalid user', function (done) {
-            var params = {user: nonNetworkUser};
+        it('should return error when deleting device with invalid jwt', function (done) {
+            var params = {jwt: invalidJWT};
             params.id = NEW_DEVICE_GUID;
             utils.delete(path.current, params, function (err) {
-                assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error,
-                    format('Device with such guid = %s not found', NEW_DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
-
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                 done();
             });
         });
 
-        it('should succeed when deleting with allowed user', function (done) {
-            var params = {user: user};
+        it('should succeed when deleting with allowed jwt', function (done) {
+            var params = {jwt: jwt};
             params.id = NEW_DEVICE_GUID;
             utils.delete(path.current, params, function (err) {
                 assert.strictEqual(!(!err), false, 'No error');
 
-                var params = {user: utils.admin};
+                var params = {jwt: utils.jwt.admin};
                 params.id = NEW_DEVICE_GUID;
                 utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
@@ -1126,14 +1139,88 @@ describe('REST API Device Unit', function () {
         });
     });
 
+    describe('#Get device with client jwt', function () {
+
+        var NEW_DEVICE_GUID = utils.getName('guid-999');
+        var NEW_DEVICE = utils.getName('dev-update-4');
+
+        var jwt = null;
+        var invalidJwt = null;
+
+        before(function (done) {
+
+            var params = [
+                {
+                    user: user,
+                    actions: 'GetDevice',
+                    networkIds: [networkId],
+                    deviceIds: ['*'] // Allow all devices for user
+                },
+                {
+                    user: user,
+                    actions: 'GetDevice',
+                    networkIds: [networkId],
+                    deviceIds: ['999999999'] // Wrong device id
+                }
+            ];
+
+            function createDevice(callback) {
+                var params = helper.getParamsObj(NEW_DEVICE, utils.jwt.admin,
+                    {name: NETWORK},
+                    {
+                        name: DEVICE,
+                        version: DEVICE_CLASS_VERSION
+                    });
+                params.id = NEW_DEVICE_GUID;
+                utils.update(path.current, params, function (err) {
+                    callback(err)
+                });
+            }
+
+            function createJWT(callback) {
+                utils.jwt.createMany(params, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    jwt = result[0];
+                    invalidJwt = result[1];
+                    callback();
+                })
+            }
+
+            async.series([
+                createDevice,
+                createJWT
+            ], done);
+
+        });
+
+        it('should return device', function (done) {
+            var params = {jwt: jwt};
+            params.id = NEW_DEVICE_GUID;
+            utils.get(path.current, params, function (err, result) {
+                assert.strictEqual(result.id, NEW_DEVICE_GUID);
+                done();
+            });
+        });
+        it('should return unauthorized error', function (done) {
+            var params = {jwt: invalidJwt};
+            params.id = NEW_DEVICE_GUID;
+            utils.get(path.current, params, function (err) {
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                done();
+            });
+        });
+    });
+
 
     describe('#Bad Request', function () {
 
         var NEW_DEVICE_GUID = utils.getName('guid-1111');
 
         it('should fail with 400 when trying to create device with badly formed request #1', function (done) {
-            var params = {user: adminWithNetwork};
-            params.data = {wrongProp: utils.getName('bad-request')};
+            var params = {jwt: utils.jwt.admin};
+            params.data = {network: 'invalid', wrongProp: utils.getName('bad-request')};
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -1144,7 +1231,7 @@ describe('REST API Device Unit', function () {
         });
 
         it('should fail with 400 when trying to create device with badly formed request #2', function (done) {
-            var params = helper.getParamsObj(utils.getName('bad-request'), adminWithNetwork);
+            var params = helper.getParamsObj(utils.getName('bad-request'), utils.jwt.admin);
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -1155,7 +1242,7 @@ describe('REST API Device Unit', function () {
         });
 
         it('should fail with 400 when trying to create device with badly formed request #3', function (done) {
-            var params = helper.getParamsObj(utils.getName('bad-request'), utils.admin, {}, {});
+            var params = helper.getParamsObj(utils.getName('bad-request'), utils.jwt.admin, 'invalid', {name: utils.getName('bad-request')});
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -1169,8 +1256,9 @@ describe('REST API Device Unit', function () {
     describe('#Unauthorized', function () {
 
         describe('#No Authorization', function () {
-            it('should return error when getting devices without authorization', function (done) {
-                utils.get(path.current, {user: null}, function (err) {
+
+            it('should return error when getting devices without jwt', function (done) {
+                utils.get(path.current, {jwt: null}, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
@@ -1178,8 +1266,17 @@ describe('REST API Device Unit', function () {
                 })
             });
 
-            it('should return error when accessing device without authorization', function (done) {
-                var params = {user: null};
+            it('should return error when getting devices with refresh jwt', function (done) {
+                utils.get(path.current, {jwt: utils.jwt.admin_refresh}, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'Unauthorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            });
+
+            it('should return error when accessing device without jwt', function (done) {
+                var params = {jwt: null};
                 params.id = DEVICE_GUID;
                 utils.get(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
@@ -1189,8 +1286,8 @@ describe('REST API Device Unit', function () {
                 })
             });
 
-            it('should return error when updating device without authorization', function (done) {
-                var params = {user: null};
+            it('should return error when updating device without jwt', function (done) {
+                var params = {jwt: null};
                 params.data = {status: 'modified'};
                 params.id = DEVICE_GUID;
                 utils.update(path.current, params, function (err) {
@@ -1201,8 +1298,8 @@ describe('REST API Device Unit', function () {
                 })
             });
 
-            it('should return error when deleting device without authorization', function (done) {
-                var params = {user: null};
+            it('should return error when deleting device without jwt', function (done) {
+                var params = {jwt: null};
                 params.id = DEVICE_GUID;
                 utils.delete(path.current, params, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
@@ -1216,8 +1313,9 @@ describe('REST API Device Unit', function () {
     });
 
     describe('#Not Found', function () {
+
         it('should return error when accessing non-existing device', function (done) {
-            var params = {user: utils.admin};
+            var params = {jwt: utils.jwt.admin};
             params.id = utils.NON_EXISTING_ID;
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -1231,6 +1329,6 @@ describe('REST API Device Unit', function () {
     });
 
     after(function (done) {
-        utils.clearData(done);
+        utils.clearDataJWT(done);
     });
 });

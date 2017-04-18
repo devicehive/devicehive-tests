@@ -28,33 +28,109 @@ var utils = {
 
     admin: {
         login: 'dhadmin',
-        password: 'dhadmin_#911'
+        password: 'dhadmin_#911',
+        id:1
         //password: 'Password1@'
     },
 
     loggingOff: false,
+
+    jwt: {
+        admin: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VHdWlkcyI6WyIqIl0sImV4cGlyYXRpb24iOjE0OTM4MTU3Njc3MzcsInRva2VuVHlwZSI6IkFDQ0VTUyJ9fQ.pxzIS0cNnZ3Vbuvz6JemSh0JEeU2iKio3xrDdlc-ImA',
+        admin_refresh: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VHdWlkcyI6WyIqIl0sImV4cGlyYXRpb24iOjE0OTM4MTk1NjI5NjMsInRva2VuVHlwZSI6IlJFRlJFU0gifX0.rGWqfXT7ujtVWfBj7blZ4Ldr3v2J9Edvu5Qxr_poirA',
+        admin_refresh_exp: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6IDEsICJhY3Rpb25zIjogWyIqIl0sICJuZXR3b3JrSWRzIjogWyIqIl0sICJkZXZpY2VHdWlkcyI6IFsiKiJdLCAiZXhwaXJhdGlvbiI6IDE0Nzg1OTU3MzI4MTksICJ0b2tlblR5cGUiOiAiUkVGUkVTSCJ9fQ.LolmhB5Ca8ejwiRjFnsgYmUwT1Du-t4E1icS5VLXHic',
+        admin_refresh_invalid: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6IDEsICJhY3Rpb25zIjogWyIqIl0sICJuZXR3b3JrSWRzIjogWyIqIl0sICJkZXZpY2VHdWlkcyI6IFsiKiJdLCAiZXhwaXJhdGlvbiI6IDE0OTM4MTk1NjI5NjMsICJ0b2tlblR5cGUiOiAiQUNDRVNTIn19.JRbvZrImGADruDEWRbgHbUt1BAgYmekdiNgTo-YJwBo',
+        createMany: function (params, done) {
+            var paramsCopy = params.slice(0);
+            function createJWT(callback) {
+                var p = paramsCopy.shift();
+                utils.jwt.create(p.user.id, p.actions, p.networkIds, p.deviceIds,
+                    function (err, result) {
+                        if (err) {
+                            callback(err);
+                        }
+
+                        callback(null, result.accessToken);
+                    });
+            }
+
+            var callbacks = [];
+            for (var i = 0; i < paramsCopy.length; i++) {
+                callbacks.push(createJWT);
+            }
+
+            async.series(callbacks, done);
+        },
+
+        createManyRefresh: function (params, done) {
+            var paramsCopy = params.slice(0);
+            function createJWT(callback) {
+                var p = paramsCopy.shift();
+                utils.jwt.create(p.user.id, p.actions, p.networkIds, p.deviceIds,
+                    function (err, result) {
+                        if (err) {
+                            callback(err);
+                        }
+
+                        callback(null, result.refreshToken);
+                    });
+            }
+
+            var callbacks = [];
+            for (var i = 0; i < paramsCopy.length; i++) {
+                callbacks.push(createJWT);
+            }
+
+            async.series(callbacks, done);
+        },
+
+        create: function (userId, actions, networkIds, deviceIds, callback) {
+
+            if (actions && !Array.isArray(actions)) {
+                actions = [actions];
+            }
+
+            if (networkIds && !Array.isArray(networkIds)) {
+                networkIds = [networkIds];
+            }
+
+            if (deviceIds && !Array.isArray(deviceIds)) {
+                deviceIds = [deviceIds];
+            }
+
+            var expDate = new Date();
+            expDate.setFullYear(expDate.getFullYear() + 10);
+
+            utils.create(path.JWT, {jwt: utils.jwt.admin, data: {userId: userId, actions: actions, networkIds: networkIds, deviceGuids: deviceIds, expiration: expDate }}, callback);
+        }
+    },
 
     accessKey: {
 
         admin: "1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=",
 
         createMany: function (params, done) {
+            var paramsCopy = params.slice(0);
 
             function createAccessKey(callback) {
-                var p = params.shift();
-                utils.accessKey.create(p.user, p.label, p.actions, p.deviceIds, p.networkIds,
-                    function (err, result) {
-                        if (err) {
-                            callback(err);
-                        }
+                var p = paramsCopy.shift();
+                setTimeout(function () {
+                    utils.accessKey.create(p.user, p.label, p.actions, p.deviceIds, p.networkIds,
+                        function (err, result) {
+                            if (err) {
+                                callback(err);
+                            }
 
-                        callback(null, result.key);
-                    });
+                            callback(null, result.key);
+                        })
+                }, 10);
             }
 
             var callbacks = [];
             for (var i = 0; i < params.length; i++) {
-                callbacks.push(createAccessKey);
+                callbacks.push(
+                    createAccessKey
+                );
             }
 
             async.series(callbacks, done);
@@ -147,8 +223,8 @@ var utils = {
 
     deviceClass: {
 
-        getParams: function (name, user, version) {
-            return this.getParamsObj(name, user, version, void 0, 3600,
+        getParams: function (name, jwt, version) {
+            return this.getParamsObj(name, jwt, void 0,
                 {
                     name: utils.getName('eqpmnt'),
                     type: utils.getName('type'),
@@ -156,22 +232,17 @@ var utils = {
                 });
         },
 
-        getParamsObj: function (name, user, version, isPermanent, offlineTimeout, equipment, data) {
+        getParamsObj: function (name, jwt, isPermanent, equipment, data) {
 
             var params = {
-                user: user,
+                jwt: jwt,
                 data: {
-                    name: name,
-                    version: version
+                    name: name
                 }
             };
 
             if (typeof (isPermanent) === 'boolean') {
                 params.data.isPermanent = isPermanent;
-            }
-
-            if (offlineTimeout) {
-                params.data.offlineTimeout = offlineTimeout;
             }
 
             if (equipment) {
@@ -187,12 +258,12 @@ var utils = {
     },
 
     device: {
-        getParamsObj: function (name, user, network, deviceClass, accessKey) {
-
+        getParamsObj: function (name, jwt, network, deviceClass) {
             var params = {
-                user: user,
+                jwt: jwt,
                 data: {
-                    name: name
+                    name: name,
+                    network: 'invalid'
                 }
             };
 
@@ -204,8 +275,8 @@ var utils = {
                 params.data.deviceClass = deviceClass;
             }
 
-            if(accessKey){
-                params.accessKey = accessKey;
+            if (jwt) {
+                params.jwt = jwt;
             }
 
             return params;
@@ -213,21 +284,22 @@ var utils = {
     },
 
     notification: {
-        getParamsObj: function (notification, user, parameters) {
+        getParamsObj: function (notification, jwt, parameters, timestamp) {
             return {
-                user: user,
+                jwt: jwt,
                 data: {
                     notification: notification,
-                    parameters: parameters
+                    parameters: parameters,
+                    timestamp: timestamp
                 }
             };
         }
     },
 
     command: {
-        getParamsObj: function (command, user, parameters) {
+        getParamsObj: function (command, jwt, parameters, timestamp) {
             var params = {
-                user: user,
+                jwt: jwt,
                 data: {
                     command: command
                 }
@@ -235,6 +307,10 @@ var utils = {
 
             if (parameters) {
                 params.data.parameters = parameters;
+            }
+
+            if (timestamp) {
+                params.data.timestamp = timestamp;
             }
 
             return params;
@@ -257,7 +333,7 @@ var utils = {
     },
 
     get: function ($path, params, cb, responseStatus) {
-        if(!responseStatus){responseStatus = status.EXPECTED_READ};
+        if(!responseStatus){responseStatus = status.EXPECTED_READ}
         new Http(this.url, path.get($path, params.id, params.query), this.loggingOff)
             .get(params, function (err, result, xhr) {
                 if (err) {
@@ -307,7 +383,7 @@ var utils = {
     createUser: function (login, password, role, status, callback) {
 
         var params = {
-            user: this.admin,
+            jwt: this.jwt.admin,
             data: {
                 login: login,
                 password: password,
@@ -322,7 +398,12 @@ var utils = {
     },
 
     getName: function ($for) {
-        return [this.NAME_PREFIX, $for, '-', (+new Date() + '').substr(7)].join('');
+        return [this.NAME_PREFIX, $for, '-', (Date.now())].join('');
+    },
+
+    getInvalidName: function () {
+        //Name will be longer than constraints allow
+        return (Math.random()*1e256).toString(36)
     },
 
     createUser2: function (role, networkIds, callback) {
@@ -347,7 +428,7 @@ var utils = {
             user.id = result.id;
             async.eachSeries(networkIds,
                 function (networkId, cb) {
-                    var params = { user: self.admin };
+                    var params = { jwt: self.jwt.admin };
                     var $path = path.combine(path.USER, user.id, path.NETWORK, networkId);
                     new Http(self.url, $path)
                         .put(params, function (err, result, xhr) {
@@ -356,6 +437,48 @@ var utils = {
                             }
 
                             assert.strictEqual(xhr.status, status.EXPECTED_UPDATED);
+                            cb();
+                        })
+                },
+                function (err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    callback(null, {user: user});
+                })
+        });
+    },
+
+    createUser3: function (role, networkIds, status, callback) {
+
+        var self = this;
+
+        var user = {
+            login: this.getName('user'),
+            password: this.NEW_USER_PASSWORD
+        };
+
+        networkIds || (networkIds = []);
+        if (!Array.isArray(networkIds)) {
+            networkIds = [networkIds];
+        }
+
+        this.createUser(user.login, user.password, role, status, function (err, result) {
+            if (err) {
+                return callback(err);
+            }
+
+            user.id = result.id;
+            async.eachSeries(networkIds,
+                function (networkId, cb) {
+                    var params = { jwt: self.jwt.admin };
+                    var $path = path.combine(path.USER, user.id, path.NETWORK, networkId);
+                    new Http(self.url, $path)
+                        .put(params, function (err) {
+                            if (err) {
+                                return cb(err);
+                            }
                             cb();
                         })
                 },
@@ -379,7 +502,7 @@ var utils = {
                 }
 
                 async.eachSeries(result, function (item, cb) {
-                    if (item[name].indexOf(self.NAME_PREFIX) < 0) {
+                    if (item[name] == null || item[name].indexOf(self.NAME_PREFIX) < 0) {
                         return cb();
                     }
 
@@ -420,6 +543,61 @@ var utils = {
             clearDeviceClasses,
             clearNetworks,
             clearOAuthClients
+        ], function (err) {
+            if (err) {
+                done(err);
+            }
+            self.loggingOff = false;
+            done();
+        });
+    },
+
+    clearDataJWT: function (done) {
+
+        var self = this;
+        function clearEntities(path, name, callback) {
+            utils.get(path, {jwt: utils.jwt.admin}, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                async.eachSeries(result, function (item, cb) {
+                    if (item[name] == null || item[name].indexOf(self.NAME_PREFIX) < 0) {
+                        return cb();
+                    }
+
+                    utils.delete(path, {jwt: utils.jwt.admin, id: item.id}, cb);
+                }, callback)
+            });
+        }
+
+        function clearUsers(callback) {
+            clearEntities(path.USER, 'login', callback);
+        }
+
+        function clearDevices(callback) {
+            clearEntities(path.DEVICE, 'name', callback);
+        }
+
+        function clearDeviceClasses(callback) {
+            clearEntities(path.DEVICE_CLASS, 'name', callback);
+        }
+
+        function clearNetworks(callback) {
+            clearEntities(path.NETWORK, 'name', callback);
+        }
+
+        function clearOAuthClients(callback) {
+            clearEntities(path.combine('/', 'oauth', 'client'), 'name', callback);
+        }
+
+        self.loggingOff = true;
+        async.series([
+            clearUsers,
+            clearDevices,
+            clearDeviceClasses,
+            clearNetworks
+            // clearOAuthClients
         ], function (err) {
             if (err) {
                 done(err);

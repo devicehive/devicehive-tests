@@ -6,7 +6,7 @@ var status = require('./common/http').status;
 var req = require('./common/request');
 
 describe('REST API User', function () {
-    this.timeout(30000);
+    this.timeout(90000);
 
     before(function () {
         path.current = path.USER;
@@ -28,7 +28,7 @@ describe('REST API User', function () {
 
         it('should return all users when using admin credentials', function (done) {
             req.get(path.current)
-                .params({user: utils.admin})
+                .params({jwt: utils.jwt.admin})
                 .expectTrue(function (result) {
                     return utils.core.isArrayNonEmpty(result);
                 })
@@ -42,7 +42,7 @@ describe('REST API User', function () {
 
         it('should get user by login', function (done) {
             req.get(path.current)
-                .params({user: utils.admin})
+                .params({jwt: utils.jwt.admin})
                 .query('login', user.login)
                 .expect([{
                     id: user.id,
@@ -53,7 +53,7 @@ describe('REST API User', function () {
 
         it('should get non-existing user, no error', function (done) {
             req.get(path.current)
-                .params({user: utils.admin})
+                .params({jwt: utils.jwt.admin})
                 .query('login', 'non-existing')
                 .expectTrue(function (result) {
                     return utils.core.isEmptyArray(result);
@@ -65,21 +65,41 @@ describe('REST API User', function () {
     describe('#Get Current', function () {
 
         var user = null;
+        var jwt = null;
 
         before(function (done) {
-            utils.createUser2(1, void 0, function (err, result) {
-                if (err) {
-                    return done(err);
-                }
 
-                user = result.user;
-                done();
-            })
+            function createUser(callback) {
+                utils.createUser2(1, void 0, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    user = result.user;
+                    callback();
+                })
+            }
+
+            function createJWT(callback) {
+                utils.jwt.create(user.id, 'GetCurrentUser', void 0, void 0, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    jwt = result.accessToken;
+                    callback()
+                })
+            }
+
+            async.series([
+                createUser,
+                createJWT
+            ], done);
+
         });
 
         it('should authorize using current user', function (done) {
             req.get(path.combine(path.USER, path.CURRENT))
-                .params({user: user})
+                .params({jwt: jwt})
                 .expect({
                     id: user.id,
                     login: user.login,
@@ -107,7 +127,7 @@ describe('REST API User', function () {
 
         it('should get user by id using admin', function (done) {
             req.get(path.current)
-                .params({user: utils.admin, id: user.id})
+                .params({jwt: utils.jwt.admin, id: user.id})
                 .expect({
                     id: user.id,
                     login: user.login,
@@ -129,7 +149,7 @@ describe('REST API User', function () {
         before(function (done) {
             req.create(path.current)
                 .params({
-                    user: utils.admin,
+                    jwt: utils.jwt.admin,
                     data: {
                         login: user.login,
                         password: user.password,
@@ -147,19 +167,6 @@ describe('REST API User', function () {
                 });
         });
 
-        it.skip('should get oauth user by id using admin', function (done) {
-            req.get(path.current)
-                .params({user: utils.admin, id: user.id})
-                .expect({
-                    id: user.id,
-                    login: user.login,
-                    facebookLogin: 'facebook', // TODO: No 'facebookLogin' key
-                    role: 0,
-                    status: 0,
-                    lastLogin: null
-                })
-                .send(done);
-        });
     });
 
     describe('#Create Existing', function () {
@@ -169,7 +176,7 @@ describe('REST API User', function () {
         before(function (done) {
             req.create(path.current)
                 .params({
-                    user: utils.admin,
+                    jwt: utils.jwt.admin,
                     data: {
                         login: LOGIN,
                         password: utils.NEW_USER_PASSWORD,
@@ -183,25 +190,10 @@ describe('REST API User', function () {
         it('should fail with 403 when trying to create user with existing login', function (done) {
             req.create(path.current)
                 .params({
-                    user: utils.admin,
+                    jwt: utils.jwt.admin,
                     data: {
                         login: LOGIN,
                         password: utils.NEW_USER_PASSWORD,
-                        role: 0,
-                        status: 0 }
-                })
-                .expectError(status.FORBIDDEN, 'User with such login already exists. Please, select another one')
-                .send(done);
-        });
-
-        it.skip('should fail with 403 when trying to create user with existing oauth login', function (done) {
-            req.create(path.current)
-                .params({
-                    user: utils.admin,
-                    data: {
-                        login: utils.getName('oauth-usr-2-1'),
-                        password: utils.NEW_USER_PASSWORD,
-                        facebookLogin: 'facebook-2', // TODO: No fail when using same oauth login 'facebook-2'
                         role: 0,
                         status: 0 }
                 })
@@ -234,7 +226,7 @@ describe('REST API User', function () {
 
             function createNetwork(callback) {
                 req.create(path.NETWORK)
-                    .params({user: utils.admin, data: {name: NETWORK}})
+                    .params({jwt: utils.jwt.admin, data: {name: NETWORK}})
                     .send(function (err, result) {
                         if (err) {
                             callback(err);
@@ -253,14 +245,14 @@ describe('REST API User', function () {
 
         it('should create user network', function (done) {
             req.update(path.combine(path.USER, user.id, path.NETWORK, networkId))
-                .params({user: utils.admin})
+                .params({jwt: utils.jwt.admin})
                 .send(function (err) {
                     if (err) {
                         return done(err);
                     }
 
                     req.get(path.current)
-                        .params({user: utils.admin, id: user.id})
+                        .params({jwt: utils.jwt.admin, id: user.id})
                         .expect({
                             id: user.id,
                             login: user.login,
@@ -274,64 +266,6 @@ describe('REST API User', function () {
                                 }
                             }]
                         })
-                        .send(done);
-                });
-        });
-    });
-
-    describe('#Update', function () {
-
-        var user = {
-            login: utils.getName('usr-4'),
-            password: utils.NEW_USER_PASSWORD
-        };
-
-        before(function (done) {
-            req.create(path.current)
-                .params({
-                    user: utils.admin,
-                    data: {
-                        login: user.login,
-                        password: user.password,
-                        googleLogin: 'google-4',
-                        facebookLogin: 'facebook-4',
-                        githubLogin: 'github-4',
-                        role: 0,
-                        status: 0
-                    }
-                })
-                .send(function (err, result) {
-                    if (err) {
-                        return done(err);
-                    }
-
-                    user.id = result.id;
-                    done();
-                });
-        });
-
-        it.skip('should update user account', function (done) { // TODO: Oauth logins don't return (googleLogin, facebookLogin etc.)
-
-            var update = {
-                login: utils.getName('usr-4-upd'),
-                googleLogin: 'google-4-upd',
-                facebookLogin: 'facebook-4-upd',
-                githubLogin: 'github-4-upd',
-                role: 1,
-                status: 1
-            };
-
-            req.update(path.current)
-                .params({user: utils.admin, id: user.id, data: update})
-                .send(function (err) {
-                    if (err) {
-                        return done(err);
-                    }
-
-                    req.get(path.current)
-                        .params({user: utils.admin, id: user.id})
-                        .expect(update)
-                        .expect({lastLogin: null})
                         .send(done);
                 });
         });
@@ -354,14 +288,14 @@ describe('REST API User', function () {
 
         it('should partially update user account', function (done) {
             req.update(path.current)
-                .params({user: utils.admin, id: user.id, data: {status: 1}})
+                .params({jwt: utils.jwt.admin, id: user.id, data: {status: 1}})
                 .send(function (err) {
                     if (err) {
                         return done(err);
                     }
 
                     req.get(path.current)
-                        .params({user: utils.admin, id: user.id})
+                        .params({jwt: utils.jwt.admin, id: user.id})
                         .expect({
                             id: user.id,
                             login: user.login,
@@ -374,86 +308,8 @@ describe('REST API User', function () {
         });
     });
 
-    describe('#Update Current', function () {
-
-        var user = {
-            login: utils.getName('usr-5'),
-            password: utils.NEW_USER_PASSWORD
-        };
-
-        before(function (done) {
-            req.create(path.current)
-                .params({
-                    user: utils.admin,
-                    data: {
-                        login: user.login,
-                        password: user.password,
-                        googleLogin: 'google-5',
-                        facebookLogin: 'facebook-5',
-                        githubLogin: 'github-5',
-                        role: 1,
-                        status: 0
-                    }
-                })
-                .send(function (err, result) {
-                    if (err) {
-                        return done(err);
-                    }
-
-                    user.id = result.id;
-                    done();
-                });
-        });
-
-        it.skip('should update user account at \'/current\' path', function (done) { // TODO: Oauth logins don't return (googleLogin, facebookLogin etc.)
-
-            var update = {
-                login: utils.getName('usr-5-upd'),
-                password: utils.NEW_USER_PASSWORD + '*',
-                googleLogin: 'google-5-upd',
-                facebookLogin: 'facebook-5-upd',
-                githubLogin: 'github-5-upd',
-                role: 0,
-                status: 1
-            };
-
-            function updateUser(callback) {
-                req.update(path.combine(path.current, path.CURRENT))
-                    .params({user: user, data: update})
-                    .send(callback);
-            }
-
-            function failGetWithOldCredentials(callback) {
-                req.get(path.combine(path.current, path.CURRENT))
-                    .params({user: user})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(callback);
-            }
-
-            function getOtherPropsUnchanged(callback) {
-                req.get(path.current)
-                    .params({user: utils.admin, id: user.id})
-                    .expect({
-                        login: utils.getName('usr-5-upd'),
-                        googleLogin: 'google-5-upd',
-                        facebookLogin: 'facebook-5-upd',
-                        githubLogin: 'github-5-upd',
-                        role: 0,
-                        status: 1
-                    })
-                    .send(callback);
-            }
-
-            async.series([
-                updateUser,
-                failGetWithOldCredentials,
-                getOtherPropsUnchanged
-            ], done);
-        });
-    });
-
     describe('#Delete', function () {
-        var cantDeleteYourselfMessage = "You can not delete current user or owner of current access key";
+        var cantDeleteYourselfMessage = "You can not delete a user or access key that you use to authenticate this request";
 
         var user = null;
 
@@ -470,78 +326,52 @@ describe('REST API User', function () {
 
         it('should fail with 404 when trying to get deleted user', function (done) {
             req.delete(path.current)
-                .params({user: utils.admin, id: user.id})
+                .params({jwt: utils.jwt.admin, id: user.id})
                 .send(function (err) {
                     if (err) {
                         done(err);
                     }
 
                     req.get(path.current)
-                        .params({user: utils.admin, id: user.id})
+                        .params({jwt: utils.jwt.admin, id: user.id})
                         .expectError(status.NOT_FOUND, format('User not found'))
                         .send(done);
                 });
         });
 
-        it('should not allow to delete current admin user', function (done) {
+        it('should not allow to delete a user that owns current admin jwt with ManageUser permission', function(done){
             var newUserAdmin = {login: utils.getName("current_admin_user"), password: utils.NEW_USER_PASSWORD};
             utils.createUser(newUserAdmin.login, newUserAdmin.password, 0, 0, function(err, user){
                 if(err){
                     done(err);
                 }
-                req.delete(path.current)
-                    .params({user: newUserAdmin, id: user.id})
-                    .expectError(status.FORBIDDEN, cantDeleteYourselfMessage)
-                    .send(done);
-            });
-        });
-
-        it('should not allow to delete a user that owns current admin access key with ManageUser permission', function(done){
-            var newUserAdmin = {login: utils.getName("current_admin_user"), password: utils.NEW_USER_PASSWORD};
-            utils.createUser(newUserAdmin.login, newUserAdmin.password, 0, 0, function(err, user){
-                if(err){
-                    done(err);
-                }
-                utils.accessKey.create(newUserAdmin, void 0, void 0, void 0, void 0, function(err, accessKey){
+                utils.jwt.create(user.id, 'ManageUser', void 0, void 0, function(err, jwt){
                     if(err){
                         done(err);
                     }
                     req.delete(path.current)
-                        .params({accessKey: accessKey.key, id: user.id})
+                        .params({jwt: jwt.accessToken, id: user.id})
                         .expectError(status.FORBIDDEN, cantDeleteYourselfMessage)
                         .send(done);
                 });
             });
         });
 
-        it('should not allow to delete a user that owns current client access key with ManageUser permission', function(done){
+        it('should not allow to delete a user that owns current client jwt with ManageUser permission', function(done){
             var newClientUser = {login: utils.getName("current_client_user"), password: utils.NEW_USER_PASSWORD};
             utils.createUser(newClientUser.login, newClientUser.password, 1, 0, function(err, user){
                 if(err){
                     done(err);
                 }
-                utils.accessKey.create(newClientUser, void 0, 'ManageUser', void 0, void 0, function(err, accessKey){
+                utils.jwt.create(user.id,  void 0, void 0, void 0, function(err, jwt){
                     if(err){
                         done(err);
                     }
                     req.delete(path.current)
-                        .params({accessKey: accessKey.key, id: user.id})
+                        .params({jwt: jwt.accessToken, id: user.id})
                         .expectError(status.NOT_AUTHORIZED, "Unauthorized")
                         .send(done);
                 });
-            });
-        });
-
-        it('should not allow client users to delete users', function (done) {
-            var newUserClient = {login: utils.getName("current_client_user"), password: utils.NEW_USER_PASSWORD};
-            utils.createUser(newUserClient.login, newUserClient.password, 1, 0, function(err, user){
-                if(err){
-                    done(err);
-                }
-                req.delete(path.current)
-                    .params({user: newUserClient, id: user.id})
-                    .expectError(status.NOT_AUTHORIZED, "Unauthorized")
-                    .send(done);
             });
         });
     });
@@ -549,7 +379,7 @@ describe('REST API User', function () {
     describe('#Bad Request', function () {
         it('should fail with 400 when trying to create user with invalid parameters', function (done) {
             req.create(path.current)
-                .params({user: utils.admin, data: {invalidProp: utils.getName('invalid-user')}})
+                .params({jwt: utils.jwt.admin, data: {invalidProp: utils.getName('invalid-user')}})
                 .expectError(status.BAD_REQUEST)
                 .send(done);
         });
@@ -559,49 +389,49 @@ describe('REST API User', function () {
         describe('#No Authorization', function () {
             it('should fail with 401 if auth parameters omitted', function (done) {
                 req.get(path.current)
-                    .params({user: null})
+                    .params({jwt: null})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when selecting user by id, auth parameters omitted', function (done) {
                 req.get(path.current)
-                    .params({user: null, id: utils.NON_EXISTING_ID})
+                    .params({jwt: null, id: utils.NON_EXISTING_ID})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when selecting user by \'/current\', auth parameters omitted', function (done) {
                 req.get(path.combine(path.current, path.CURRENT))
-                    .params({user: null})
+                    .params({jwt: null})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when creating user with no auth parameters', function (done) {
                 req.create(path.current)
-                    .params({user: null, data: {login: 'not-authorized'}})
+                    .params({jwt: null, data: {login: 'not-authorized'}})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when updating user with no auth parameters', function (done) {
                 req.update(path.current)
-                    .params({user: null, id: utils.NON_EXISTING_ID, data: {login: 'not-authorized'}})
+                    .params({jwt: null, id: utils.NON_EXISTING_ID, data: {login: 'not-authorized'}})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when updating user by \'/current\' with no auth parameters', function (done) {
                 req.update(path.combine(path.current, path.CURRENT))
-                    .params({user: null, data: {login: 'not-authorized'}})
+                    .params({jwt: null, data: {login: 'not-authorized'}})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when deleting user with no auth parameters', function (done) {
                 req.delete(path.current)
-                    .params({user: null, id: utils.NON_EXISTING_ID})
+                    .params({jwt: null, id: utils.NON_EXISTING_ID})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
@@ -610,49 +440,76 @@ describe('REST API User', function () {
         describe('#User Authorization', function () {
 
             var nonNetworkUser = null;
+            var nonNetworkUserJwt = null;
 
             before(function (done) {
-                utils.createUser2(1, void 0, function (err, result) {
-                    if (err) {
-                        return done(err);
-                    }
 
-                    nonNetworkUser = result.user;
-                    done();
-                });
+                function createUser(callback) {
+                    utils.createUser2(1, void 0, function (err, result) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        nonNetworkUser = result.user;
+                        callback();
+                    });
+                }
+
+                function createJWT(callback) {
+                    utils.jwt.create(nonNetworkUser.id, void 0, void 0, void 0, function (err, result) {
+                        if (err) {
+                            return callback(err);
+                        }
+                        nonNetworkUserJwt = result.accessToken;
+                        callback()
+                    })
+                }
+
+                async.series([
+                    createUser,
+                    createJWT
+                ], done);
+
             });
 
-            it('should fail with 401 when selecting users with invalid user', function (done) {
+            it('should fail with 401 when selecting users with invalid jwt', function (done) {
                 req.get(path.current)
-                    .params({user: nonNetworkUser})
+                    .params({jwt: nonNetworkUserJwt})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
-            it('should fail with 401 when getting user with invalid user', function (done) {
+            it('should fail with 401 when selecting users with refresh jwt', function (done) {
                 req.get(path.current)
-                    .params({user: nonNetworkUser, id: utils.NON_EXISTING_ID})
+                    .params({jwt: utils.jwt.admin_refresh})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
-            it('should fail with 401 when creating user with invalid user', function (done) {
+            it('should fail with 401 when getting user with invalid jwt', function (done) {
+                req.get(path.current)
+                    .params({jwt: nonNetworkUserJwt, id: utils.NON_EXISTING_ID})
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .send(done);
+            });
+
+            it('should fail with 401 when creating user with invalid jwt', function (done) {
                 req.create(path.current)
-                    .params({user: nonNetworkUser, data: {login: 'not-authorized'}})
+                    .params({jwt: nonNetworkUserJwt, data: {login: 'not-authorized'}})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
-            it('should fail with 401 when updating user with invalid user', function (done) {
+            it('should fail with 401 when updating user with invalid jwt', function (done) {
                 req.update(path.current)
-                    .params({user: nonNetworkUser, id: utils.NON_EXISTING_ID, data: {login: 'not-authorized'}})
+                    .params({jwt: nonNetworkUserJwt, id: utils.NON_EXISTING_ID, data: {login: 'not-authorized'}})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
-            it('should fail with 401 when deleting user with invalid user', function (done) {
+            it('should fail with 401 when deleting user with invalid jwt', function (done) {
                 req.delete(path.current)
-                    .params({user: nonNetworkUser, id: utils.NON_EXISTING_ID})
+                    .params({jwt: nonNetworkUserJwt, id: utils.NON_EXISTING_ID})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
@@ -660,52 +517,49 @@ describe('REST API User', function () {
 
         describe('#Dummy Access Key Authorization', function () {
 
-            var accessKey = null;
+            var jwt = null;
 
             before(function (done) {
-                req.create(path.CURRENT_ACCESS_KEY)
-                    .params(utils.accessKey.getParamsObj(utils.getName('user-dummy-access-key'), utils.admin, void 0, void 0, void 0, ['RegisterDevice']))
-                    .send(function (err, result) {
-                        if (err) {
-                            return done(err);
-                        }
-
-                        accessKey = result.key;
-                        done();
-                    });
+                utils.jwt.create(utils.admin.id, 'RegisterDevice', void 0, void 0, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    jwt = result.accessToken;
+                    done()
+                })
             });
 
             it('should fail with 401 when getting list using invalid access key', function (done) {
                 req.get(path.current)
-                    .params({accessKey: accessKey})
+                    .params({jwt: jwt})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when selecting user by id using invalid access key', function (done) {
                 req.get(path.current)
-                    .params({accessKey: accessKey, id: utils.NON_EXISTING_ID})
+                    .params({jwt: jwt, id: utils.NON_EXISTING_ID})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when creating user using invalid access key', function (done) {
                 req.create(path.current)
-                    .params({accessKey: accessKey, data: {login: 'not-authorized'}})
+                    .params({jwt: jwt, data: {login: 'not-authorized'}})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when updating user using invalid access key', function (done) {
                 req.update(path.current)
-                    .params({accessKey: accessKey, id: utils.NON_EXISTING_ID, data: {login: 'not-authorized'}})
+                    .params({jwt: jwt, id: utils.NON_EXISTING_ID, data: {login: 'not-authorized'}})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when deleting user with no auth parameters', function (done) {
                 req.delete(path.current)
-                    .params({accessKey: accessKey, id: utils.NON_EXISTING_ID})
+                    .params({jwt: jwt, id: utils.NON_EXISTING_ID})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
@@ -716,26 +570,26 @@ describe('REST API User', function () {
 
         it('should fail with 404 when selecting user by non-existing id', function (done) {
             req.get(path.current)
-                .params({user: utils.admin, id: utils.NON_EXISTING_ID})
+                .params({jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID})
                 .expectError(status.NOT_FOUND, format('User not found'))
                 .send(done);
         });
 
         it('should fail with 404 when updating user by non-existing id', function (done) {
             req.update(path.current)
-                .params({user: utils.admin, id: utils.NON_EXISTING_ID})
+                .params({jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID})
                 .expectError(status.NOT_FOUND, format('User not found'))
                 .send(done);
         });
 
         it('should succeed when deleting user by non-existing id', function (done) {
             req.delete(path.current)
-                .params({user: utils.admin, id: utils.NON_EXISTING_ID})
+                .params({jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID})
                 .send(done);
         });
     });
 
     after(function (done) {
-        utils.clearData(done);
+        utils.clearDataJWT(done);
     });
 });

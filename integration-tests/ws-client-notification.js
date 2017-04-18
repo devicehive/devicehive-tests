@@ -7,7 +7,7 @@ var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
 describe('WebSocket API Client Notification', function () {
-    this.timeout(30000);
+    this.timeout(90000);
     var url = null;
 
     var DEVICE = utils.getName('ws-notif-device');
@@ -18,19 +18,19 @@ describe('WebSocket API Client Notification', function () {
 
     var deviceId = utils.getName('ws-notif-device-id');
     var user = null;
-    var accessKey = null;
-    var invalidKey = null;
+    var token = null;
+    var invalidToken = null;
 
-    var clientUsr = null;
-    var clientAK = null;
-    var clientInvalidAK = null;
+    var clientToken = null;
+    var refreshToken = null;
+    var clientInvalidToken = null;
 
     before(function (done) {
         var networkId = null;
 
         function getWsUrl(callback) {
 
-            req.get(path.INFO).params({user: utils.admin}).send(function (err, result) {
+            req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -41,7 +41,7 @@ describe('WebSocket API Client Notification', function () {
 
         function createNetwork(callback) {
             var params = {
-                user: utils.admin,
+                jwt: utils.jwt.admin,
                 data: { name: NETWORK, key: NETWORK_KEY }
             };
 
@@ -68,96 +68,79 @@ describe('WebSocket API Client Notification', function () {
 
         function createDeviceClass(callback) {
             req.create(path.DEVICE_CLASS)
-                .params(utils.deviceClass.getParamsObj(DEVICE, utils.admin, '1'))
+                .params(utils.deviceClass.getParamsObj(DEVICE, utils.jwt.admin, '1'))
                 .send(callback);
         }
 
         function createDevice(callback) {
             req.update(path.get(path.DEVICE, deviceId))
-                .params(utils.device.getParamsObj(DEVICE, utils.admin,
+                .params(utils.device.getParamsObj(DEVICE, utils.jwt.admin,
                     {name: NETWORK, key: NETWORK_KEY}, {name: DEVICE, version: '1'}))
                 .send(callback);
         }
 
-        function createAccessKey(callback) {
+        function createToken(callback) {
             var args = {
-                label: utils.getName('ws-access-key'),
                 actions: [
                     'GetDeviceNotification',
                     'CreateDeviceNotification'
                 ],
                 deviceIds: deviceId,
-                //networkIds: networkId // TODO: notification/subscribe fails with this network
-                networkIds: void 0
+                networkIds: networkId
             };
-            utils.accessKey.create(utils.admin, args.label, args.actions, args.deviceIds, args.networkIds,
-                function (err, result) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    accessKey = result.key;
-                    callback();
-                })
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceIds , function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+                token = result.accessToken;
+                callback()
+            })
         }
 
-        function createInvalidAccessKey(callback) {
+        function createInvalidToken(callback) {
             var args = {
-                label: utils.getName('ws-invalid-access-key'),
                 actions: [ 'GetNetwork' ],
                 deviceIds: deviceId,
                 networkIds: networkId
             };
-            utils.accessKey.create(utils.admin, args.label, args.actions, args.deviceIds, args.networkIds,
-                function (err, result) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    invalidKey = result.key;
-                    callback();
-                })
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceIds, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+                invalidToken = result.accessToken;
+                callback()
+            })
         }
 
-        function createConnUsrAuth(callback) {
-            clientUsr = new Websocket(url, 'client');
-            clientUsr.connect(callback);
+        function createConnTokenAuth(callback) {
+            clientToken = new Websocket(url, 'client');
+            clientToken.connect(callback);
         }
 
-        function createConnAccessKeyAuth(callback) {
-            clientAK = new Websocket(url, 'client');
-            clientAK.connect(callback);
+        function createConnInvalidTokenAuth(callback) {
+            clientInvalidToken = new Websocket(url, 'client');
+            clientInvalidToken.connect(callback);
         }
 
-        function createConnInvalidAccessKeyAuth(callback) {
-            clientInvalidAK = new Websocket(url, 'client');
-            clientInvalidAK.connect(callback);
+        function createConnRefreshTokenAuth(callback) {
+            refreshToken = new Websocket(url, 'client');
+            refreshToken.connect(callback);
         }
 
-        function authenticateWithUsr(callback) {
-            clientUsr.params({
+        function authenticateWithToken(callback) {
+            clientToken.params({
                     action: 'authenticate',
                     requestId: getRequestId(),
-                    login: user.login,
-                    password: user.password
+                    token: token
                 })
                 .send(callback);
         }
 
-        function authenticateWithAccessKey(callback) {
-            clientAK.params({
+        function authenticateWithInvalidToken(callback) {
+            clientInvalidToken.params({
                     action: 'authenticate',
                     requestId: getRequestId(),
-                    accessKey: accessKey
-                })
-                .send(callback);
-        }
-
-        function authenticateWithInvalidAccessKey(callback) {
-            clientInvalidAK.params({
-                    action: 'authenticate',
-                    requestId: getRequestId(),
-                    accessKey: invalidKey
+                    token: invalidToken
                 })
                 .send(callback);
         }
@@ -168,15 +151,26 @@ describe('WebSocket API Client Notification', function () {
             createUser,
             createDeviceClass,
             createDevice,
-            createAccessKey,
-            createInvalidAccessKey,
-            createConnUsrAuth,
-            createConnAccessKeyAuth,
-            createConnInvalidAccessKeyAuth,
-            authenticateWithUsr,
-            authenticateWithAccessKey,
-            authenticateWithInvalidAccessKey
+            createToken,
+            createInvalidToken,
+            createConnTokenAuth,
+            createConnInvalidTokenAuth,
+            createConnRefreshTokenAuth,
+            authenticateWithToken,
+            authenticateWithInvalidToken
         ], done);
+    });
+
+    describe('#Invalid credentials', function(done) {
+        it('should return error with refresh token', function() {
+            refreshToken.params({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: utils.jwt.admin_refresh
+            })
+                .expectError(401, 'Invalid credentials')
+                .send(done);
+        });
     });
 
     describe('#notification/insert', function () {
@@ -211,23 +205,19 @@ describe('WebSocket API Client Notification', function () {
 
                 var notificationId = result.notification.id;
                 req.get(path.NOTIFICATION.get(deviceId))
-                    .params({user: utils.admin, id: notificationId})
+                    .params({jwt: token, id: notificationId})
                     .expect({id: notificationId})
                     .expect(notification)
                     .send(done);
             }
         }
 
-        it('should add new notification, access key auth', function (done) {
-            runTest(clientAK, done);
+        it('should add new notification, jwt auth', function (done) {
+            runTest(clientToken, done);
         });
 
-        it('should add new notification, user auth', function (done) {
-            runTest(clientUsr, done);
-        });
-
-        it('should fail when using wrong access key', function (done) {
-            clientInvalidAK.params({
+        it('should fail when using wrong jwt', function (done) {
+            clientInvalidToken.params({
                     action: 'notification/insert',
                     requestId: getRequestId(),
                     deviceGuid: deviceId,
@@ -275,7 +265,7 @@ describe('WebSocket API Client Notification', function () {
 
                 req.create(path.NOTIFICATION.get(deviceId))
                     .params({
-                        user: user,
+                        jwt: token,
                         data: {notification: NOTIFICATION}
                     })
                     .send();
@@ -295,12 +285,8 @@ describe('WebSocket API Client Notification', function () {
             }
         }
 
-        it('should subscribe to device notifications, user authorization', function (done) {
-            runTest(clientUsr, done);
-        });
-
-        it('should subscribe to device notifications, access key authorization', function (done) {
-            runTest(clientAK, done);
+        it('should subscribe to device notifications, jwt authorization', function (done) {
+            runTest(clientToken, done);
         });
     });
 
@@ -349,19 +335,15 @@ describe('WebSocket API Client Notification', function () {
 
                 req.create(path.NOTIFICATION.get(deviceId))
                     .params({
-                        user: utils.admin,
+                        jwt: utils.jwt.admin,
                         data: {notification: NOTIFICATION}
                     })
                     .send();
             }
         }
 
-        it('should unsubscribe from device notifications, user authorization', function (done) {
-            runTest(clientUsr, done);
-        });
-
-        it('should subscribe to device notifications, access key authorization', function (done) {
-            runTest(clientAK, done);
+        it('should subscribe to device notifications, jwt authorization', function (done) {
+            runTest(clientToken, done);
         });
     });
 
@@ -399,7 +381,7 @@ describe('WebSocket API Client Notification', function () {
 
                 req.create(path.NOTIFICATION.get(deviceId))
                     .params({
-                        user: user,
+                        jwt: token,
                         data: notification
                     })
                     .send();
@@ -419,12 +401,8 @@ describe('WebSocket API Client Notification', function () {
             }
         }
 
-        it('should notify when notification was inserted, user auth', function (done) {
-            runTest(clientUsr, done);
-        });
-
-        it('should notify when notification was inserted, access key auth', function (done) {
-            runTest(clientAK, done);
+        it('should notify when notification was inserted, jwt auth', function (done) {
+            runTest(clientToken, done);
         });
 
         function runTestNoSubscr(client, done) {
@@ -442,24 +420,19 @@ describe('WebSocket API Client Notification', function () {
 
             req.create(path.NOTIFICATION.get(deviceId))
                 .params({
-                    user: user,
+                    jwt: token,
                     data: notification
                 })
                 .send();
         }
 
-        it('should not notify when notification was inserted without prior subscription, user auth', function (done) {
-            runTestNoSubscr(clientUsr, done);
-        });
-
-        it('should not notify when notification was inserted without prior subscription, access key auth', function (done) {
-            runTestNoSubscr(clientAK, done);
+        it('should not notify when notification was inserted without prior subscription, jwt auth', function (done) {
+            runTestNoSubscr(clientToken, done);
         });
     });
 
     after(function (done) {
-        clientUsr.close();
-        clientAK.close();
-        utils.clearData(done);
+        clientToken.close();
+        utils.clearDataJWT(done);
     });
 });

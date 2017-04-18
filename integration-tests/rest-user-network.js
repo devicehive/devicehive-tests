@@ -6,7 +6,7 @@ var status = require('./common/http').status;
 var req = require('./common/request');
 
 describe('REST API User Network', function () {
-    this.timeout(30000);
+    this.timeout(90000);
 
     var NETWORK = utils.getName('user-network');
     var networkId = null;
@@ -29,7 +29,7 @@ describe('REST API User Network', function () {
 
         function createNetwork(callback) {
             req.create(path.NETWORK)
-                .params({user: utils.admin, data: {name: NETWORK}})
+                .params({jwt: utils.jwt.admin, data: {name: NETWORK}})
                 .send(function (err, result) {
                     if (err) {
                         callback(err);
@@ -49,14 +49,14 @@ describe('REST API User Network', function () {
     describe('#Update', function () {
         it('should update user network', function (done) {
             req.update(path.current)
-                .params({user: utils.admin, id: networkId})
+                .params({jwt: utils.jwt.admin, id: networkId})
                 .send(function (err) {
                     if (err) {
                         return done(err);
                     }
 
                     req.get(path.current)
-                        .params({user: utils.admin, id: networkId})
+                        .params({jwt: utils.jwt.admin, id: networkId})
                         .expect({
                             network: {
                                 id: networkId,
@@ -71,14 +71,14 @@ describe('REST API User Network', function () {
     describe('#Delete', function () {
         it('should delete user network', function (done) {
             req.delete(path.current)
-                .params({user: utils.admin, id: networkId})
+                .params({jwt: utils.jwt.admin, id: networkId})
                 .send(function (err) {
                     if (err) {
                         return done(err);
                     }
 
                     req.get(path.current)
-                        .params({user: utils.admin, id: networkId})
+                        .params({jwt: utils.jwt.admin, id: networkId})
                         .expectError(status.NOT_FOUND,
                             format('Network with id %s for user with id %s was not found', networkId, userId))// TODO: swap networkId <> userId in error message
                         .send(done);
@@ -104,44 +104,21 @@ describe('REST API User Network', function () {
         describe('#No Authorization', function () {
             it('should fail with 401 when selecting user network by id, auth parameters omitted', function (done) {
                 req.get(path.current)
-                    .params({user: null, id: utils.NON_EXISTING_ID})
+                    .params({jwt: null, id: utils.NON_EXISTING_ID})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when updating user network with no auth parameters', function (done) {
                 req.update(path.current)
-                    .params({user: null, id: utils.NON_EXISTING_ID, data: {name: 'not-authorized'}})
+                    .params({jwt: null, id: utils.NON_EXISTING_ID, data: {name: 'not-authorized'}})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when deleting user network with no auth parameters', function (done) {
                 req.delete(path.current)
-                    .params({user: null, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(done);
-            });
-        });
-
-        describe('#User Authorization', function () {
-            it('should fail with 401 when creating user network with invalid user', function (done) {
-                req.get(path.current)
-                    .params({user: nonNetworkUser, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(done);
-            });
-
-            it('should fail with 401 when updating user network with invalid user', function (done) {
-                req.update(path.current)
-                    .params({user: nonNetworkUser, id: utils.NON_EXISTING_ID, data: {name: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(done);
-            });
-
-            it('should fail with 401 when deleting user network with invalid user', function (done) {
-                req.delete(path.current)
-                    .params({user: nonNetworkUser, id: utils.NON_EXISTING_ID})
+                    .params({jwt: null, id: utils.NON_EXISTING_ID})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
@@ -149,39 +126,43 @@ describe('REST API User Network', function () {
 
         describe('#Dummy Access Key Authorization', function () {
 
-            var accessKey = null;
+            var jwt = null;
 
             before(function (done) {
-                req.create(path.CURRENT_ACCESS_KEY)
-                    .params(utils.accessKey.getParamsObj(utils.getName('user-network-dummy-access-key'),
-                        utils.admin, void 0, void 0, void 0, ['RegisterDevice']))
-                    .send(function (err, result) {
-                        if (err) {
-                            return done(err);
-                        }
-
-                        accessKey = result.key;
-                        done();
-                    });
+                utils.jwt.create(utils.admin.id, 'RegisterDevice', void 0, void 0, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    jwt = result.accessToken;
+                    done()
+                })
             });
 
             it('should fail with 401 when selecting user network by id using invalid access key', function (done) {
                 req.get(path.current)
-                    .params({accessKey: accessKey, id: utils.NON_EXISTING_ID})
+                    .params({jwt: jwt, id: utils.NON_EXISTING_ID})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
+            it('should fail with 401 when selecting user network by id using refresh jwt', function (done) {
+                req.get(path.current)
+                    .params({jwt: utils.jwt.admin_refresh, id: networkId})
+                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .send(done);
+            });
+
+
             it('should fail with 401 when updating user network using invalid access key', function (done) {
                 req.update(path.current)
-                    .params({accessKey: accessKey, id: utils.NON_EXISTING_ID})
+                    .params({jwt: jwt, id: utils.NON_EXISTING_ID})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
             it('should fail with 401 when deleting user network with no auth parameters', function (done) {
                 req.delete(path.current)
-                    .params({accessKey: accessKey, id: utils.NON_EXISTING_ID})
+                    .params({jwt: jwt, id: utils.NON_EXISTING_ID})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
@@ -192,7 +173,7 @@ describe('REST API User Network', function () {
 
         it('should fail with 404 when selecting user network by non-existing id', function (done) {
             req.get(path.current)
-                .params({user: utils.admin, id: utils.NON_EXISTING_ID})
+                .params({jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID})
                 .expectError(status.NOT_FOUND,
                     format('Network with id %s for user with id %s was not found', utils.NON_EXISTING_ID, userId))// TODO: swap networkId <> userId in error message
                 .send(done);
@@ -200,19 +181,19 @@ describe('REST API User Network', function () {
 
         it('should fail with 404 when updating user network by non-existing id', function (done) {
             req.update(path.current)
-                .params({user: utils.admin, id: utils.NON_EXISTING_ID})
+                .params({jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID})
                 .expectError(status.NOT_FOUND, format('Network with id = %s not found', utils.NON_EXISTING_ID))
                 .send(done);
         });
 
         it('should succeed when deleting user network by non-existing id', function (done) {
             req.delete(path.current)
-                .params({user: utils.admin, id: utils.NON_EXISTING_ID})
+                .params({jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID})
                 .send(done);
         });
     });
 
     after(function (done) {
-        utils.clearData(done);
+        utils.clearDataJWT(done);
     });
 });

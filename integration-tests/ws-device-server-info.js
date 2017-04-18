@@ -8,7 +8,7 @@ describe('WebSocket API Device Server Info', function () {
     var url = null;
 
     before(function (done) {
-        req.get(path.INFO).params({user: utils.admin}).send(function (err, result) {
+        req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
             if (err) {
                 return done(err);
             }

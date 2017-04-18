@@ -47,7 +47,7 @@ describe('Round tests for notification', function () {
     var networkId = null;
 
     var user = null;
-    var accessKey = null;
+    var jwt = null;
 
     var deviceConn = null;
     var clientConn = null;
@@ -67,7 +67,7 @@ describe('Round tests for notification', function () {
         }
 
         function getWsUrl(callback) {
-            req.get(path.INFO).params({user: utils.admin}).send(function (err, result) {
+            req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -78,14 +78,14 @@ describe('Round tests for notification', function () {
 
         function createDevice(callback) {
             req.update(path.get(path.DEVICE, deviceId))
-                .params({user: utils.admin, data: deviceDef})
+                .params({jwt: utils.jwt.admin, data: deviceDef})
                 .send(function (err) {
                     if (err) {
                         return callback(err);
                     }
 
                     req.get(path.get(path.DEVICE, deviceId))
-                        .params({user: utils.admin})
+                        .params({jwt: utils.jwt.admin})
                         .send(function (err, result) {
                             if (err) {
                                 return callback(err);
@@ -108,22 +108,22 @@ describe('Round tests for notification', function () {
             });
         }
 
-        function createAccessKey(callback) {
+        function createJWT(callback) {
             var args = {
-                label: utils.getName('ws-access-key'),
                 actions: [
                     'GetDeviceNotification',
                     'CreateDeviceNotification'
                 ],
-                networkIds: networkId
+                networkIds: networkId,
+                deviceGuids: deviceId
             };
-            utils.accessKey.create(utils.admin, args.label, args.actions, void 0, args.networkIds,
+            utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceGuids,
                 function (err, result) {
                     if (err) {
                         return callback(err);
                     }
 
-                    accessKey = result.key;
+                    jwt = result.accessToken;
                     callback();
                 })
         }
@@ -138,7 +138,7 @@ describe('Round tests for notification', function () {
                     action: 'authenticate',
                     requestId: getRequestId(),
                     deviceId: deviceId,
-                    accessKey: accessKey
+                    token: jwt
                 })
                 .send(callback);
         }
@@ -152,7 +152,7 @@ describe('Round tests for notification', function () {
             clientConn.params({
                     action: 'authenticate',
                     requestId: getRequestId(),
-                    accessKey: accessKey
+                    token: jwt
                 })
                 .send(callback);
         }
@@ -162,7 +162,7 @@ describe('Round tests for notification', function () {
             getWsUrl,
             createDevice,
             createUser,
-            createAccessKey,
+            createJWT,
             createDeviceConn,
             authenticateDeviceConn,
             createClientConn,
@@ -214,7 +214,7 @@ describe('Round tests for notification', function () {
                 .send();
         }
 
-        it('WS device, device auth -> WS client, access key auth', function (done) {
+        it('WS device -> WS client', function (done) {
             async.eachSeries(notifications, runTestDelayed, done);
         });
 
@@ -248,7 +248,7 @@ describe('Round tests for notification', function () {
             expectedNotif.deviceGuid = deviceId;
 
             req.get($path)
-                .params({user: user})
+                .params({jwt: jwt})
                 .query('names', NOTIFICATION)
                 .expect([expectedNotif])
                 .send(done);
@@ -264,7 +264,7 @@ describe('Round tests for notification', function () {
             }, 500);
         }
 
-        it('WS device, device auth -> REST client, user auth', function (done) {
+        it('WS device -> REST client', function (done) {
             async.eachSeries(notifications, runTestDelayed, done);
         });
     });
@@ -310,13 +310,13 @@ describe('Round tests for notification', function () {
 
             req.create($path)
                 .params({
-                    accessKey: accessKey,
+                    jwt: jwt,
                     data: notification
                 })
                 .send();
         }
 
-        it('REST device, device auth -> WS client, access key auth', function (done) {
+        it('REST device -> WS client', function (done) {
             async.eachSeries(notifications, runTestDelayed, done);
         });
 
@@ -369,21 +369,9 @@ describe('Round tests for notification', function () {
             }, 500);
         }
 
-        it('REST device, access key auth -> REST client, access key auth', function (done) {
-            deviceAuth = {accessKey: accessKey};
-            clientAuth = {accessKey: accessKey};
-            async.eachSeries(notifications, runTestDelayed, done);
-        });
-
-        it('REST device, device auth -> REST client, user auth', function (done) {
-            deviceAuth = {accessKey:accessKey};
-            clientAuth = {user: user};
-            async.eachSeries(notifications, runTestDelayed, done);
-        });
-
-        it('REST device, access key auth -> REST client, user auth', function (done) {
-            deviceAuth = {accessKey: accessKey};
-            clientAuth = {user: user};
+        it('REST device -> REST client', function (done) {
+            deviceAuth = {jwt: jwt};
+            clientAuth = {jwt: jwt};
             async.eachSeries(notifications, runTestDelayed, done);
         });
     });
@@ -391,6 +379,6 @@ describe('Round tests for notification', function () {
     after(function (done) {
         clientConn.close();
         deviceConn.close();
-        utils.clearData(done);
+        utils.clearDataJWT(done);
     });
 });

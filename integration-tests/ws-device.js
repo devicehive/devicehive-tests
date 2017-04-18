@@ -7,15 +7,14 @@ var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
 describe('WebSocket API Device Unit', function () {
-    this.timeout(30000);
+    this.timeout(90000);
     var url = null;
 
     var DEVICE = utils.getName('ws-device');
-    var accessKey = null;
+    var token = null;
 
     var device = {
         name: DEVICE,
-        status: 'Online',
         data: {a: '1', b: '2'},
         network: {
             name: utils.getName('ws-network'),
@@ -23,9 +22,7 @@ describe('WebSocket API Device Unit', function () {
         },
         deviceClass: {
             name: DEVICE,
-            version: '1',
             isPermanent: true,
-            offlineTimeout: 1234,
             data: {c: '3', d: '4'},
             equipment: [{
                 name: "_integr-test-eq",
@@ -38,7 +35,7 @@ describe('WebSocket API Device Unit', function () {
     var deviceId = utils.getName('ws-device-id');
 
     before(function (done) {
-        req.get(path.INFO).params({user: utils.admin}).send(function (err, result) {
+        req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
             if (err) {
                 return done(err);
             }
@@ -50,12 +47,11 @@ describe('WebSocket API Device Unit', function () {
     describe('#device/get', function () {
 
         var conn = null;
-        var conn2 = null;
 
         before(function (done) {
             function createDevice(callback) {
                 req.update(path.get(path.DEVICE, deviceId))
-                    .params({user: utils.admin, data: device})
+                    .params({jwt: utils.jwt.admin, data: device})
                     .send(callback);
             }
 
@@ -64,29 +60,23 @@ describe('WebSocket API Device Unit', function () {
                 conn.connect(callback);
             }
 
-            function createAccessKey(callback) {
+            function createToken(callback) {
                 var args = {
-                    label: utils.getName('ws-access-key'),
                     actions: [
                         'CreateDeviceNotification',
                         'GetDeviceNotification',
                         'ManageNetwork'
-                    ]
+                    ],
+                    deviceIds: deviceId,
+                    networkIds: void 0
                 };
-                utils.accessKey.create(utils.admin, args.label, args.actions, void 0, args.networkIds,
-                    function (err, result) {
-                        if (err) {
-                            return callback(err);
-                        }
-
-                        accessKey = result.key;
-                        callback();
-                    })
-            }
-
-            function createConn2(callback) {
-                conn2 = new Websocket(url, 'device');
-                conn2.connect(callback);
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceIds, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    token = result.accessToken;
+                    callback()
+                })
             }
 
             function authenticateConn(callback) {
@@ -94,21 +84,28 @@ describe('WebSocket API Device Unit', function () {
                         action: 'authenticate',
                         requestId: getRequestId(),
                         deviceId: deviceId,
-                        accessKey: accessKey
+                        token: token
                     })
                     .send(callback);
             }
 
             async.series([
                 createDevice,
-                createAccessKey,
+                createToken,
                 createConn,
-                createConn2,
                 authenticateConn
             ], done);
         });
 
-        it('should get information about current device, device auth', function (done) {
+        it('should return 401 error for valid refresh jwt', function (done) {
+            req.update(path.get(path.DEVICE, deviceId))
+                .params({jwt: utils.jwt.admin_refresh, data: device})
+                .expectError(401, 'Unauthorized')
+                .send(done);
+ 
+        });
+
+        it('should get information about current device', function (done) {
             var requestId = getRequestId();
 
             var expectedDevice = utils.core.clone(device);
@@ -127,21 +124,9 @@ describe('WebSocket API Device Unit', function () {
                 .send(done);
         });
 
-        it('should fail when using wrong access key', function (done) {
-            conn2.params({
-                    action: 'device/get',
-                    requestId: getRequestId(),
-                    deviceId: 'invalid-device-id',
-                    deviceKey: 'invalid-device-key'
-                })
-                .expectError(401, 'Unauthorized')
-                .send(done);
-        });
-
         after(function (done) {
             conn.close();
-            conn2.close();
-            utils.clearData(done);
+            utils.clearDataJWT(done);
         });
     });
 
@@ -152,7 +137,7 @@ describe('WebSocket API Device Unit', function () {
         before(function (done) {
             function createDevice(callback) {
                 req.update(path.get(path.DEVICE, deviceId))
-                    .params({user: utils.admin, data: device})
+                    .params({jwt: utils.jwt.admin, data: device})
                     .send(callback);
             }
 
@@ -161,30 +146,24 @@ describe('WebSocket API Device Unit', function () {
                 conn.connect(callback);
             }
 
-            function createAccessKey(callback) {
+            function createToken(callback) {
                 var args = {
-                    label: utils.getName('ws-access-key'),
                     actions: [
                         'CreateDeviceNotification',
                         'GetDeviceNotification',
                         'ManageNetwork',
                         'RegisterDevice'
-                    ]
+                    ],
+                    deviceIds: void 0,
+                    networkIds: void 0
                 };
-                utils.accessKey.create(utils.admin, args.label, args.actions, void 0, args.networkIds,
-                    function (err, result) {
-                        if (err) {
-                            return callback(err);
-                        }
-
-                        accessKey = result.key;
-                        callback();
-                    })
-            }
-
-            function createConn2(callback) {
-                conn2 = new Websocket(url, 'device');
-                conn2.connect(callback);
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds,  args.deviceIds, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    token = result.accessToken;
+                    callback()
+                })
             }
 
             function authenticateConn(callback) {
@@ -192,20 +171,29 @@ describe('WebSocket API Device Unit', function () {
                     action: 'authenticate',
                     requestId: getRequestId(),
                     deviceId: deviceId,
-                    accessKey: accessKey
+                    token: token
                 })
                     .send(callback);
             }
 
             async.series([
                 createDevice,
-                createAccessKey,
+                createToken,
                 createConn,
                 authenticateConn
             ], done);
         });
 
-        it('should get information about current device, device auth', function (done) {
+        describe('#unauthorized', function(done) {
+            it('should return error using refresh jwt', function() {
+                req.get(path.DEVICE)
+                    .params({jwt: utils.jwt.admin_refresh, id: deviceId})
+                    .expectError(401, 'Unauthorized')
+                    .send(done);
+            });
+        });
+
+        it('should save information about device', function (done) {
 
             function saveDevice(callback) {
                 var requestId = getRequestId();
@@ -228,7 +216,7 @@ describe('WebSocket API Device Unit', function () {
                 delete expectedDevice.key;
 
                 req.get(path.DEVICE)
-                    .params({user: utils.admin, id: deviceId})
+                    .params({jwt: utils.jwt.admin, id: deviceId})
                     .expect(expectedDevice)
                     .send(callback);
             }
@@ -241,7 +229,7 @@ describe('WebSocket API Device Unit', function () {
 
         after(function (done) {
             conn.close();
-            utils.clearData(done);
+            utils.clearDataJWT(done);
         });
     });
 });

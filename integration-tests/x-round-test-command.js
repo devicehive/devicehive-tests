@@ -44,7 +44,7 @@ describe('Round tests for command', function () {
     var networkId = null;
 
     var user = null;
-    var accessKey = null;
+    var jwt = null;
 
     var deviceConn = null;
     var clientConn = null;
@@ -65,7 +65,7 @@ describe('Round tests for command', function () {
         }
 
         function getWsUrl(callback) {
-            req.get(path.INFO).params({user: utils.admin}).send(function (err, result) {
+            req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -76,14 +76,14 @@ describe('Round tests for command', function () {
 
         function createDevice(callback) {
             req.update(path.get(path.DEVICE, deviceId))
-                .params({user: utils.admin, data: deviceDef})
+                .params({jwt: utils.jwt.admin, data: deviceDef})
                 .send(function (err) {
                     if (err) {
                         return callback(err);
                     }
 
                     req.get(path.get(path.DEVICE, deviceId))
-                        .params({user: utils.admin})
+                        .params({jwt: utils.jwt.admin})
                         .send(function (err, result) {
                             if (err) {
                                 return callback(err);
@@ -106,23 +106,23 @@ describe('Round tests for command', function () {
             });
         }
 
-        function createAccessKey(callback) {
+        function createJWT(callback) {
             var args = {
-                label: utils.getName('ws-access-key'),
                 actions: [
                     'GetDeviceCommand',
                     'CreateDeviceCommand',
                     'UpdateDeviceCommand'
                 ],
-                networkIds: networkId
+                networkIds: networkId,
+                deviceIds: deviceId
             };
-            utils.accessKey.create(utils.admin, args.label, args.actions, void 0, args.networkIds,
+            utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceIds,
                 function (err, result) {
                     if (err) {
                         return callback(err);
                     }
 
-                    accessKey = result.key;
+                    jwt = result.accessToken;
                     callback();
                 })
         }
@@ -137,7 +137,7 @@ describe('Round tests for command', function () {
                     action: 'authenticate',
                     requestId: getRequestId(),
                     deviceId: deviceId,
-                    accessKey: accessKey
+                    token: jwt
                 })
                 .send(callback);
         }
@@ -151,7 +151,7 @@ describe('Round tests for command', function () {
             clientConn.params({
                     action: 'authenticate',
                     requestId: getRequestId(),
-                    accessKey: accessKey
+                    token: jwt
                 })
                 .send(callback);
         }
@@ -161,7 +161,7 @@ describe('Round tests for command', function () {
             getWsUrl,
             createDevice,
             createUser,
-            createAccessKey,
+            createJWT,
             createDeviceConn,
             authenticateDeviceConn,
             createClientConn,
@@ -235,7 +235,7 @@ describe('Round tests for command', function () {
             ], done);
         }
 
-        it('WS client, access key auth -> WS device, device auth', function (done) {
+        it('WS client -> WS device', function (done) {
             async.eachSeries(commands, runTestDelayed, done);
         });
 
@@ -280,7 +280,7 @@ describe('Round tests for command', function () {
                     });
 
                 req.create(createPath)
-                    .params({ user: user, data: command })
+                    .params({ jwt: jwt, data: command })
                     .send();
             }
 
@@ -295,10 +295,14 @@ describe('Round tests for command', function () {
                     result: {done: 'yes'}
                 };
 
-                req.get(waitPath)
-                    .params({user: user})
-                    .expect(update)
-                    .send(callback);
+                utils.get(waitPath, {jwt: jwt}, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    assert.strictEqual(result.command, update.command);
+                    assert.strictEqual(result.lifetime, update.lifetime);
+                    assert.strictEqual(result.status, update.status);
+
+                    callback();
+                });
 
                 setTimeout(function () {
                     deviceConn.params({
@@ -318,7 +322,7 @@ describe('Round tests for command', function () {
             ], done);
         }
 
-        it('REST client, user auth -> WS device, device auth', function (done) {
+        it('REST client -> WS device', function (done) {
             async.eachSeries(commands, runTestDelayed, done);
         });
 
@@ -353,7 +357,7 @@ describe('Round tests for command', function () {
 
                 req.get(pollPath)
                     .params({
-                        accessKey:accessKey
+                        jwt: jwt
                     })
                     .query('names', COMMAND)
                     .expect([command])
@@ -389,7 +393,7 @@ describe('Round tests for command', function () {
                 var updatePath = path.get($path, cmnd.id);
                 req.update(updatePath)
                     .params({
-                        accessKey:accessKey,
+                        jwt: jwt,
                         data: update
                     })
                     .send();
@@ -401,7 +405,7 @@ describe('Round tests for command', function () {
             ], done);
         }
 
-        it('WS client, access key auth -> REST device, device auth', function (done) {
+        it('WS client -> REST device', function (done) {
             async.eachSeries(commands, runTestDelayed, done);
         });
     });
@@ -456,10 +460,14 @@ describe('Round tests for command', function () {
                     result: {done: 'yes'}
                 };
 
-                req.get(waitPath)
-                    .params(utils.core.clone(clientAuth))
-                    .expect(update)
-                    .send(callback);
+                utils.get(waitPath, utils.core.clone(clientAuth), function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    assert.strictEqual(result.command, update.command);
+                    assert.strictEqual(result.lifetime, update.lifetime);
+                    assert.strictEqual(result.status, update.status);
+
+                    callback();
+                });
 
                 setTimeout(function () {
                     var updatePath = path.get(createPath, cmnd.id);
@@ -477,16 +485,9 @@ describe('Round tests for command', function () {
             ], done);
         }
 
-        it('REST client, access key auth -> REST device, access key auth', function (done) {
-            clientAuth = {accessKey: accessKey};
-            deviceAuth = {accessKey: accessKey};
-            async.eachSeries(commands, runTestDelayed, done);
-        });
-
-
-        it('REST client, user auth -> REST device, access key auth', function (done) {
-            clientAuth = {user: user};
-            deviceAuth = {accessKey: accessKey};
+        it('REST client -> REST device', function (done) {
+            clientAuth = {jwt: jwt};
+            deviceAuth = {jwt: jwt};
             async.eachSeries(commands, runTestDelayed, done);
         });
     });
@@ -494,6 +495,6 @@ describe('Round tests for command', function () {
     after(function (done) {
         clientConn.close();
         deviceConn.close();
-        utils.clearData(done);
+        utils.clearDataJWT(done);
     });
 });

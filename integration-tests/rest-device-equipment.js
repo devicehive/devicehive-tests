@@ -6,7 +6,7 @@ var path = require('./common/path');
 var status = require('./common/http').status;
 
 describe('REST API Device Equipment', function () {
-    this.timeout(30000);
+    this.timeout(90000);
 
     var DEVICE_GUID = utils.getName('device-guid-12345');
     var EQUIPMENT = utils.getName('device-eqpmnt');
@@ -23,7 +23,7 @@ describe('REST API Device Equipment', function () {
 
         function createNetwork(callback) {
             var params = {
-                user: utils.admin,
+                jwt: utils.jwt.admin,
                 data: {
                     name: NETWORK
                 }
@@ -40,7 +40,7 @@ describe('REST API Device Equipment', function () {
         }
 
         function createDeviceClass(callback) {
-            var params = utils.deviceClass.getParamsObj(DEVICE, utils.admin, '1');
+            var params = utils.deviceClass.getParamsObj(DEVICE, utils.jwt.admin, '1');
             utils.create(path.DEVICE_CLASS, params, function (err, result) {
                 if (err) {
                     return callback(err);
@@ -52,7 +52,7 @@ describe('REST API Device Equipment', function () {
         }
 
         function createDevice(callback) {
-            var params = utils.device.getParamsObj(DEVICE, utils.admin,
+            var params = utils.device.getParamsObj(DEVICE, utils.jwt.admin,
                 {name: NETWORK}, {name: DEVICE, version: '1'});
             params.id = DEVICE_GUID;
             utils.update(path.DEVICE, params, function (err) {
@@ -61,7 +61,7 @@ describe('REST API Device Equipment', function () {
         }
 
         function createNotification(callback) {
-            var params = utils.notification.getParamsObj('equipment', utils.admin, equipment);
+            var params = utils.notification.getParamsObj('equipment', utils.jwt.admin, equipment);
             utils.create(path.NOTIFICATION.get(DEVICE_GUID), params, function (err, result) {
                 if (err) {
                     return callback(err);
@@ -93,100 +93,76 @@ describe('REST API Device Equipment', function () {
 
                 user1 = result.user;
 
-                utils.createUser2(1, networkId, function (err, result) {
-                    if (err) {
-                        return done(err);
-                    }
+                setTimeout(function () {
+                    utils.createUser2(1, networkId, function (err, result) {
+                        if (err) {
+                            return done(err);
+                        }
 
-                    user2 = result.user;
-                    done();
-                });
+                        user2 = result.user;
+                        done();
+                    });
+                }, 100);
+
             });
         });
 
-        it('should return error when wrong user tries to get equipment', function (done) {
-            utils.get(path.current, {user: user1}, function (err) {
-                assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error,
-                    format('Device with such guid = %s not found', DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
-                done();
-            });
-        });
-
-        it('should not fail when allowed user tries to get equipment', function (done) {
-            utils.get(path.current, {user: user2}, function (err, result) {
-                assert.strictEqual(!(!err), false, 'No error');
-                assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
-                utils.matches(result[0], {
-                    id: equipment.equipment,
-                    parameters: {a: equipment.a}
-                });
-                assert.strictEqual(new Date(result[0].timestamp).toUTCString(),
-                    new Date(timestamp).toUTCString());
-                done();
-            });
-        });
-
-        it('should fail with 404 when using access key related to wrong user', function (done) {
-            utils.accessKey.create(user1, void 0, 'GetDeviceState', void 0, void 0,
+        it('should fail with 401 when using jwt related to wrong user', function (done) {
+            utils.jwt.create(user1.id, 'GetDeviceState', void 0, DEVICE_GUID,
                 function (err, result) {
                     if (err) {
                         return done(err);
                     }
 
-                    utils.get(path.current, {accessKey: result.key}, function (err) {
+                    utils.get(path.current, {jwt: result.accessToken}, function (err) {
                         assert.strictEqual(!(!err), true, 'Error object created');
-                        assert.strictEqual(err.error,
-                            format('Device with such guid = %s not found', DEVICE_GUID));
-                        assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                        assert.strictEqual(err.error, 'Unauthorized');
+                        assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                         done();
                     });
                 });
         });
 
-        it('should fail with 404 when using access key related to wrong network', function (done) {
-            utils.accessKey.create(user2, void 0, 'GetDeviceState', void 0, '1',
+        it('should fail with 401 when using jwt related to wrong network', function (done) {
+            utils.jwt.create(user2.id, 'GetDeviceState', '1', void 0,
                 function (err, result) {
                     if (err) {
                         return done(err);
                     }
 
-                    utils.get(path.current, {accessKey: result.key}, function (err) {
+                    utils.get(path.current, {jwt: result.accessToken}, function (err) {
                         assert.strictEqual(!(!err), true, 'Error object created');
-                        assert.strictEqual(err.error,
-                            format('Device with such guid = %s not found', DEVICE_GUID));
-                        assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                        assert.strictEqual(err.error, 'Unauthorized');
+                        assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                         done();
                     });
                 });
         });
 
-        it('should fail with 404 when using access key related to wrong deviceGuid', function (done) {
-            utils.accessKey.create(user2, void 0, 'GetDeviceState', 'DEVICE-' + +new Date(), void 0,
+        it('should fail with 401 when using jwt related to wrong deviceGuid', function (done) {
+            utils.jwt.create(user2.id, 'GetDeviceState', void 0, 'DEVICE-' + +new Date(),
                 function (err, result) {
                     if (err) {
                         return done(err);
                     }
 
-                    utils.get(path.current, {accessKey: result.key}, function (err) {
+                    utils.get(path.current, {jwt: result.accessToken}, function (err) {
                         assert.strictEqual(!(!err), true, 'Error object created');
-                        assert.strictEqual(err.error,
-                            format('Device with such guid = %s not found', DEVICE_GUID));
-                        assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                        assert.strictEqual(err.error, 'Unauthorized');
+                        assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                         done();
                     });
                 });
         });
 
         it('should succeed when using valid user access key', function (done) {
-            utils.accessKey.create(user2, void 0, 'GetDeviceState', void 0, void 0,
+            utils.jwt.create(user2.id, 'GetDeviceState', networkId, DEVICE_GUID,
                 function (err, result) {
                     if (err) {
                         return done(err);
                     }
 
-                    utils.get(path.current, {accessKey: result.key}, function (err, result) {
+                    utils.get(path.current, {jwt: result.accessToken}, function (err, result) {
                         assert.strictEqual(!(!err), false, 'No error');
                         assert.strictEqual(!(!result), true, 'Has result');
                         done();
@@ -198,7 +174,7 @@ describe('REST API Device Equipment', function () {
     describe('#Create/Update/Delete', function () {
 
         var params = {
-            user: utils.admin,
+            jwt: utils.jwt.admin,
             data: {
                 parameters: {
                     x: 'y'
@@ -245,6 +221,14 @@ describe('REST API Device Equipment', function () {
             })
         });
 
+        it('should fail when request with refresh jwt token', function () {
+            utils.get(path.current, {jwt: utils.jwt.admin_refresh}, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+            })
+        });
+
         it('should fail when request Unauthorized', function () {
             var $path = path.combine(path.DEVICE, 'none', 'equipment');
             utils.get($path, {}, function (err) {
@@ -258,7 +242,7 @@ describe('REST API Device Equipment', function () {
     describe('#Not Found', function () {
         it('should fail when no equipment was found', function () {
             var $path = path.combine(path.DEVICE, 'none', 'equipment');
-            utils.get($path, {user: utils.admin}, function (err) {
+            utils.get($path, {jwt: utils.jwt.admin}, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error,
                     format('Device with such guid = %s not found', 'none'));
@@ -268,6 +252,6 @@ describe('REST API Device Equipment', function () {
     });
 
     after(function (done) {
-        utils.clearData(done);
+        utils.clearDataJWT(done);
     })
 });

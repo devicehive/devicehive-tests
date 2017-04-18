@@ -7,7 +7,7 @@ var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
 describe('WebSocket API Device Notification', function () {
-    this.timeout(30000);
+    this.timeout(90000);
     var url = null;
 
     var DEVICE = utils.getName('ws-device-notif');
@@ -15,14 +15,14 @@ describe('WebSocket API Device Notification', function () {
     var NOTIFICATION = utils.getName('ws-notification');
 
     var deviceId = utils.getName('ws-device-notif-id');
-    var accessKey = null;
+    var token = null;
     var device = null;
 
     before(function (done) {
 
         function getWsUrl(callback) {
 
-            req.get(path.INFO).params({user: utils.admin}).send(function (err, result) {
+            req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -33,26 +33,27 @@ describe('WebSocket API Device Notification', function () {
 
         function createDevice(callback) {
             req.update(path.get(path.DEVICE, deviceId))
-                .params(utils.device.getParamsObj(DEVICE, utils.admin,
+                .params(utils.device.getParamsObj(DEVICE, utils.jwt.admin,
                     {name: NETWORK}, {name: DEVICE, version: '1'}))
                 .send(callback);
         }
 
-        function createAccessKey(callback) {
+        function createToken(callback) {
             var args = {
-                label: utils.getName('ws-access-key'),
                 actions: [
                     'CreateDeviceNotification',
                     'GetDeviceNotification'
-                ]
+                ],
+                deviceIds: void 0,
+                networkIds: void 0
             };
-            utils.accessKey.create(utils.admin, args.label, args.actions, void 0, args.networkIds,
+            utils.jwt.create(utils.admin.id, args.actions, args.networkIds,  args.deviceIds,
                 function (err, result) {
                     if (err) {
                         return callback(err);
                     }
 
-                    accessKey = result.key;
+                    token = result.accessToken;
                     callback();
                 })
         }
@@ -66,7 +67,7 @@ describe('WebSocket API Device Notification', function () {
             device.params({
                     action: 'authenticate',
                     requestId: getRequestId(),
-                    accessKey: accessKey
+                    token: token
                 })
                 .send(callback);
         }
@@ -74,7 +75,7 @@ describe('WebSocket API Device Notification', function () {
         async.series([
             getWsUrl,
             createDevice,
-            createAccessKey,
+            createToken,
             createConn,
             authenticateConn
         ], done);
@@ -87,7 +88,7 @@ describe('WebSocket API Device Notification', function () {
             parameters: {a: '1', b: '2'}
         };
 
-        it('should add new notification, access key auth', function (done) {
+        it('should add new notification, jwt auth', function (done) {
             var requestId = getRequestId();
 
             device.params({
@@ -113,22 +114,33 @@ describe('WebSocket API Device Notification', function () {
 
                 var notificationId = result.notification.id;
                 req.get(path.NOTIFICATION.get(deviceId))
-                    .params({user: utils.admin, id: notificationId})
+                    .params({jwt: utils.jwt.admin, id: notificationId})
                     .expect({id: notificationId})
                     .expect(notification)
                     .send(done);
             }
         });
 
-        it('should authenticate fail when using wrong access key', function (done) {
+        it('should authenticate fail when using wrong token', function (done) {
             device.params({
                     action: 'authenticate',
                     requestId: getRequestId(),
-                    accessKey: 'invalid-device-key'
+                    token: 'invalid-device-token'
                 })
                 .expectError(401, 'Invalid credentials')
                 .send(done);
         });
+
+        it('should authenticate fail when using refresh token', function (done) {
+            device.params({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: utils.jwt.admin_refresh
+            })
+                .expectError(401, 'Invalid credentials')
+                .send(done);
+        });
+
         it('should fail when using wrong deviceGuid', function (done) {
             device.params({
                     action: 'notification/insert',
@@ -141,8 +153,104 @@ describe('WebSocket API Device Notification', function () {
         });
     });
 
+    describe('#notification/subscribe', function () {
+        it('should subscribe to all device notifications, device auth', function (done) {
+            var requestId = getRequestId();
+
+            device.params({
+                action: 'notification/subscribe',
+                requestId: requestId
+            })
+                .expect({
+                    action: 'notification/subscribe',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .send(onSubscribed);
+
+            function onSubscribed(err) {
+                if (err) {
+                    return done(err);
+                }
+
+                device.waitFor('notification/insert', cleanUp)
+                    .expect({
+                        action: 'notification/insert',
+                        notification: { notification: NOTIFICATION }
+                    });
+
+                req.create(path.NOTIFICATION.get(deviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: { notification: NOTIFICATION}
+                    })
+                    .send();
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    device.params({
+                        action: 'notification/unsubscribe',
+                        requestId: getRequestId()
+                    })
+                        .send(done);
+                }
+            }
+        });
+
+        it('should subscribe to device notifications for single device', function (done) {
+            var requestId = getRequestId();
+
+            device.params({
+                action: 'notification/subscribe',
+                deviceGuids: [deviceId],
+                requestId: requestId
+            })
+                .expect({
+                    action: 'notification/subscribe',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .send(onSubscribed);
+
+            function onSubscribed(err) {
+                if (err) {
+                    return done(err);
+                }
+
+                device.waitFor('notification/insert', cleanUp)
+                    .expect({
+                        action: 'notification/insert',
+                        deviceGuid: deviceId,
+                        notification: { notification: NOTIFICATION }
+                    });
+
+                req.create(path.NOTIFICATION.get(deviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {notification: NOTIFICATION}
+                    })
+                    .send();
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    device.params({
+                        action: 'notification/unsubscribe',
+                        requestId: getRequestId()
+                    })
+                        .send(done);
+                }
+            }
+        });
+    });
+
     after(function (done) {
         device.close();
-        utils.clearData(done);
+        utils.clearDataJWT(done);
     });
 });

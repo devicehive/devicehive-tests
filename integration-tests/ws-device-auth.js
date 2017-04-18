@@ -6,21 +6,21 @@ var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
 describe('WebSocket API Device Authentication', function () {
-    this.timeout(30000);
+    this.timeout(90000);
     var url = null;
 
     var DEVICE = utils.getName('ws-device');
     var NETWORK = utils.getName('ws-device-network');
 
     var deviceId = utils.getName('ws-device-id');
-    var accessKey = null;
+    var token = null;
 
 
     before(function (done) {
 
         function getWsUrl(callback) {
 
-            req.get(path.INFO).params({user: utils.admin}).send(function (err, result) {
+            req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -31,41 +31,40 @@ describe('WebSocket API Device Authentication', function () {
 
         function createDevice(callback) {
             req.update(path.get(path.DEVICE, deviceId))
-                .params(utils.device.getParamsObj(DEVICE, utils.admin,
+                .params(utils.device.getParamsObj(DEVICE, utils.jwt.admin,
                     {name: NETWORK}, {name: DEVICE, version: '1'}))
                 .send(callback);
         }
 
-        function createAccessKey(callback) {
+        function createToken(callback) {
             var args = {
-                label: utils.getName('ws-access-key'),
                 actions: [
                     'GetDeviceCommand',
                     'CreateDeviceCommand',
                     'UpdateDeviceCommand'
-                ]
+                ],
+                deviceIds: void 0,
+                networkIds: void 0
             };
-            utils.accessKey.create(utils.admin, args.label, args.actions, void 0, args.networkIds,
-                function (err, result) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    accessKey = result.key;
-                    callback();
-                })
+            utils.jwt.create(utils.admin.id, args.actions, args.networkIds,  args.deviceIds, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+                token = result.accessToken;
+                callback()
+            })
         }
 
         async.series([
             getWsUrl,
             createDevice,
-            createAccessKey
+            createToken
         ], done);
     });
 
     describe('#authenticate', function () {
 
-        it('should authenticate using access key', function (done) {
+        it('should authenticate using jwt', function (done) {
             var device = null;
             var requestId = getRequestId();
 
@@ -79,7 +78,7 @@ describe('WebSocket API Device Authentication', function () {
                 device.params({
                         action: 'authenticate',
                         requestId: requestId,
-                        accessKey:  accessKey
+                        token:  token
                     })
                     .expect({
                         action: 'authenticate',
@@ -100,7 +99,7 @@ describe('WebSocket API Device Authentication', function () {
             });
         });
 
-        it('should return error when using invalid access key', function (done) {
+        it('should return error when using invalid token', function (done) {
             var device = null;
 
             function createConnection(callback) {
@@ -112,8 +111,38 @@ describe('WebSocket API Device Authentication', function () {
                 device.params({
                         action: 'authenticate',
                         requestId: getRequestId(),
-                        accessKey: null
+                        token: 'invalid_token'
                     })
+                    .expectError(401, 'Invalid credentials')
+                    .send(callback);
+            }
+
+            async.series([
+                createConnection,
+                runTest
+            ], function (err) {
+                if (device) {
+                    device.close();
+                }
+
+                done(err);
+            });
+        });
+
+        it('should return error when using refresh jwt token', function (done) {
+            var device = null;
+
+            function createConnection(callback) {
+                device = new Websocket(url, 'device');
+                device.connect(callback);
+            }
+
+            function runTest(callback) {
+                device.params({
+                    action: 'authenticate',
+                    requestId: getRequestId(),
+                    token: utils.jwt.admin_refresh
+                })
                     .expectError(401, 'Invalid credentials')
                     .send(callback);
             }
@@ -132,6 +161,6 @@ describe('WebSocket API Device Authentication', function () {
     });
 
     after(function (done) {
-        utils.clearData(done);
+        utils.clearDataJWT(done);
     });
 });

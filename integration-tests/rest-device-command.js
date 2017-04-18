@@ -6,7 +6,7 @@ var path = require('./common/path');
 var status = require('./common/http').status;
 
 describe('REST API Device Command', function () {
-    this.timeout(30000);
+    this.timeout(90000);
 
     var helper = utils.command;
 
@@ -17,9 +17,11 @@ describe('REST API Device Command', function () {
     var COMMAND_2 = utils.getName('cmd-2');
 
     var user = null;
+    var jwt = null;
     var nonNetworkUser = null;
     var commandId = null;
     var beforeCreateCommandsTimestamp = new Date().getTime();
+    var networkId = null;
 
     function hasCommand(item) {
         return item.id === commandId && item.command === COMMAND;
@@ -27,11 +29,10 @@ describe('REST API Device Command', function () {
 
     before(function (done) {
         path.current = path.COMMAND.get(DEVICE_GUID);
-        var networkId = null;
 
         function createNetwork(callback) {
             var params = {
-                user: utils.admin,
+                jwt: utils.jwt.admin,
                 data: {
                     name: NETWORK
                 }
@@ -48,14 +49,14 @@ describe('REST API Device Command', function () {
         }
 
         function createDeviceClass(callback) {
-            var params = utils.deviceClass.getParamsObj(DEVICE, utils.admin, '1');
+            var params = utils.deviceClass.getParamsObj(DEVICE, utils.jwt.admin, '1');
             utils.create(path.DEVICE_CLASS, params, function (err) {
                 callback(err);
             });
         }
 
         function createDevice(callback) {
-            var params = utils.device.getParamsObj(DEVICE, utils.admin,
+            var params = utils.device.getParamsObj(DEVICE, utils.jwt.admin,
                 {name: NETWORK}, {name: DEVICE, version: '1'});
             params.id = DEVICE_GUID;
             utils.update(path.DEVICE, params, function (err) {
@@ -74,6 +75,16 @@ describe('REST API Device Command', function () {
             });
         }
 
+        function createJWT(callback) {
+            utils.jwt.create(user.id, ['CreateDeviceCommand', 'GetDeviceCommand', 'UpdateDeviceCommand'], [networkId], [DEVICE_GUID], function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+                jwt = result.accessToken;
+                callback()
+            })
+        }
+
         function createNonNetworkUser(callback) {
             utils.createUser2(1, void 0, function (err, result) {
                 if (err) {
@@ -86,7 +97,7 @@ describe('REST API Device Command', function () {
         }
 
         function createCommand(callback) {
-            var params = helper.getParamsObj(COMMAND, user);
+            var params = helper.getParamsObj(COMMAND, jwt);
             utils.create(path.current, params, function (err, result) {
                 if (err) {
                     return callback(err);
@@ -94,11 +105,11 @@ describe('REST API Device Command', function () {
 
                 commandId = result.id;
 
-                var params = helper.getParamsObj(utils.getName('cmd-2'), user);
+                var params = helper.getParamsObj(utils.getName('cmd-2'), jwt);
                 utils.create(path.current, params, function (err) {
                     setTimeout(function () {
                         callback(err);
-                    }, 2000);
+                    }, 20000);
                 })
             })
         }
@@ -108,6 +119,7 @@ describe('REST API Device Command', function () {
             createDeviceClass,
             createDevice,
             createUser,
+            createJWT,
             createNonNetworkUser,
             createCommand
         ], done);
@@ -116,7 +128,7 @@ describe('REST API Device Command', function () {
     describe('#Get All', function () {
 
         it('should get all two commands for user', function (done) {
-            utils.get(path.current, {user: user}, function (err, result) {
+            utils.get(path.current, {jwt: jwt}, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 2), true, 'Is array of 2 objects');
                 assert.strictEqual(result.some(hasCommand), true);
@@ -126,7 +138,7 @@ describe('REST API Device Command', function () {
         });
 
         it('should return user command by name', function (done) {
-            var params = {user: user};
+            var params = {jwt: jwt};
             params.query = path.query('command', COMMAND);
             utils.get(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
@@ -138,7 +150,7 @@ describe('REST API Device Command', function () {
         });
 
         it('should return user commands by start date', function (done) {
-            var params = {user: user};
+            var params = {jwt: jwt};
             var date = new Date();
             date.setHours(date.getHours() - 1);
             params.query = path.query('start', date.toISOString());
@@ -152,7 +164,7 @@ describe('REST API Device Command', function () {
         });
 
         it('should return empty commands list when start date is out of range', function (done) {
-            var params = {user: user};
+            var params = {jwt: jwt};
             var date = new Date();
             date.setHours(date.getHours() + 1);
             params.query = path.query('start', date.toISOString());
@@ -165,7 +177,7 @@ describe('REST API Device Command', function () {
         });
 
         it('should return user commands by end date', function (done) {
-            var params = {user: user};
+            var params = {jwt: jwt};
             var date = new Date();
             date.setHours(date.getHours() + 1);
             params.query = path.query('end', date.toISOString());
@@ -181,10 +193,10 @@ describe('REST API Device Command', function () {
 
     describe('#Get', function () {
 
-        var invalidAccessKey1 = null;
-        var invalidAccessKey2 = null;
-        var invalidAccessKey3 = null;
-        var accessKey = null;
+        var invalidJWT1 = null;
+        var invalidJWT2 = null;
+        var invalidJWT3 = null;
+        var jwt = null;
 
         before(function (done) {
 
@@ -205,96 +217,61 @@ describe('REST API Device Command', function () {
                 },
                 {
                     user: user,
-                    actions: 'GetDeviceCommand'
+                    actions: 'GetDeviceCommand',
+                    deviceIds: DEVICE_GUID,
+                    networkIds: networkId
                 }
             ];
 
-            utils.accessKey.createMany(params, function (err, result) {
+            utils.jwt.createMany(params, function (err, result) {
                 if (err) {
                     return done(err);
                 }
 
-                invalidAccessKey1 = result[0];
-                invalidAccessKey2 = result[1];
-                invalidAccessKey3 = result[2];
-                accessKey = result[3];
+                invalidJWT1 = result[0];
+                invalidJWT2 = result[1];
+                invalidJWT3 = result[2];
+                jwt = result[3];
 
                 done();
             })
         });
 
-        it('should return error when using wrong user authentication', function (done) {
-            var params = {user: nonNetworkUser};
-            utils.get(path.current, params, function (err) {
-                assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
-
-                done();
-            });
-        });
-
-        it('should succeed when using valid user authentication', function (done) {
-            var params = {user: user};
-            utils.get(path.current, params, function (err, result) {
-                assert.strictEqual(!(!err), false, 'No error');
-                assert.strictEqual(utils.core.isArrayOfLength(result, 2), true, 'Is array of 2 objects');
-                assert.strictEqual(result.some(hasCommand), true);
-
-                done();
-            });
-        });
-
-        it('should succeed when using valid user authentication', function (done) {
-            var params = {user: user};
-            utils.get(path.current, params, function (err, result) {
-                assert.strictEqual(!(!err), false, 'No error');
-                assert.strictEqual(utils.core.isArrayOfLength(result, 2), true, 'Is array of 2 objects');
-                assert.strictEqual(result.some(hasCommand), true);
-
-                done();
-            });
-        });
-
         it('should fail with 404 #1', function (done) {
-            var params = {accessKey: invalidAccessKey1};
+            var params = {jwt: invalidJWT1};
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
         });
 
         it('should fail with 404 #2', function (done) {
-            var params = {accessKey: invalidAccessKey2};
+            var params = {jwt: invalidJWT2};
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
         });
 
         it('should fail with 404 #3', function (done) {
-            var params = {accessKey: invalidAccessKey3};
+            var params = {jwt: invalidJWT3};
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
         });
 
-        it('should succeed when using valid access key', function (done) {
-            var params = {accessKey: accessKey};
+        it('should succeed when using valid jwt', function (done) {
+            var params = {jwt: jwt};
             utils.get(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 2), true, 'Is array of 2 objects');
@@ -307,7 +284,7 @@ describe('REST API Device Command', function () {
 
     describe('#Poll', function () {
         it('should return new command when adding command with specified name', function (done) {
-            var params = {user: user};
+            var params = {jwt: jwt};
             var $path = path.combine(path.current, path.POLL);
             params.query = path.query('names', COMMAND);
             utils.get($path, params, function (err, result) {
@@ -320,12 +297,28 @@ describe('REST API Device Command', function () {
             });
 
             setTimeout(function () {
-                var params = helper.getParamsObj(COMMAND_2, user);
+                var params = helper.getParamsObj(COMMAND_2, jwt);
                 utils.create(path.current, params, function () {});
             }, 100);
 
             setTimeout(function () {
-                var params = helper.getParamsObj(COMMAND, user);
+                var params = helper.getParamsObj(COMMAND, jwt);
+                utils.create(path.current, params, function () {});
+            }, 100);
+        });
+
+        it('should return array with commands when poll with waitTimeout=3', function (done) {
+            var params = {jwt: jwt};
+            var $path = path.combine(path.current, path.POLL);
+            params.query = path.query('waitTimeout', 3);
+            utils.get($path, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.length > 0, true);
+                done();
+            });
+
+            setTimeout(function () {
+                var params = helper.getParamsObj(COMMAND, jwt);
                 utils.create(path.current, params, function () {});
             }, 100);
         })
@@ -333,7 +326,7 @@ describe('REST API Device Command', function () {
 
     describe('#Poll No Wait', function () {
         it('should return immediately with empty result', function (done) {
-            var params = {user: user};
+            var params = {jwt: jwt};
             var $path = path.combine(path.current, path.POLL);
             params.query = path.query('waitTimeout', '0');
             utils.get($path, params, function (err, result) {
@@ -343,7 +336,7 @@ describe('REST API Device Command', function () {
             })
         });
         it('should return immediately array with commands when poll with waitTimeout=0 and timestamp', function (done) {
-            var params = {user: user};
+            var params = {jwt: jwt};
             var $path = path.combine(path.current, path.POLL);
             params.query = path.query('waitTimeout', 0, 'timestamp', beforeCreateCommandsTimestamp);
             utils.get($path, params, function (err, result) {
@@ -356,7 +349,7 @@ describe('REST API Device Command', function () {
 
     describe('#Poll Many', function () {
         it('should return result with deviceGuid', function (done) {
-            var params = {user: user};
+            var params = {jwt: jwt};
             params.query = path.query('names', COMMAND, 'deviceGuids', DEVICE_GUID);
             utils.get(path.COMMAND.poll(), params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
@@ -368,12 +361,12 @@ describe('REST API Device Command', function () {
             });
 
             setTimeout(function () {
-                var params = helper.getParamsObj(COMMAND_2, user);
+                var params = helper.getParamsObj(COMMAND_2, jwt);
                 utils.create(path.current, params, function () {});
             }, 100);
 
             setTimeout(function () {
-                var params = helper.getParamsObj(COMMAND, user);
+                var params = helper.getParamsObj(COMMAND, jwt);
                 utils.create(path.current, params, function () {});
             }, 100);
         });
@@ -383,25 +376,25 @@ describe('REST API Device Command', function () {
             var globalTimestamp = "";
 
             function pollWithoutTimestamp(callback){
-                var params = {user: user};
+                var params = {jwt: jwt};
                 params.query = path.query('names', COMMAND, 'deviceGuids', DEVICE_GUID, "waitTimeout", 5);
                 utils.get(path.COMMAND.poll(), params, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
                     assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
-                    callback(err);
+                    callback(result);
                 });
             }
 
             function updateCommand(callback){
-                var params = {user: user, data: {"newField": "newValue"}};
-                utils.update(path.combine(path.COMMAND.get(DEVICE_GUID), globalId), params, function (err, result) {
+                var params = {jwt: jwt, data: {"newField": "newValue"}};
+                utils.update(path.combine(path.COMMAND.get(DEVICE_GUID), globalId), params, function (err) {
                     assert.strictEqual(!(!err), false, 'No error');
                     callback(err);
                 });
             }
 
             function pollWithTimestamp(){
-                    var params = {user: user};
+                    var params = {jwt: jwt};
                     params.query = path.query('names', COMMAND, 'deviceGuids', DEVICE_GUID, "waitTimeout", 1, 'timestamp', globalTimestamp);
                     utils.get(path.COMMAND.poll(), params, function (err, result) {
                         assert.strictEqual(!(!err), false, 'No error');
@@ -413,7 +406,7 @@ describe('REST API Device Command', function () {
 
             async.series([pollWithoutTimestamp, updateCommand], pollWithTimestamp);
 
-            var params = helper.getParamsObj(COMMAND, user);
+            var params = helper.getParamsObj(COMMAND, jwt);
             setTimeout(function(){utils.create(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 globalId = result.id;
@@ -432,7 +425,7 @@ describe('REST API Device Command', function () {
 
             function createNetwork(callback) {
                 var params = {
-                    user: utils.admin,
+                    jwt: utils.jwt.admin,
                     data: {
                         name: OTHER_NETWORK
                     }
@@ -449,7 +442,7 @@ describe('REST API Device Command', function () {
             }
 
             function createDevice(callback) {
-                var params = utils.device.getParamsObj(utils.getName('other-device-cmd'), utils.admin,
+                var params = utils.device.getParamsObj(utils.getName('other-device-cmd'), utils.jwt.admin,
                     {name: OTHER_NETWORK}, {name: DEVICE, version: '1'});
                 params.id = OTHER_DEVICE_GUID;
                 utils.update(path.DEVICE, params, function (err) {
@@ -464,7 +457,7 @@ describe('REST API Device Command', function () {
         });
 
         it('should return current device command', function (done) {
-            var params = {user: user};
+            var params = {jwt: jwt};
             utils.get(path.COMMAND.poll(), params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
@@ -475,12 +468,12 @@ describe('REST API Device Command', function () {
             });
 
             setTimeout(function () {
-                var params = helper.getParamsObj(COMMAND_2, utils.admin);
+                var params = helper.getParamsObj(COMMAND_2, utils.jwt.admin);
                 utils.create(path.COMMAND.get(OTHER_DEVICE_GUID), params, function () {});
             }, 200);
 
             setTimeout(function () {
-                var params = helper.getParamsObj(COMMAND_2, utils.admin);
+                var params = helper.getParamsObj(COMMAND_2, utils.jwt.admin);
                 utils.create(path.current, params, function () {});
             }, 200);
         })
@@ -488,7 +481,7 @@ describe('REST API Device Command', function () {
 
     describe('#Poll Many No Wait', function () {
         it('should return immediately with empty result', function (done) {
-            var params = {user: user};
+            var params = {jwt: jwt};
             params.query = path.query('waitTimeout', '0');
             utils.get(path.COMMAND.poll(), params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
@@ -506,7 +499,7 @@ describe('REST API Device Command', function () {
         };
 
         it('should return empty response with status 204 when polling not processed command', function (done) {
-            var params = {user: user};
+            var params = {jwt: jwt};
             var $path = path.combine(path.current, commandId, path.POLL);
             params.query = path.query('waitTimeout',0);
             utils.get($path, params, function (err, result) {
@@ -517,7 +510,7 @@ describe('REST API Device Command', function () {
         });
 
         it('should return command with updated status/result values', function (done) {
-            var params = {user: user};
+            var params = {jwt: jwt};
             var $path = path.combine(path.current, commandId, path.POLL);
             params.query = path.query('names', COMMAND);
             utils.get($path, params, function (err, result) {
@@ -528,7 +521,7 @@ describe('REST API Device Command', function () {
             });
 
             setTimeout(function () {
-                var params = {user: user};
+                var params = {jwt: jwt};
                 params.id = commandId;
                 params.data = commandUpdate;
                 utils.update(path.current, params, function () {});
@@ -536,12 +529,12 @@ describe('REST API Device Command', function () {
         });
 
         it('should return processed command when polling processed command with waitTimeout = 0', function (done) {
-            var params = {user: user};
+            var params = {jwt: jwt};
             params.id = commandId;
             params.data = commandUpdate;
             utils.update(path.current, params, function () {});
             setTimeout(function () {
-                var params = {user: user};
+                var params = {jwt: jwt};
                 var $path = path.combine(path.current, commandId, path.POLL);
                 params.query = path.query('waitTimeout', 0);
                 utils.get($path, params, function (err, result) {
@@ -556,10 +549,10 @@ describe('REST API Device Command', function () {
 
     describe('#Create', function () {
 
-        var invalidAccessKey1 = null;
-        var invalidAccessKey2 = null;
-        var invalidAccessKey3 = null;
-        var accessKey = null;
+        var invalidJWT1 = null;
+        var invalidJWT2 = null;
+        var invalidJWT3 = null;
+        var jwt = null;
 
         before(function (done) {
 
@@ -580,52 +573,33 @@ describe('REST API Device Command', function () {
                 },
                 {
                     user: user,
-                    actions: 'CreateDeviceCommand'
+                    actions: 'CreateDeviceCommand',
+                    networkIds: networkId,
+                    deviceIds: DEVICE_GUID
                 }
             ];
 
-            utils.accessKey.createMany(params, function (err, result) {
+            utils.jwt.createMany(params, function (err, result) {
                 if (err) {
                     return done(err);
                 }
 
-                invalidAccessKey1 = result[0];
-                invalidAccessKey2 = result[1];
-                invalidAccessKey3 = result[2];
-                accessKey = result[3];
+                invalidJWT1 = result[0];
+                invalidJWT2 = result[1];
+                invalidJWT3 = result[2];
+                jwt = result[3];
 
-                done();
-            })
-        });
-
-        it('should return error when creating command with invalid user', function (done) {
-            var params = helper.getParamsObj(COMMAND, nonNetworkUser);
-            utils.create(path.current, params, function (err) {
-                assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
-
-                done();
-            })
-        });
-
-        it('should succeed when creating command with allowed user', function (done) {
-            var params = helper.getParamsObj(COMMAND, user);
-            utils.create(path.current, params, function (err, result) {
-                assert.strictEqual(!(!err), false, 'No error');
                 done();
             })
         });
 
         it('should fail with 404 #1', function (done) {
             var params = helper.getParamsObj(COMMAND);
-            params.accessKey = invalidAccessKey1;
+            params.jwt = invalidJWT1;
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
@@ -633,12 +607,11 @@ describe('REST API Device Command', function () {
 
         it('should fail with 404 #2', function (done) {
             var params = helper.getParamsObj(COMMAND);
-            params.accessKey = invalidAccessKey2;
+            params.jwt = invalidJWT2;
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
@@ -646,23 +619,35 @@ describe('REST API Device Command', function () {
 
         it('should fail with 404 #3', function (done) {
             var params = helper.getParamsObj(COMMAND);
-            params.accessKey = invalidAccessKey3;
+            params.jwt = invalidJWT3;
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
         });
 
-        it('should succeed when using valid access key', function (done) {
+        it('should succeed when using valid jwt', function (done) {
             var params = helper.getParamsObj(COMMAND);
-            params.accessKey = accessKey;
+            params.jwt = jwt;
             utils.create(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.userId, user.id);
+
+                done();
+            });
+        });
+
+        it('should succeed when trying to create command with timestamp', function (done) {
+            var timestamp = new Date().toISOString();
+            var params = helper.getParamsObj(COMMAND, jwt, null, timestamp);
+            utils.create(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.userId, user.id);
+                var resultDate = new Date(result.timestamp).toISOString();
+                assert.strictEqual(resultDate, timestamp);
 
                 done();
             });
@@ -671,10 +656,10 @@ describe('REST API Device Command', function () {
 
     describe('#Update', function () {
 
-        var invalidAccessKey1 = null;
-        var invalidAccessKey2 = null;
-        var invalidAccessKey3 = null;
-        var accessKey = null;
+        var invalidJWT1 = null;
+        var invalidJWT2 = null;
+        var invalidJWT3 = null;
+        var jwt = null;
 
         before(function (done) {
 
@@ -695,21 +680,23 @@ describe('REST API Device Command', function () {
                 },
                 {
                     user: user,
-                    actions: 'UpdateDeviceCommand'
+                    actions: 'UpdateDeviceCommand',
+                    networkIds: networkId,
+                    deviceIds: DEVICE_GUID
                 }
             ];
 
-            utils.accessKey.createMany(params, function (err, result) {
+            utils.jwt.createMany(params, function (err, result) {
                 if (err) {
                     return done(err);
                 }
 
-                invalidAccessKey1 = result[0];
-                invalidAccessKey2 = result[1];
-                invalidAccessKey3 = result[2];
-                accessKey = result[3];
+                invalidJWT1 = result[0];
+                invalidJWT2 = result[1];
+                invalidJWT3 = result[2];
+                jwt = result[3];
 
-                var params = helper.getParamsObj(COMMAND, user);
+                var params = helper.getParamsObj(COMMAND, utils.jwt.admin);
                 utils.create(path.current, params, function (err, result) {
                     if (err) {
                         return done(err);
@@ -721,37 +708,14 @@ describe('REST API Device Command', function () {
             })
         });
 
-        it('should return error when updating command with invalid user', function (done) {
-            var params = helper.getParamsObj(COMMAND, nonNetworkUser);
-            params.id = commandId;
-            utils.update(path.current, params, function (err) {
-                assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
-
-                done();
-            })
-        });
-
-        it('should succeed when updating command with allowed user', function (done) {
-            var params = helper.getParamsObj(COMMAND, user);
-            params.id = commandId;
-            utils.update(path.current, params, function (err) {
-                assert.strictEqual(!(!err), false, 'No error');
-                done();
-            })
-        });
-
         it('should fail with 404 #1', function (done) {
             var params = helper.getParamsObj(COMMAND);
-            params.accessKey = invalidAccessKey1;
+            params.jwt = invalidJWT1;
             params.id = commandId;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
@@ -759,13 +723,12 @@ describe('REST API Device Command', function () {
 
         it('should fail with 404 #2', function (done) {
             var params = helper.getParamsObj(COMMAND);
-            params.accessKey = invalidAccessKey2;
+            params.jwt = invalidJWT2;
             params.id = commandId;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
@@ -773,13 +736,12 @@ describe('REST API Device Command', function () {
 
         it('should fail with 404 #3', function (done) {
             var params = helper.getParamsObj(COMMAND);
-            params.accessKey = invalidAccessKey3;
+            params.jwt = invalidJWT3;
             params.id = commandId;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such guid = %s not found',
-                    DEVICE_GUID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
 
                 done();
             });
@@ -787,7 +749,7 @@ describe('REST API Device Command', function () {
 
         it('should succeed when updating using valid access key', function (done) {
             var params = helper.getParamsObj(COMMAND);
-            params.accessKey = accessKey;
+            params.jwt = jwt;
             params.id = commandId;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), false, 'No error');
@@ -798,7 +760,7 @@ describe('REST API Device Command', function () {
 
     describe('#Delete', function () {
         it('should return error when trying to delete command', function (done) {
-            var params = {user: utils.admin};
+            var params = {jwt: utils.jwt.admin};
             params.id = commandId;
             utils.delete(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -814,6 +776,15 @@ describe('REST API Device Command', function () {
         describe('#No Authorization', function () {
             it('should return error when getting commands without authorization', function (done) {
                 utils.get(path.current, {user: null}, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'Unauthorized');
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                    done();
+                })
+            });
+
+            it('should return error when getting commands with refresh jwt', function (done) {
+                utils.get(path.current, {user: user, jwt: utils.jwt.admin_refresh }, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'Unauthorized');
                     assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
@@ -857,7 +828,7 @@ describe('REST API Device Command', function () {
     describe('#Not Found', function () {
 
         it('should return error when accessing non-existing command', function (done) {
-            var params = {user: utils.admin, id: utils.NON_EXISTING_ID };
+            var params = {jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID };
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, format('Command with id = %d not found',
@@ -868,7 +839,7 @@ describe('REST API Device Command', function () {
         });
 
         it('should return error when updating non-existing command', function (done) {
-            var params = helper.getParamsObj('the-command', utils.admin);
+            var params = helper.getParamsObj('the-command', utils.jwt.admin);
             params.id = utils.NON_EXISTING_ID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -881,6 +852,6 @@ describe('REST API Device Command', function () {
     });
 
     after(function (done) {
-        utils.clearData(done);
+        utils.clearDataJWT(done);
     });
 });

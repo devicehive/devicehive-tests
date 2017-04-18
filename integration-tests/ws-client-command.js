@@ -7,7 +7,7 @@ var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
 describe('WebSocket API Client Command', function () {
-    this.timeout(30000);
+    this.timeout(90000);
     var url = null;
 
     var DEVICE = utils.getName('ws-cmd-device');
@@ -18,23 +18,21 @@ describe('WebSocket API Client Command', function () {
 
     var deviceId = utils.getName('ws-cmd-device-id');
     var user = null;
-    var accessKey = null;
-    var invalidKey = null;
+    var token = null;
+    var invalidToken = null;
 
-    var clientUsr = null;
-    var clientAK = null;
-    var clientInvalidAK = null;
+    var clientToken = null;
+    var clientInvalidToken = null;
 
     beforeEach(function(done) {
         setTimeout(done, 1000);
-    })
+    });
 
     before(function (done) {
         var networkId = null;
 
         function getWsUrl(callback) {
-
-            req.get(path.INFO).params({user: utils.admin}).send(function (err, result) {
+            req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -45,7 +43,7 @@ describe('WebSocket API Client Command', function () {
 
         function createNetwork(callback) {
             var params = {
-                user: utils.admin,
+                jwt: utils.jwt.admin,
                 data: { name: NETWORK, key: NETWORK_KEY }
             };
 
@@ -72,116 +70,103 @@ describe('WebSocket API Client Command', function () {
 
         function createDeviceClass(callback) {
             req.create(path.DEVICE_CLASS)
-                .params(utils.deviceClass.getParamsObj(DEVICE, utils.admin, '1'))
+                .params(utils.deviceClass.getParamsObj(DEVICE, utils.jwt.admin, '1'))
                 .send(callback);
         }
 
         function createDevice(callback) {
             req.update(path.get(path.DEVICE, deviceId))
-                .params(utils.device.getParamsObj(DEVICE, utils.admin,
+                .params(utils.device.getParamsObj(DEVICE, utils.jwt.admin,
                     {name: NETWORK, key: NETWORK_KEY}, {name: DEVICE, version: '1'}))
                 .send(callback);
         }
 
-        function createAccessKey(callback) {
+        function createToken(callback) {
             var args = {
-                label: utils.getName('ws-access-key'),
                 actions: [
                     'GetDeviceCommand',
                     'CreateDeviceCommand',
                     'UpdateDeviceCommand'
                 ],
                 deviceIds: deviceId,
-                //networkIds: networkId // TODO: command/subscribe fails with this network
-                networkIds: void 0
+                networkIds: networkId
             };
-            utils.accessKey.create(utils.admin, args.label, args.actions, args.deviceIds, args.networkIds,
-                function (err, result) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    accessKey = result.key;
-                    callback();
-                });
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceIds, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+                token = result.accessToken;
+                callback()
+            })
         }
 
-        function createInvalidAccessKey(callback) {
+        function createInvalidToken(callback) {
             var args = {
-                label: utils.getName('ws-invalid-access-key'),
                 actions: [ 'GetNetwork' ],
                 deviceIds: deviceId,
                 networkIds: networkId
             };
-            utils.accessKey.create(utils.admin, args.label, args.actions, args.deviceIds, args.networkIds,
-                function (err, result) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    invalidKey = result.key;
-                    callback();
-                });
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceIds, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+                invalidToken = result.accessToken;
+                callback()
+            })
         }
 
-        function createConnUsrAuth(callback) {
-            clientUsr = new Websocket(url, 'client');
-            clientUsr.connect(callback);
+        function createConnTokenAuth(callback) {
+            clientToken = new Websocket(url, 'client');
+            clientToken.connect(callback);
         }
 
-        function createConnAccessKeyAuth(callback) {
-            clientAK = new Websocket(url, 'client');
-            clientAK.connect(callback);
+        function createConnInvalidTokenAuth(callback) {
+            clientInvalidToken = new Websocket(url, 'client');
+            clientInvalidToken.connect(callback);
         }
-
-        function createConnInvalidAccessKeyAuth(callback) {
-            clientInvalidAK = new Websocket(url, 'client');
-            clientInvalidAK.connect(callback);
-        }
-
-        function authenticateWithUsr(callback) {
-            clientUsr.params({
-                    action: 'authenticate',
-                    requestId: getRequestId(),
-                    login: user.login,
-                    password: user.password
-                })
+        function authenticateWithToken(callback) {
+            clientToken.params({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: token
+            })
                 .send(callback);
         }
 
-        function authenticateWithAccessKey(callback) {
-            clientAK.params({
-                    action: 'authenticate',
-                    requestId: getRequestId(),
-                    accessKey: accessKey
-                })
+        function authenticateWithInvalidToken(callback) {
+            clientInvalidToken.params({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: invalidToken
+            })
                 .send(callback);
         }
-
-        function authenticateWithInvalidAccessKey(callback) {
-            clientInvalidAK.params({
-                    action: 'authenticate',
-                    requestId: getRequestId(),
-                    accessKey: invalidKey
-                })
-                .send(callback);
-        }
-
+        
         async.series([
             getWsUrl,
             createNetwork,
             createUser,
             createDeviceClass,
             createDevice,
-            createAccessKey,
-            createInvalidAccessKey,
-            createConnUsrAuth,
-            createConnAccessKeyAuth,
-            createConnInvalidAccessKeyAuth,
-            authenticateWithUsr,
-            authenticateWithAccessKey,
-            authenticateWithInvalidAccessKey
+            createToken,
+            createInvalidToken,
+            createConnTokenAuth,
+            createConnInvalidTokenAuth,
+            authenticateWithToken,
+            authenticateWithInvalidToken
         ], done);
+    });
+    
+    describe('#Invalid credentials', function(done) {
+        it('should return error with refresh token', function() {
+            clientToken.params({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: utils.jwt.admin_refresh
+            })
+                .expectError(401, 'Invalid credentials')
+                .send(done);
+        });
     });
 
     describe('#command/insert', function () {
@@ -216,23 +201,19 @@ describe('WebSocket API Client Command', function () {
 
                 var commandId = result.command.id;
                 req.get(path.COMMAND.get(deviceId))
-                    .params({user: utils.admin, id: commandId})
+                    .params({jwt: utils.jwt.admin, id: commandId})
                     .expect({id: commandId})
                     .expect(command)
                     .send(done);
             }
         }
 
-        it('should add new command, access key auth', function (done) {
-            runTest(clientAK, done);
+        it('should add new command, jwt auth', function (done) {
+            runTest(clientToken, done);
         });
 
-        it('should add new command, user auth', function (done) {
-            runTest(clientUsr, done);
-        });
-
-        it('should fail when using wrong access key', function (done) {
-            clientInvalidAK.params({
+        it('should fail when using wrong jwt', function (done) {
+            clientInvalidToken.params({
                     action: 'command/insert',
                     requestId: getRequestId(),
                     deviceGuid: deviceId,
@@ -241,24 +222,36 @@ describe('WebSocket API Client Command', function () {
                 .expectError(401, 'Unauthorized')
                 .send(done);
         });
+        
     });
 
     describe('#command/subscribe', function () {
 
-        function runTest(client, done) {
+        function runTest(client, ts, done) {
             var requestId = getRequestId();
             var subscriptionId = null;
-            client.params({
+            var clientParams = null;
+            if (ts != null) {
+                clientParams = client.params({
+                    action: 'command/subscribe',
+                    requestId: requestId,
+                    deviceGuids: [deviceId],
+                    names: [COMMAND],
+                    timestamp: ts
+                });
+            } else {
+                clientParams = client.params({
                     action: 'command/subscribe',
                     requestId: requestId,
                     deviceGuids: [deviceId],
                     names: [COMMAND]
-                })
-                .expect({
-                    action: 'command/subscribe',
-                    requestId: requestId,
-                    status: 'success'
-                })
+                });
+            }
+            clientParams.expect({
+                action: 'command/subscribe',
+                requestId: requestId,
+                status: 'success'
+            })
                 .expectTrue(function (result) {
                     return utils.core.hasStringValue(result.subscriptionId);
                 })
@@ -280,7 +273,7 @@ describe('WebSocket API Client Command', function () {
 
                 req.create(path.COMMAND.get(deviceId))
                     .params({
-                        user: user,
+                        jwt: token,
                         data: {command: COMMAND}
                     })
                     .send();
@@ -300,12 +293,11 @@ describe('WebSocket API Client Command', function () {
             }
         }
 
-        it('should subscribe to device commands, user authorization', function (done) {
-            runTest(clientUsr, done);
+        it('should subscribe to device commands, jwt authorization', function (done) {
+            runTest(clientToken, null, done);
         });
-
-        it('should subscribe to device commands, access key authorization', function (done) {
-            runTest(clientAK, done);
+        it('should subscribe to device commands with timestamp, jwt authorization', function (done) {
+            runTest(clientToken, new Date().toISOString(), done);
         });
     });
 
@@ -354,19 +346,15 @@ describe('WebSocket API Client Command', function () {
 
                 req.create(path.COMMAND.get(deviceId))
                     .params({
-                        user: utils.admin,
+                        jwt: utils.jwt.admin,
                         data: {command: COMMAND}
                     })
                     .send();
             }
         }
 
-        it('should unsubscribe from device commands, user authorization', function (done) {
-            runTest(clientUsr, done);
-        });
-
-        it('should subscribe to device commands, access key authorization', function (done) {
-            runTest(clientAK, done);
+        it('should unsubscribe to device commands, jwt authorization', function (done) {
+            runTest(clientToken, done);
         });
     });
 
@@ -423,19 +411,15 @@ describe('WebSocket API Client Command', function () {
                 }
 
                 req.get(path.COMMAND.get(deviceId))
-                    .params({user: utils.admin, id: commandId})
+                    .params({jwt: utils.jwt.admin, id: commandId})
                     .expect({id: commandId})
                     .expect(update)
                     .send(done);
             }
         }
 
-        it('should update existing command, user auth', function (done) {
-            runTest(clientUsr, done);
-        });
-
-        it('should update existing command, access key auth', function (done) {
-            runTest(clientAK, done);
+        it('should update existing command, jwt auth', function (done) {
+            runTest(clientToken, done);
         });
     });
 
@@ -476,7 +460,7 @@ describe('WebSocket API Client Command', function () {
 
                 req.create(path.COMMAND.get(deviceId))
                     .params({
-                        user: user,
+                        jwt: token,
                         data: command
                     })
                     .send();
@@ -496,15 +480,9 @@ describe('WebSocket API Client Command', function () {
             }
         }
 
-        it('should notify when command was inserted, user auth', function (done) {
+        it('should notify when command was inserted, jwt auth', function (done) {
             setTimeout(function () {
-                runTest(clientUsr, done);
-            }, 500);
-        });
-
-        it('should notify when command was inserted, access key auth', function (done) {
-            setTimeout(function () {
-                runTest(clientAK, done);
+                runTest(clientToken, done);
             }, 500);
         });
 
@@ -526,18 +504,14 @@ describe('WebSocket API Client Command', function () {
 
             req.create(path.COMMAND.get(deviceId))
                 .params({
-                    user: user,
+                    jwt: token,
                     data: command
                 })
                 .send();
         }
 
-        it('should not notify when command was inserted without prior subscription, user auth', function (done) {
-            runTestNoSubscr(clientUsr, done);
-        });
-
-        it('should not notify when command was inserted without prior subscription, access key auth', function (done) {
-            runTestNoSubscr(clientAK, done);
+        it('should not notify when command was inserted without prior subscription, jwt auth', function (done) {
+            runTestNoSubscr(clientToken, done);
         });
     });
 
@@ -597,18 +571,13 @@ describe('WebSocket API Client Command', function () {
             }
         }
 
-        it('should notify when command was updated, user auth', function (done) {
-            runTest(clientUsr, done);
-        });
-
-        it('should notify when command was updated, access key auth', function (done) {
-            runTest(clientAK, done);
+        it('should notify when command was updated, jwt auth', function (done) {
+            runTest(clientToken, done);
         });
     });
 
     after(function (done) {
-        clientUsr.close();
-        clientAK.close();
-        utils.clearData(done);
+        clientToken.close();
+        utils.clearDataJWT(done);
     });
 });

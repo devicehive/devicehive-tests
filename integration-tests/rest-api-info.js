@@ -19,6 +19,6 @@ describe('REST API Info', function () {
     });
 
     after(function (done) {
-        utils.clearData(done);
+        utils.clearDataJWT(done);
     });
 });
