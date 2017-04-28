@@ -101,7 +101,7 @@ var utils = {
             var expDate = new Date();
             expDate.setFullYear(expDate.getFullYear() + 10);
 
-            utils.create(path.JWT, {jwt: utils.jwt.admin, data: {userId: userId, actions: actions, networkIds: networkIds, deviceGuids: deviceIds, expiration: expDate }}, callback);
+            utils.create(path.JWT + '/create', {jwt: utils.jwt.admin, data: {userId: userId, actions: actions, networkIds: networkIds, deviceGuids: deviceIds, expiration: expDate }}, callback);
         }
     },
 
@@ -314,6 +314,12 @@ var utils = {
             }
 
             return params;
+        }
+    },
+
+    configuration: {
+        get: function (name, cb, status) {
+            utils.get(path.CONFIGURATION, {id: name}, cb, status)
         }
     },
 

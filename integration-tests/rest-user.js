@@ -386,6 +386,17 @@ describe('REST API User', function () {
     });
 
     describe('#Unauthorized', function () {
+        before(function (done) {
+            utils.configuration.get('user.anonymous_creation', function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+                isAnonUserCreate = result;
+                done();
+            }, status.OK)
+        });
+
+
         describe('#No Authorization', function () {
             it('should fail with 401 if auth parameters omitted', function (done) {
                 req.get(path.current)
@@ -408,11 +419,16 @@ describe('REST API User', function () {
                     .send(done);
             });
 
+
             it('should fail with 401 when creating user with no auth parameters', function (done) {
-                req.create(path.current)
-                    .params({jwt: null, data: {login: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(done);
+                if (isAnonUserCreate) {
+                  this.skip();
+                } else {
+                  req.create(path.current)
+                      .params({jwt: null, data: {login: 'not-authorized'}})
+                      .expectError(status.NOT_AUTHORIZED)
+                      .send(done);
+                }
             });
 
             it('should fail with 401 when updating user with no auth parameters', function (done) {
@@ -438,7 +454,6 @@ describe('REST API User', function () {
         });
 
         describe('#User Authorization', function () {
-
             var nonNetworkUser = null;
             var nonNetworkUserJwt = null;
 
@@ -494,10 +509,14 @@ describe('REST API User', function () {
             });
 
             it('should fail with 401 when creating user with invalid jwt', function (done) {
-                req.create(path.current)
-                    .params({jwt: nonNetworkUserJwt, data: {login: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(done);
+                if (isAnonUserCreate) {
+                  this.skip();
+                } else {
+                  req.create(path.current)
+                      .params({jwt: nonNetworkUserJwt, data: {login: 'not-authorized'}})
+                      .expectError(status.NOT_AUTHORIZED)
+                      .send(done);
+                }
             });
 
             it('should fail with 401 when updating user with invalid jwt', function (done) {
@@ -544,10 +563,14 @@ describe('REST API User', function () {
             });
 
             it('should fail with 401 when creating user using invalid access key', function (done) {
-                req.create(path.current)
-                    .params({jwt: jwt, data: {login: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(done);
+                if (isAnonUserCreate) {
+                  this.skip();
+                } else {
+                  req.create(path.current)
+                      .params({jwt: jwt, data: {login: 'not-authorized'}})
+                      .expectError(status.NOT_AUTHORIZED)
+                      .send(done);
+                }
             });
 
             it('should fail with 401 when updating user using invalid access key', function (done) {
