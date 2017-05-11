@@ -385,7 +385,10 @@ describe('REST API User', function () {
         });
     });
 
+    // Some of tests could be pending due to allowing anonymous user creation in java-server configuration
     describe('#Unauthorized', function () {
+
+        // Checking if anon user creation allowed
         before(function (done) {
             utils.configuration.get('user.anonymous_creation', function (err, result) {
                 if (err) {

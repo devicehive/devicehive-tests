@@ -615,7 +615,7 @@ describe('REST API Device Unit', function () {
             var params = {
                 jwt: utils.jwt.admin,
                 data: {
-                    key: null
+                    key: ""
                 }
             };
             params.id = networkId;
