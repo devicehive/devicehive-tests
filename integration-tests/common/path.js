@@ -12,6 +12,7 @@ var path = {
     INFO: '/info',
     DEVICE: '/device',
     DEVICE_CLASS: '/device/class',
+    CONFIGURATION: '/configuration',
     NOTIFICATION: {
         get: function (deviceGuid) {
             return path.combine(path.DEVICE, deviceGuid, 'notification');

@@ -68,7 +68,7 @@ describe('REST API JSON Web Tokens', function () {
         });
 
         it('should create token with all permissions, networks and devices', function (done) {
-            utils.create(path.JWT, {jwt: utils.jwt.admin,
+            utils.create(path.JWT + '/create', {jwt: utils.jwt.admin,
                 data: {
                     userId: 1,
                     actions: ['*'],
@@ -88,7 +88,7 @@ describe('REST API JSON Web Tokens', function () {
         });
 
         it('should return error when creating token with refresh jwt', function (done) {
-            utils.create(path.JWT, {jwt: utils.jwt.admin_refresh,
+            utils.create(path.JWT + '/create', {jwt: utils.jwt.admin_refresh,
                 data: {
                     userId: 1,
                     actions: ['*'],
@@ -103,7 +103,7 @@ describe('REST API JSON Web Tokens', function () {
         });
 
         it('should create token with ManageToken permission', function (done) {
-            utils.create(path.JWT, {jwt: jwt1,
+            utils.create(path.JWT + '/create', {jwt: jwt1,
                 data: {
                     userId: 1,
                     actions: ['*'],
@@ -123,7 +123,7 @@ describe('REST API JSON Web Tokens', function () {
         });
 
         it('should not create token without ManageToken permission', function(done){
-            utils.create(path.JWT, {jwt: jwt2,
+            utils.create(path.JWT + '/create', {jwt: jwt2,
                 data: {
                     userId: 1,
                     actions: ['*'],
@@ -139,7 +139,7 @@ describe('REST API JSON Web Tokens', function () {
         });
 
         it('should not create token for invalid User', function (done) {
-            utils.create(path.JWT, {jwt: utils.jwt.admin,
+            utils.create(path.JWT + '/create', {jwt: utils.jwt.admin,
                 data: {
                     userId: 9999999999999,
                     actions: ['*'],
@@ -155,7 +155,7 @@ describe('REST API JSON Web Tokens', function () {
         });
 
         it('should not create token with error User is not active', function (done) {
-            utils.create(path.JWT, {jwt: utils.jwt.admin,
+            utils.create(path.JWT + '/create', {jwt: utils.jwt.admin,
                 data: {
                     userId: inactiveUser.id,
                     actions: ['*'],

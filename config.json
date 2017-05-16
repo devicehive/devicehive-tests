@@ -1,10 +1,10 @@
 {
   "server": {
-    "wsUrl": "ws://127.0.0.1:8080/dh/websocket",
+    "wsUrl": "ws://127.0.0.1:8080/websocket",
     "ip": "127.0.0.1",
     "port": "8080",
     "restUrl": "http://127.0.0.1:8080/dh/rest",
-    "accessKey": "1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk="
+    "jwt": "admin_token"
   },
   "loadTests": {
     "runAsync": false,
