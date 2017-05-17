@@ -42,6 +42,37 @@ describe('REST API JSON Web Tokens', function () {
         ], done);
     });
 
+    describe('#Login', function() {
+        it('should create token using basic authentication with valid credentials', function (done) {
+            utils.create(path.JWT, {data: {
+                    login: utils.admin.login,
+                    password: utils.admin.password
+                }
+            }, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                assert(result.accessToken != null);
+                assert(result.refreshToken != null);
+
+                done();
+            });
+        });
+
+        it('should return error when creating token using basic authentication with invalid credentials', function (done) {
+            utils.create(path.JWT, {data: {
+                login: utils.admin.login,
+                password: 1111
+            }
+            }, function (err) {
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                done();
+            });
+        });
+    });
+
     describe('#Create', function() {
 
         var jwt1 = null;
