@@ -170,6 +170,7 @@ describe('REST API Device Unit', function () {
         var jwt1 = null;
         var jwt2 = null;
         var jwt3 = null;
+        var jwt4 = null;
 
         before(function (done) {
             var params = [
@@ -186,7 +187,14 @@ describe('REST API Device Unit', function () {
                 {
                     user: user,
                     actions: 'GetDevice',
-                    networkIds: [networkId]
+                    networkIds: [networkId],
+                    deviceIds: ["*"]
+                },
+                {
+                    user: user,
+                    actions: 'GetDevice',
+                    networkIds: [],
+                    deviceIds: []
                 }
             ];
 
@@ -199,6 +207,7 @@ describe('REST API Device Unit', function () {
                     jwt1 = result[0];
                     jwt2 = result[1];
                     jwt3 = result[2];
+                    jwt4 = result[3];
 
                     callback();
                 })
@@ -282,6 +291,14 @@ describe('REST API Device Unit', function () {
             })
         });
 
+        it('should get zero devices when using jwt with no access #3', function (done) {
+            utils.get(path.current, {jwt: jwt4}, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(utils.core.isEmptyArray(result), true);
+
+                done();
+            })
+        });
     });
 
     describe('#Get', function () {
@@ -995,7 +1012,7 @@ describe('REST API Device Unit', function () {
                     name: NETWORK
                 },
                 deviceClass: {
-                    name: NEW_DEVICE,
+                    name: NEW_DEVICE
                 }
             };
             params.id = NEW_DEVICE_GUID;

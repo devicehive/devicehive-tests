@@ -86,12 +86,14 @@ describe('REST API Network', function () {
         var jwt1 = null;
         var jwt2 = null;
         var jwt3 = null;
+        var jwt4 = null;
 
         before(function (done) {
             var params = [
                 {
                     user: user,
-                    actions: 'GetNetwork'
+                    actions: 'GetNetwork',
+                    networkIds: ['*']
                 },
                 {
                     user: user,
@@ -102,6 +104,10 @@ describe('REST API Network', function () {
                     user: user,
                     actions: 'GetNetwork',
                     networkIds: [networkId1]
+                },
+                {
+                    user: user,
+                    actions: 'GetNetwork'
                 }
             ];
 
@@ -113,6 +119,7 @@ describe('REST API Network', function () {
                     jwt1 = result[0];
                     jwt2 = result[1];
                     jwt3 = result[2];
+                    jwt4 = result[3];
                     callback();
                 });
             }
@@ -156,9 +163,18 @@ describe('REST API Network', function () {
                 .send(done);
         });
 
-        it('should get none of networks', function (done) {
+        it('should get none of networks #1', function (done) {
             req.get(path.current)
                 .params({jwt: jwt2})
+                .expectTrue(function (result) {
+                    return utils.core.isEmptyArray(result);
+                })
+                .send(done);
+        });
+
+        it('should get none of networks #2', function (done) {
+            req.get(path.current)
+                .params({jwt: jwt4})
                 .expectTrue(function (result) {
                     return utils.core.isEmptyArray(result);
                 })
