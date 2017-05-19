@@ -23,13 +23,7 @@ describe('WebSocket API Device Unit', function () {
         deviceClass: {
             name: DEVICE,
             isPermanent: true,
-            data: {c: '3', d: '4'},
-            equipment: [{
-                name: "_integr-test-eq",
-                code: "321",
-                type: "_integr-test-type",
-                data: {e: '5', f: '6'}
-            }]
+            data: {c: '3', d: '4'}
         }
     };
     var deviceId = utils.getName('ws-device-id');

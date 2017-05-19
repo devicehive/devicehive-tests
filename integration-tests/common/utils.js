@@ -232,7 +232,7 @@ var utils = {
                 });
         },
 
-        getParamsObj: function (name, jwt, isPermanent, equipment, data) {
+        getParamsObj: function (name, jwt, isPermanent, data) {
 
             var params = {
                 jwt: jwt,
@@ -243,10 +243,6 @@ var utils = {
 
             if (typeof (isPermanent) === 'boolean') {
                 params.data.isPermanent = isPermanent;
-            }
-
-            if (equipment) {
-                params.data.equipment = [equipment];
             }
 
             if (data) {

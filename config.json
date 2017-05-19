@@ -1,9 +1,9 @@
 {
   "server": {
-    "wsUrl": "ws://127.0.0.1:8080/websocket",
+    "wsUrl": "ws://localhost:8080/websocket",
     "ip": "127.0.0.1",
     "port": "8080",
-    "restUrl": "http://127.0.0.1:8080/dh/rest",
+    "restUrl": "http://localhost:8080/dh/rest",
     "jwt": "admin_token"
   },
   "loadTests": {
@@ -49,7 +49,6 @@
             "data": {
               "command": "{#name}",
               "parameters": {
-                "equipment": "temp-sensor",
                 "enabled": false
               }
             }
