@@ -118,7 +118,7 @@ describe('REST API JSON Web Tokens', function () {
             });
         });
 
-        it.only('should create token with custom expiration date', function (done) {
+        it('should create token with custom expiration date', function (done) {
             utils.create(path.JWT + '/create', {jwt: utils.jwt.admin,
                 data: {
                     userId: 1,
