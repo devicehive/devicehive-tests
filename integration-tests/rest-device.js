@@ -303,6 +303,7 @@ describe('REST API Device Unit', function () {
         var invalidJWT2 = null;
         var invalidJWT3 = null;
         var jwt = null;
+        var allNetworksJwt = null;
 
         before(function (done) {
             var params = [
@@ -327,6 +328,12 @@ describe('REST API Device Unit', function () {
                     actions: 'GetDevice',
                     networkIds: [networkId],
                     deviceIds: [DEVICE_GUID]
+                },
+                {
+                    user: user,
+                    actions: 'GetDevice',
+                    networkIds: ['*'],
+                    deviceIds: [DEVICE_GUID]
                 }
             ];
 
@@ -340,6 +347,7 @@ describe('REST API Device Unit', function () {
                     invalidJWT2 = result[1];
                     invalidJWT3 = result[2];
                     jwt = result[3];
+                    allNetworksJwt = result[4];
 
                     callback();
                 })
@@ -381,8 +389,20 @@ describe('REST API Device Unit', function () {
             });
         });
 
-        it('should succeed when using valid jwt', function (done) {
+        it('should succeed when using valid jwt #1', function (done) {
             var params = {jwt: jwt};
+            params.id = DEVICE_GUID;
+            utils.get(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.id, DEVICE_GUID);
+                assert.strictEqual(result.name, DEVICE);
+
+                done();
+            });
+        });
+
+        it('should succeed when using valid jwt #2', function (done) {
+            var params = {jwt: allNetworksJwt};
             params.id = DEVICE_GUID;
             utils.get(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
