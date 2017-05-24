@@ -118,6 +118,29 @@ describe('REST API JSON Web Tokens', function () {
             });
         });
 
+        it.only('should create token with custom expiration date', function (done) {
+            utils.create(path.JWT + '/create', {jwt: utils.jwt.admin,
+                data: {
+                    userId: 1,
+                    actions: ['*'],
+                    networkIds: ['*'],
+                    deviceGuids: ['*'],
+                    expiration: "2018-01-01T00:00:00.000Z"
+                }
+            }, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                assert.strictEqual(result.accessToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VHdWlkcyI6WyIqIl0sImV4cGlyYXRpb24iOjE1MTQ3NjQ4MDAwMDAsInRva2VuVHlwZSI6IkFDQ0VTUyJ9fQ'),
+                    true);
+                assert.strictEqual(result.refreshToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VHdWlkcyI6WyIqIl0sImV4cGlyYXRpb24iOjE1MTQ3NjQ4MDAwMDAsInRva2VuVHlwZSI6IlJFRlJFU0gifX0'),
+                    true);
+
+                done();
+            });
+        });
+
         it('should return error when creating token with refresh jwt', function (done) {
             utils.create(path.JWT + '/create', {jwt: utils.jwt.admin_refresh,
                 data: {
