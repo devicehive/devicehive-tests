@@ -74,7 +74,7 @@ describe('REST API JSON Web Tokens', function () {
             });
         });
 
-        it.only('should create a token with admin permissions for an admin user', function (done) {
+        it('should create a token with admin permissions for an admin user', function (done) {
             utils.create(path.JWT, {data: {
                     login: adminUser.login,
                     password: adminUser.password
