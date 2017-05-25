@@ -1,5 +1,6 @@
 var async = require('async');
 var assert = require('assert');
+var base64 = require('base64-min');
 var path = require('./path');
 var Http = require('./http').Http;
 var status = require('./http').status;
@@ -649,6 +650,13 @@ var utils = {
 
             assert.strictEqual(ac, ex, 'Expected value for \'' + key + '\' should be: \'' + ex + '\'');
         });
+    },
+
+    parseJwt: function (token) {
+        var base64Url = token.split('.')[1];
+        base64Url = base64Url.replace('-', '+').replace('_', '/');
+        var decodedStr = base64.decode(base64Url).replace(/\?$/, '')
+        return JSON.parse(decodedStr);
     }
 };
 

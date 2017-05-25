@@ -1,6 +1,7 @@
 var assert = require('assert');
 var async = require('async');
 var format = require('util').format;
+var should = require('should');
 var utils = require('./common/utils');
 var path = require('./common/path');
 var status = require('./common/http').status;
@@ -9,10 +10,22 @@ var req = require('./common/request');
 describe('REST API JSON Web Tokens', function () {
     this.timeout(90000);
 
+    var adminUser = null;
     var user = null;
     var inactiveUser = null;
 
     before(function (done) {
+
+        function createAdminUser(callback) {
+            utils.createUser2(0, void 0, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                adminUser = result.user;
+                callback();
+            });
+        }
 
         function createUser(callback) {
             utils.createUser2(1, void 0, function (err, result) {
@@ -37,6 +50,7 @@ describe('REST API JSON Web Tokens', function () {
         }
 
         async.series([
+            createAdminUser,
             createUser,
             createInactiveUser
         ], done);
@@ -55,6 +69,48 @@ describe('REST API JSON Web Tokens', function () {
 
                 assert(result.accessToken != null);
                 assert(result.refreshToken != null);
+
+                done();
+            });
+        });
+
+        it('should create a token with admin permissions for an admin user', function (done) {
+            utils.create(path.JWT, {data: {
+                    login: adminUser.login,
+                    password: adminUser.password
+                }
+            }, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                assert(result.accessToken != null);
+                var jwtTokenVO = utils.parseJwt(result.accessToken);
+                
+                jwtTokenVO.payload.actions.should.containEql('*');
+                jwtTokenVO.payload.networkIds.should.containEql('*');
+                jwtTokenVO.payload.deviceGuids.should.containEql('*');
+
+                done();
+            });
+        });
+
+        it('should create a token with client permissions for a client user', function (done) {
+            utils.create(path.JWT, {data: {
+                    login: user.login,
+                    password: user.password
+                }
+            }, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                assert(result.accessToken != null);
+                var jwtTokenVO = utils.parseJwt(result.accessToken);
+                
+                if (jwtTokenVO.payload.networkIds.length > 0) {
+                	jwtTokenVO.payload.deviceGuids.should.containEql('*');
+                }
 
                 done();
             });
