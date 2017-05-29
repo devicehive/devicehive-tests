@@ -96,7 +96,7 @@ describe('REST API Device Unit', function () {
         }
 
         function createDevice(callback) {
-            var params = helper.getParamsObj(DEVICE, utils.jwt.admin, {name: NETWORK}, {name: DEVICE, version: '1'});
+            var params = helper.getParamsObj(DEVICE, utils.jwt.admin, networkId, {name: DEVICE, version: '1'});
             params.id = DEVICE_GUID;
             utils.update(path.DEVICE, params, function (err) {
                 callback(err);
@@ -115,6 +115,7 @@ describe('REST API Device Unit', function () {
         }
 
         function createNonNetworkUser(callback) {
+        	console.log('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
             utils.createUser2(1, null, function (err, result) {
                 if (err) {
                     return callback(err);
@@ -402,7 +403,7 @@ describe('REST API Device Unit', function () {
 
         before(function (done) {
             function createDevice(callback) {
-                var params = helper.getParamsObj(NEW_DEVICE, utils.jwt.admin, {name: NETWORK}, {name: DEVICE});
+                var params = helper.getParamsObj(NEW_DEVICE, utils.jwt.admin, networkId, {name: DEVICE});
                 params.id = NEW_DEVICE_GUID;
                 utils.update(path.current, params, function (err) {
                     callback(err);
@@ -433,10 +434,7 @@ describe('REST API Device Unit', function () {
                 utils.matches(result, {
                     id: NEW_DEVICE_GUID,
                     name: NEW_DEVICE,
-                    network: {
-                        id: networkId,
-                        name: NETWORK
-                    },
+                    network: networkId,
                     deviceClass: {
                         name: DEVICE
                     }
@@ -455,10 +453,7 @@ describe('REST API Device Unit', function () {
                     parameters: {
                         id: NEW_DEVICE_GUID,
                         name: NEW_DEVICE,
-                        network: {
-                            id: networkId,
-                            name: NETWORK
-                        },
+                        network: networkId,
                         deviceClass: {
                             id: deviceClassId,
                             name: DEVICE
@@ -496,6 +491,8 @@ describe('REST API Device Unit', function () {
                     if (err) {
                         return callback(err);
                     }
+                    console.log('------------------------------------------------');
+                    console.log(result);
                     nonNetworkJWT = result[0];
                     jwt = result[1];
                     callback();
@@ -507,8 +504,8 @@ describe('REST API Device Unit', function () {
             ], done);
         });
 
-        it('should fail device creation for invalid jwt', function (done) {
-            var params = helper.getParamsObj(NEW_DEVICE, nonNetworkJWT, {name: NETWORK}, {name: DEVICE});
+        it.only('should fail device creation for invalid jwt', function (done) {
+            var params = helper.getParamsObj(NEW_DEVICE, nonNetworkJWT, networkId, {name: DEVICE});
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -519,7 +516,7 @@ describe('REST API Device Unit', function () {
         });
 
         it('should allow device creation for valid jwt', function (done) {
-            var params = helper.getParamsObj(NEW_DEVICE, jwt, {name: NETWORK}, {name: DEVICE});
+            var params = helper.getParamsObj(NEW_DEVICE, jwt, networkId, {name: DEVICE});
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), false, 'No error');
@@ -564,7 +561,7 @@ describe('REST API Device Unit', function () {
         });
 
         it('should fail when referencing network without network key', function (done) {
-            var params = helper.getParamsObj(DEVICE, utils.jwt.admin, {name: NETWORK}, {name: DEVICE});
+            var params = helper.getParamsObj(DEVICE, utils.jwt.admin, networkId, {name: DEVICE});
             params.id = DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -575,7 +572,7 @@ describe('REST API Device Unit', function () {
         });
 
         it('should succeed when network key is passed', function (done) {
-            var params = helper.getParamsObj(DEVICE, utils.jwt.admin, {name: NETWORK, key: NETWORK_KEY}, {name: DEVICE});
+            var params = helper.getParamsObj(DEVICE, utils.jwt.admin, networkId, {name: DEVICE});
             params.id = DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), false, 'No error');
@@ -771,7 +768,7 @@ describe('REST API Device Unit', function () {
 
             function createDevice(callback) {
                 var params = helper.getParamsObj(NEW_DEVICE, utils.jwt.admin,
-                    {name: NETWORK},
+                	networkId,
                     {
                         name: DEVICE,
                         version: DEVICE_CLASS_VERSION
@@ -827,7 +824,7 @@ describe('REST API Device Unit', function () {
 
             function createDevice(callback) {
                 var params = helper.getParamsObj(NEW_DEVICE, utils.jwt.admin,
-                    {name: NETWORK},
+                	networkId,
                     {
                         name: DEVICE,
                         version: DEVICE_CLASS_VERSION
@@ -889,7 +886,7 @@ describe('REST API Device Unit', function () {
 
             function createDevice(callback) {
                 var params = helper.getParamsObj(NEW_DEVICE, utils.jwt.admin,
-                    {name: NETWORK},
+                	networkId,
                     {
                         name: NEW_DEVICE,
                         version: '1'
@@ -1041,7 +1038,7 @@ describe('REST API Device Unit', function () {
 
             function createDevice(callback) {
                 var params = helper.getParamsObj(NEW_DEVICE, utils.jwt.admin,
-                    {name: NETWORK},
+                	networkId,
                     {
                         name: DEVICE,
                         version: DEVICE_CLASS_VERSION
@@ -1127,7 +1124,7 @@ describe('REST API Device Unit', function () {
 
             function createDevice(callback) {
                 var params = helper.getParamsObj(NEW_DEVICE, utils.jwt.admin,
-                    {name: NETWORK},
+                	networkId,
                     {
                         name: DEVICE,
                         version: DEVICE_CLASS_VERSION

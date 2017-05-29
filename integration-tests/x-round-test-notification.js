@@ -18,6 +18,7 @@ describe('Round tests for notification', function () {
 
     var NOTIFICATION = utils.getName('round-notification');
     var DEVICE = utils.getName('round-notif-device');
+    var NETWORK = utils.getName('network-device-cmd');
 
     var notifications = [];
 
@@ -25,10 +26,6 @@ describe('Round tests for notification', function () {
         name: DEVICE,
         status: 'Online',
         data: {a: '1', b: '2'},
-        network: {
-            name: utils.getName('round-notif-network'),
-            description: 'lorem ipsum dolor sit amet'
-        },
         deviceClass: {
             name: DEVICE,
             version: '1',
@@ -70,7 +67,26 @@ describe('Round tests for notification', function () {
             });
         }
 
+        function createNetwork(callback) {
+            var params = {
+                jwt: utils.jwt.admin,
+                data: {
+                    name: NETWORK
+                }
+            };
+
+            utils.create(path.NETWORK, params, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                networkId = result.id;
+                callback()
+            });
+        }
+
         function createDevice(callback) {
+        	deviceDef.network = networkId;
             req.update(path.get(path.DEVICE, deviceId))
                 .params({jwt: utils.jwt.admin, data: deviceDef})
                 .send(function (err) {
@@ -154,6 +170,7 @@ describe('Round tests for notification', function () {
         async.series([
             initNotifications,
             getWsUrl,
+            createNetwork,
             createDevice,
             createUser,
             createJWT,
