@@ -19,11 +19,6 @@ describe('WebSocket API Device Unit', function () {
         network: {
             name: utils.getName('ws-network'),
             description: 'lorem ipsum dolor sit amet'
-        },
-        deviceClass: {
-            name: DEVICE,
-            isPermanent: true,
-            data: {c: '3', d: '4'}
         }
     };
     var deviceId = utils.getName('ws-device-id');

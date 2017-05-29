@@ -31,7 +31,6 @@ var utils = {
         login: 'dhadmin',
         password: 'dhadmin_#911',
         id:1
-        //password: 'Password1@'
     },
 
     loggingOff: false,
@@ -222,40 +221,8 @@ var utils = {
         }
     },
 
-    deviceClass: {
-
-        getParams: function (name, jwt, version) {
-            return this.getParamsObj(name, jwt, void 0,
-                {
-                    name: utils.getName('eqpmnt'),
-                    type: utils.getName('type'),
-                    code: utils.getName('code')
-                });
-        },
-
-        getParamsObj: function (name, jwt, isPermanent, data) {
-
-            var params = {
-                jwt: jwt,
-                data: {
-                    name: name
-                }
-            };
-
-            if (typeof (isPermanent) === 'boolean') {
-                params.data.isPermanent = isPermanent;
-            }
-
-            if (data) {
-                params.data.data = data;
-            }
-
-            return params;
-        }
-    },
-
     device: {
-        getParamsObj: function (name, jwt, network, deviceClass) {
+        getParamsObj: function (name, jwt, network) {
             var params = {
                 jwt: jwt,
                 data: {
@@ -266,10 +233,6 @@ var utils = {
 
             if (network) {
                 params.data.network = network;
-            }
-
-            if (deviceClass) {
-                params.data.deviceClass = deviceClass;
             }
 
             if (jwt) {
@@ -526,16 +489,8 @@ var utils = {
             clearEntities(path.DEVICE, 'name', callback);
         }
 
-        function clearDeviceClasses(callback) {
-            clearEntities(path.DEVICE_CLASS, 'name', callback);
-        }
-
         function clearNetworks(callback) {
             clearEntities(path.NETWORK, 'name', callback);
-        }
-
-        function clearOAuthClients(callback) {
-            clearEntities(path.combine('/', 'oauth', 'client'), 'name', callback);
         }
 
         self.loggingOff = true;
@@ -543,9 +498,7 @@ var utils = {
             clearAccessKeys,
             clearUsers,
             clearDevices,
-            clearDeviceClasses,
-            clearNetworks,
-            clearOAuthClients
+            clearNetworks
         ], function (err) {
             if (err) {
                 done(err);
@@ -582,25 +535,15 @@ var utils = {
             clearEntities(path.DEVICE, 'name', callback);
         }
 
-        function clearDeviceClasses(callback) {
-            clearEntities(path.DEVICE_CLASS, 'name', callback);
-        }
-
         function clearNetworks(callback) {
             clearEntities(path.NETWORK, 'name', callback);
-        }
-
-        function clearOAuthClients(callback) {
-            clearEntities(path.combine('/', 'oauth', 'client'), 'name', callback);
         }
 
         self.loggingOff = true;
         async.series([
             clearUsers,
             clearDevices,
-            clearDeviceClasses,
             clearNetworks
-            // clearOAuthClients
         ], function (err) {
             if (err) {
                 done(err);
@@ -655,7 +598,7 @@ var utils = {
     parseJwt: function (token) {
         var base64Url = token.split('.')[1];
         base64Url = base64Url.replace('-', '+').replace('_', '/');
-        var decodedStr = base64.decode(base64Url).replace(/\?$/, '')
+        var decodedStr = base64.decode(base64Url).replace(/\?$/, '');
         return JSON.parse(decodedStr);
     }
 };

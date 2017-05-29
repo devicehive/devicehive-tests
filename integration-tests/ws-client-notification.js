@@ -66,12 +66,6 @@ describe('WebSocket API Client Notification', function () {
             });
         }
 
-        function createDeviceClass(callback) {
-            req.create(path.DEVICE_CLASS)
-                .params(utils.deviceClass.getParamsObj(DEVICE, utils.jwt.admin, '1'))
-                .send(callback);
-        }
-
         function createDevice(callback) {
             req.update(path.get(path.DEVICE, deviceId))
                 .params(utils.device.getParamsObj(DEVICE, utils.jwt.admin,
@@ -149,7 +143,6 @@ describe('WebSocket API Client Notification', function () {
             getWsUrl,
             createNetwork,
             createUser,
-            createDeviceClass,
             createDevice,
             createToken,
             createInvalidToken,

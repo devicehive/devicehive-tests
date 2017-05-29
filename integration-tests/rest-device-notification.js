@@ -51,13 +51,6 @@ describe('REST API Device Notification', function () {
             });
         }
 
-        function createDeviceClass(callback) {
-            var params = utils.deviceClass.getParamsObj(DEVICE, utils.jwt.admin, '1');
-            utils.create(path.DEVICE_CLASS, params, function (err) {
-                callback(err);
-            });
-        }
-
         function createDevice(callback) {
             var params = utils.device.getParamsObj(DEVICE, utils.jwt.admin,
                 {name: NETWORK}, {name: DEVICE, version: '1'});
@@ -119,7 +112,6 @@ describe('REST API Device Notification', function () {
 
         async.series([
             createNetwork,
-            createDeviceClass,
             createDevice,
             createUser,
             createNonNetworkUser,

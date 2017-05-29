@@ -25,13 +25,6 @@ describe('Round tests for command', function () {
         network: {
             name: utils.getName('round-cmd-network'),
             description: 'lorem ipsum dolor sit amet'
-        },
-        deviceClass: {
-            name: DEVICE,
-            version: '1',
-            isPermanent: true,
-            offlineTimeout: 1234,
-            data: {c: '3', d: '4'}
         }
     };
     var deviceId = utils.getName('round-cmd-device-id');

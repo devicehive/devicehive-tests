@@ -298,10 +298,7 @@ describe('REST API Network', function () {
     describe('#Create Devices', function () {
 
         var DEVICE = utils.getName('network-device');
-        var DEVICE_CLASS_VERSION = '1';
         var DEVICE_GUID = utils.getName('network-guid');
-
-        var deviceClassId = null;
 
         var jwt1 = null;
         var jwt2 = null;
@@ -343,18 +340,6 @@ describe('REST API Network', function () {
                 });
             }
 
-            function createDeviceClass(callback) {
-                req.create(path.DEVICE_CLASS)
-                    .params(utils.deviceClass.getParamsObj(DEVICE, utils.jwt.admin, DEVICE_CLASS_VERSION))
-                    .send(function (err, result) {
-                        if (err) {
-                            return callback(err);
-                        }
-                        deviceClassId = result.id;
-                        callback();
-                    });
-            }
-
             function createDevice(callback) {
                 req.update(path.get(path.DEVICE, DEVICE_GUID))
                     .params(utils.device.getParamsObj(DEVICE, utils.jwt.admin,
@@ -369,7 +354,6 @@ describe('REST API Network', function () {
 
             async.series([
                 createJWTs,
-                createDeviceClass,
                 createDevice
             ], done);
         });
@@ -382,11 +366,7 @@ describe('REST API Network', function () {
                     description: null,
                     devices: [{
                         id: DEVICE_GUID,
-                        name: DEVICE,
-                        deviceClass: {
-                            id: deviceClassId,
-                            name: DEVICE
-                        }
+                        name: DEVICE
                     }]
                 })
                 .send(done);
