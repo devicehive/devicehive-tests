@@ -139,39 +139,9 @@ describe('REST API User', function () {
         });
     });
 
-    describe('#Create OAuth', function () {
-
-        var user = {
-            login: utils.getName('oauth-usr-1'),
-            password: utils.NEW_USER_PASSWORD
-        };
-
-        before(function (done) {
-            req.create(path.current)
-                .params({
-                    jwt: utils.jwt.admin,
-                    data: {
-                        login: user.login,
-                        password: user.password,
-                        facebookLogin: 'facebook',
-                        role: 0,
-                        status: 0 }
-                })
-                .send(function (err, result) {
-                    if (err) {
-                        return done(err);
-                    }
-
-                    user.id = result.id;
-                    done();
-                });
-        });
-
-    });
-
     describe('#Create Existing', function () {
 
-        var LOGIN = utils.getName('oauth-usr-2');
+        var LOGIN = utils.getName('usr-1');
 
         before(function (done) {
             req.create(path.current)
@@ -180,7 +150,6 @@ describe('REST API User', function () {
                     data: {
                         login: LOGIN,
                         password: utils.NEW_USER_PASSWORD,
-                        facebookLogin: 'facebook-2',
                         role: 0,
                         status: 0 }
                 })
@@ -205,10 +174,10 @@ describe('REST API User', function () {
     describe('#Create User Networks', function () {
 
         var user = {
-            login: utils.getName('usr-3'),
+            login: utils.getName('usr-2'),
             password: utils.NEW_USER_PASSWORD
         };
-        var NETWORK = utils.getName('usr-network-3');
+        var NETWORK = utils.getName('usr-network-2');
         var networkId = null;
 
         before(function (done) {

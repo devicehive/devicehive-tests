@@ -11,7 +11,6 @@ var path = {
     NETWORK: '/network',
     INFO: '/info',
     DEVICE: '/device',
-    DEVICE_CLASS: '/device/class',
     CONFIGURATION: '/configuration',
     NOTIFICATION: {
         get: function (deviceGuid) {
