@@ -101,7 +101,6 @@ describe('Round tests for notification', function () {
                                 return callback(err);
                             }
 
-                            networkId = result.network.id;
                             callback();
                         })
                 });

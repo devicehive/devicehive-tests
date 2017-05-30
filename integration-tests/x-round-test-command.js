@@ -15,6 +15,8 @@ describe('Round tests for command', function () {
 
     var COMMAND = utils.getName('round-command');
     var DEVICE = utils.getName('round-cmd-device');
+    var NETWORK = utils.getName('ws-cmd-network');
+    var NETWORK_KEY = utils.getName('ws-cmd-network-key');
 
     var commands = [];
 
@@ -22,10 +24,6 @@ describe('Round tests for command', function () {
         name: DEVICE,
         status: 'Online',
         data: {a: '1', b: '2'},
-        network: {
-            name: utils.getName('round-cmd-network'),
-            description: 'lorem ipsum dolor sit amet'
-        },
         deviceClass: {
             name: DEVICE,
             version: '1',
@@ -68,7 +66,24 @@ describe('Round tests for command', function () {
             });
         }
 
+        function createNetwork(callback) {
+            var params = {
+                jwt: utils.jwt.admin,
+                data: { name: NETWORK, key: NETWORK_KEY }
+            };
+
+            utils.create(path.NETWORK, params, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                networkId = result.id;
+                callback();
+            });
+        }
+
         function createDevice(callback) {
+        	deviceDef.network = networkId;
             req.update(path.get(path.DEVICE, deviceId))
                 .params({jwt: utils.jwt.admin, data: deviceDef})
                 .send(function (err) {
@@ -83,7 +98,6 @@ describe('Round tests for command', function () {
                                 return callback(err);
                             }
 
-                            networkId = result.network.id;
                             callback();
                         })
                 });
@@ -153,6 +167,7 @@ describe('Round tests for command', function () {
         async.series([
             initCommands,
             getWsUrl,
+            createNetwork,
             createDevice,
             createUser,
             createJWT,

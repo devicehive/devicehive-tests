@@ -77,7 +77,7 @@ describe('WebSocket API Client Command', function () {
         function createDevice(callback) {
             req.update(path.get(path.DEVICE, deviceId))
                 .params(utils.device.getParamsObj(DEVICE, utils.jwt.admin,
-                    {name: NETWORK, key: NETWORK_KEY}, {name: DEVICE, version: '1'}))
+                    networkId, {name: DEVICE, version: '1'}))
                 .send(callback);
         }
 

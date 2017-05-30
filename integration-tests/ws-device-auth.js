@@ -76,6 +76,7 @@ describe('WebSocket API Device Authentication', function () {
 
         async.series([
             getWsUrl,
+            createNetwork,
             createDevice,
             createToken
         ], done);
