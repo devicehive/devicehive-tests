@@ -17,12 +17,7 @@ describe('WebSocket API Device Unit', function () {
 
     var device = {
         name: DEVICE,
-        data: {a: '1', b: '2'},
-        deviceClass: {
-            name: DEVICE,
-            isPermanent: true,
-            data: {c: '3', d: '4'}
-        }
+        data: {a: '1', b: '2'}
     };
     var deviceId = utils.getName('ws-device-id');
 
