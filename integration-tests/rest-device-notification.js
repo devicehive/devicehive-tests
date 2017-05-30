@@ -53,7 +53,7 @@ describe('REST API Device Notification', function () {
 
         function createDevice(callback) {
             var params = utils.device.getParamsObj(DEVICE, utils.jwt.admin,
-                {name: NETWORK}, {name: DEVICE, version: '1'});
+                networkId, {name: DEVICE, version: '1'});
             params.id = DEVICE_GUID;
             utils.update(path.DEVICE, params, function (err) {
                 callback(err);
@@ -437,7 +437,7 @@ describe('REST API Device Notification', function () {
 
             function createDevice(callback) {
                 var params = utils.device.getParamsObj(utils.getName('other-device-notif'), utils.jwt.admin,
-                    {name: OTHER_NETWORK}, {name: DEVICE, version: '1'});
+                    otherNetworkId, {name: DEVICE, version: '1'});
                 params.id = OTHER_DEVICE_GUID;
                 utils.update(path.DEVICE, params, function (err) {
                     callback(err);

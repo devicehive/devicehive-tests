@@ -14,6 +14,7 @@ describe('WebSocket API Device Command', function () {
     var NETWORK = utils.getName('ws-network-cmd');
     var COMMAND = utils.getName('ws-command');
 
+    var networkId = null;
     var deviceId = utils.getName('ws-device-cmd-id');
     var token= null;
 
@@ -36,10 +37,28 @@ describe('WebSocket API Device Command', function () {
             });
         }
 
+        function createNetwork(callback) {
+            var params = {
+                jwt: utils.jwt.admin,
+                data: {
+                    name: NETWORK
+                }
+            };
+
+            utils.create(path.NETWORK, params, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                networkId = result.id;
+                callback()
+            });
+        }
+
         function createDevice(callback) {
             req.update(path.get(path.DEVICE, deviceId))
                 .params(utils.device.getParamsObj(DEVICE, utils.jwt.admin,
-                    {name: NETWORK}, {name: DEVICE, version: '1'}))
+                    networkId, {name: DEVICE, version: '1'}))
                 .send(callback);
         }
 
@@ -80,6 +99,7 @@ describe('WebSocket API Device Command', function () {
 
         async.series([
             getWsUrl,
+            createNetwork,
             createDevice,
             createToken,
             createConn,

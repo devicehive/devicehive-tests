@@ -343,7 +343,7 @@ describe('REST API Network', function () {
             function createDevice(callback) {
                 req.update(path.get(path.DEVICE, DEVICE_GUID))
                     .params(utils.device.getParamsObj(DEVICE, utils.jwt.admin,
-                        {name: NETWORK_1, key: NETWORK_KEY}, {name: DEVICE, version: '1'}))
+                        networkId1, {name: DEVICE, version: '1'}))
                     .send(function (err) {
                         if (err) {
                             return callback(err);
