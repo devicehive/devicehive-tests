@@ -598,8 +598,16 @@ var utils = {
     parseJwt: function (token) {
         var base64Url = token.split('.')[1];
         base64Url = base64Url.replace('-', '+').replace('_', '/');
-        var decodedStr = base64.decode(base64Url).replace(/\?$/, '');
+        var decodedStr = base64.decode(base64Url)
+        decodedStr = this.correctLastSymbol(decodedStr);
         return JSON.parse(decodedStr);
+    },
+    
+    correctLastSymbol: function (decodedStr) {
+    	if (decodedStr.slice(-1) !== '}') {
+        	return decodedStr.replace(/.$/, '');
+        }
+    	return decodedStr;
     }
 };
 
