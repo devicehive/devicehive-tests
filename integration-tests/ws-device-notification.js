@@ -53,7 +53,7 @@ describe('WebSocket API Device Notification', function () {
         function createDevice(callback) {
             req.update(path.get(path.DEVICE, deviceId))
                 .params(utils.device.getParamsObj(DEVICE, utils.jwt.admin,
-                	networkId, {name: DEVICE, version: '1'}))
+                    networkId, {name: DEVICE, version: '1'}))
                 .send(callback);
         }
 

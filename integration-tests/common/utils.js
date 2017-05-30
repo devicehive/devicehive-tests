@@ -254,17 +254,17 @@ var utils = {
     },
 
     device: {
-        getParamsObj: function (name, jwt, network, deviceClass) {
+        getParamsObj: function (name, jwt, networkId, deviceClass) {
             var params = {
                 jwt: jwt,
                 data: {
                     name: name,
-                    network: 'invalid'
+                    networkId: 'invalid'
                 }
             };
 
-            if (network) {
-                params.data.network = network;
+            if (networkId) {
+                params.data.networkId = networkId;
             }
 
             if (deviceClass) {

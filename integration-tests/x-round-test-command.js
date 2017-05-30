@@ -83,7 +83,7 @@ describe('Round tests for command', function () {
         }
 
         function createDevice(callback) {
-        	deviceDef.network = networkId;
+        	deviceDef.networkId = networkId;
             req.update(path.get(path.DEVICE, deviceId))
                 .params({jwt: utils.jwt.admin, data: deviceDef})
                 .send(function (err) {

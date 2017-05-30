@@ -59,7 +59,7 @@ describe('WebSocket API Device Unit', function () {
             }
 
             function createDevice(callback) {
-            	device.network = networkId;
+            	device.networkId = networkId;
                 req.update(path.get(path.DEVICE, deviceId))
                     .params({jwt: utils.jwt.admin, data: device})
                     .send(callback);
@@ -164,7 +164,7 @@ describe('WebSocket API Device Unit', function () {
             }
 
             function createDevice(callback) {
-            	device.network = networkId;
+            	device.networkId = networkId;
                 req.update(path.get(path.DEVICE, deviceId))
                     .params({jwt: utils.jwt.admin, data: device})
                     .send(callback);
