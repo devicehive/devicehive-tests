@@ -381,10 +381,10 @@ describe('REST API User', function () {
 
 
             it('should fail with 401 when creating user with no auth parameters', function (done) {
-              req.create(path.current)
-                  .params({jwt: null, data: {login: 'not-authorized'}})
-                  .expectError(status.NOT_AUTHORIZED)
-                  .send(done);
+                req.create(path.current)
+                    .params({jwt: null, data: {login: 'not-authorized'}})
+                    .expectError(status.NOT_AUTHORIZED)
+                    .send(done);
             });
 
             it('should fail with 401 when updating user with no auth parameters', function (done) {
