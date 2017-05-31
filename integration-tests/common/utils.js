@@ -363,6 +363,24 @@ var utils = {
         });
     },
 
+    createReviewedIntroUser: function (login, password, role, status, callback) {
+
+        var params = {
+            jwt: this.jwt.admin,
+            data: {
+                login: login,
+                password: password,
+                role: role,
+                status: status,
+                introReviewed: true
+            }
+        };
+
+        this.create(path.USER, params, function (err, result) {
+            callback(err, result)
+        });
+    },
+
     getName: function ($for) {
         return [this.NAME_PREFIX, $for, '-', (Date.now())].join('');
     },
