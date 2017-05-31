@@ -113,16 +113,39 @@ describe('REST API User', function () {
     describe('#Create', function () {
 
         var user = null;
+        var reviewedIntroUser = {
+            login: utils.getName('intro-usr'),
+            password: utils.NEW_USER_PASSWORD
+        };
 
         before(function (done) {
-            utils.createUser2(0, void 0, function (err, result) {
-                if (err) {
-                    return done(err);
-                }
+            function createUser(callback) {
+                utils.createUser2(0, void 0, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
 
-                user = result.user;
-                done();
-            })
+                    user = result.user;
+                    callback();
+                })
+            }
+
+            function createReviewedIntroUser(callback) {
+                utils.createReviewedIntroUser(reviewedIntroUser.login, reviewedIntroUser.password, 0, 0,
+                    function (err, result) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        reviewedIntroUser.id = result.id;
+                        callback();
+                    })
+            }
+
+            async.series([
+                createUser,
+                createReviewedIntroUser
+            ], done);
         });
 
         it('should get user by id using admin', function (done) {
@@ -133,7 +156,22 @@ describe('REST API User', function () {
                     login: user.login,
                     role: 0,
                     status: 0,
-                    lastLogin: null
+                    lastLogin: null,
+                    introReviewed: false
+                })
+                .send(done);
+        });
+
+        it('should get user with reviewed intro by id using admin', function (done) {
+            req.get(path.current)
+                .params({jwt: utils.jwt.admin, id: reviewedIntroUser.id})
+                .expect({
+                    id: reviewedIntroUser.id,
+                    login: reviewedIntroUser.login,
+                    role: 0,
+                    status: 0,
+                    lastLogin: null,
+                    introReviewed: true
                 })
                 .send(done);
         });
@@ -270,7 +308,29 @@ describe('REST API User', function () {
                             login: user.login,
                             role: 0,
                             status: 1,
-                            lastLogin: null
+                            lastLogin: null,
+                            introReviewed: false
+                        })
+                        .send(done);
+                });
+        });
+
+        it('should update user introReviewed field', function (done) {
+            req.update(path.current)
+                .params({jwt: utils.jwt.admin, id: user.id, data: {introReviewed: true}})
+                .send(function (err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    req.get(path.current)
+                        .params({jwt: utils.jwt.admin, id: user.id})
+                        .expect({
+                            id: user.id,
+                            login: user.login,
+                            role: 0,
+                            status: 1,
+                            introReviewed: true
                         })
                         .send(done);
                 });
