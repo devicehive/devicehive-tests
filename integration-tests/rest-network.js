@@ -10,7 +10,6 @@ describe('REST API Network', function () {
 
     var NETWORK_1 = utils.getName('network-1');
     var NETWORK_2 = utils.getName('network-2');
-    var NETWORK_KEY = utils.getName('network-key');
     var networkId1 = null;
     var networkId2 = null;
     var user = null;
@@ -22,7 +21,7 @@ describe('REST API Network', function () {
         function createNetwork1(callback) {
             var params = {
                 jwt: utils.jwt.admin,
-                data: { name: NETWORK_1, key: NETWORK_KEY }
+                data: { name: NETWORK_1 }
             };
 
             utils.create(path.NETWORK, params, function (err, result) {
@@ -38,7 +37,7 @@ describe('REST API Network', function () {
         function createNetwork2(callback) {
             var params = {
                 jwt: utils.jwt.admin,
-                data: { name: NETWORK_2, key: NETWORK_KEY }
+                data: { name: NETWORK_2 }
             };
 
             utils.create(path.NETWORK, params, function (err, result) {
@@ -152,14 +151,14 @@ describe('REST API Network', function () {
             req.get(path.current)
                 .params({jwt: utils.jwt.admin})
                 .query('name', NETWORK_1)
-                .expect([{id: networkId1, name: NETWORK_1, key: NETWORK_KEY}])
+                .expect([{id: networkId1, name: NETWORK_1}])
                 .send(done);
         });
 
         it('should get all networks', function (done) {
             req.get(path.current)
                 .params({jwt: jwt1})
-                .expect([{id: networkId1, name: NETWORK_1, key: NETWORK_KEY}])
+                .expect([{id: networkId1, name: NETWORK_1}])
                 .send(done);
         });
 
@@ -184,7 +183,7 @@ describe('REST API Network', function () {
         it('should get network', function (done) {
             req.get(path.current)
                 .params({jwt: jwt3})
-                .expect([{id: networkId1, name: NETWORK_1, key: NETWORK_KEY}])
+                .expect([{id: networkId1, name: NETWORK_1}])
                 .send(done);
         });
     });
@@ -260,7 +259,7 @@ describe('REST API Network', function () {
         it('should succeed when getting network using valid jwt', function (done) {
             req.get(path.current)
                 .params({jwt: jwt4, id: networkId1})
-                .expect({id: networkId1, name: NETWORK_1, key: NETWORK_KEY})
+                .expect({id: networkId1, name: NETWORK_1})
                 .send(done);
         });
     });
@@ -268,7 +267,7 @@ describe('REST API Network', function () {
     describe('#Create', function () {
 
         it('should create network using admin jwt', function (done) {
-            var network = {name: utils.getName('network-3'), key: NETWORK_KEY};
+            var network = {name: utils.getName('network-3')};
 
             req.create(path.current)
                 .params({jwt: utils.jwt.admin, data: network})
@@ -404,7 +403,7 @@ describe('REST API Network', function () {
             req.create(path.current)
                 .params({
                     jwt: utils.jwt.admin,
-                    data: { name: utils.getName('network-4'), key: NETWORK_KEY }
+                    data: { name: utils.getName('network-4')}
                 })
                 .send(function (err, result) {
                     if (err) {
@@ -419,7 +418,6 @@ describe('REST API Network', function () {
         it('should update with admin jwt', function (done) {
             var update = {
                 name:utils.getName('network-4-update'),
-                key: NETWORK_KEY,
                 description: 'lorem ipsum dolor sit amet'
             };
             req.update(path.current)
@@ -451,7 +449,6 @@ describe('REST API Network', function () {
                         .params({jwt: utils.jwt.admin, id: networkId1})
                         .expect({
                             name: NETWORK_1,
-                            key: NETWORK_KEY,
                             description: 'lorem ipsum dolor sit amet'
                         })
                         .send(done);
