@@ -11,6 +11,7 @@ describe('REST API Device Unit', function () {
     var helper = utils.device;
 
     var NETWORK = utils.getName('network-device');
+    var NETWORK2 = utils.getName('network-device2');
     var OTHER_NETWORK = utils.getName('other-network');
     var DEVICE = utils.getName('device');
     var DEVICE_GUID = utils.getName('guid-111');
@@ -18,6 +19,7 @@ describe('REST API Device Unit', function () {
 
     var adminNetworkId = null;
     var networkId = null;
+    var networkId2 = null;
     var otherNetworkId = null;
     var user = null;
     var otherNetworkUser = null;
@@ -41,6 +43,24 @@ describe('REST API Device Unit', function () {
                 }
 
                 networkId = result.id;
+                callback();
+            });
+        }
+
+        function createNetwork2(callback) {
+            var params = {
+                jwt: utils.jwt.admin,
+                data: {
+                    name: NETWORK2
+                }
+            };
+
+            utils.create(path.NETWORK, params, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                networkId2 = result.id;
                 callback();
             });
         }
@@ -100,6 +120,20 @@ describe('REST API Device Unit', function () {
             });
         }
 
+        function createUserNetwork2(callback) {
+            var params = {
+                jwt: utils.jwt.admin
+            };
+
+            utils.update(path.USER + "/" + user.id + path.NETWORK + "/" + networkId2, params, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                callback();
+            });
+        }
+
         function createNonNetworkUser(callback) {
             utils.createUser2(1, null, function (err, result) {
                 if (err) {
@@ -135,10 +169,12 @@ describe('REST API Device Unit', function () {
 
         async.series([
             createNetwork,
+            createNetwork2,
             createOtherNetwork,
             createNetworkForAdmin,
             createDevice,
             createUser,
+            createUserNetwork2,
             createNonNetworkUser,
             createOtherNetworkUser,
             createAdminWithNetwork
@@ -447,6 +483,54 @@ describe('REST API Device Unit', function () {
                 done();
             });
         });
+    });
+
+    describe('#Create', function () {
+
+        var NEW_DEVICE = utils.getName('new-device');
+        var NEW_DEVICE_GUID = utils.getName('guid-222');
+        var jwt = null;
+
+        before(function (done) {
+        	function createJWT(callback) {
+        		utils.jwt.create(user.id, '*', networkId, NEW_DEVICE_GUID, function (err, result) {
+        			if (err) {
+        				return callback(err);
+        			}
+        			jwt = result.accessToken;
+        			callback()
+        		})
+        	}
+
+            function createDevice(callback) {
+                var params = helper.getParamsObj(NEW_DEVICE, jwt, null, {name: DEVICE});
+                params.id = NEW_DEVICE_GUID;
+                utils.update(path.current, params, function (err) {
+                    callback(err);
+                });
+            }
+
+            async.series([
+            	createJWT,
+                createDevice
+            ], done);
+        });
+
+        it('should return newly created device with the default network ID', function (done) {
+            var params = {jwt: utils.jwt.admin};
+            params.id = NEW_DEVICE_GUID;
+            utils.get(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                utils.matches(result, {
+                    id: NEW_DEVICE_GUID,
+                    name: NEW_DEVICE,
+                    networkId: networkId
+                });
+
+                done();
+            });
+        });
+
     });
 
     describe('#Create Client', function () {
@@ -890,7 +974,7 @@ describe('REST API Device Unit', function () {
         });
 
         it('should fail with 400 when trying to create device with badly formed request #2', function (done) {
-            var params = helper.getParamsObj(utils.getName('bad-request'), utils.jwt.admin);
+            var params = helper.getParamsObj(utils.getName('bad-request'), utils.jwt.admin, 'invalid');
             params.id = NEW_DEVICE_GUID;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');

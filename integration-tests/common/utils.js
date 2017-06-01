@@ -1,6 +1,6 @@
 var async = require('async');
 var assert = require('assert');
-var base64 = require('base64-min');
+var jwt_decode = require('jwt-decode');
 var path = require('./path');
 var Http = require('./http').Http;
 var status = require('./http').status;
@@ -227,7 +227,7 @@ var utils = {
                 jwt: jwt,
                 data: {
                     name: name,
-                    networkId: 'invalid'
+                    networkId: null
                 }
             };
 
@@ -614,10 +614,7 @@ var utils = {
     },
 
     parseJwt: function (token) {
-        var base64Url = token.split('.')[1];
-        base64Url = base64Url.replace('-', '+').replace('_', '/');
-        var decodedStr = base64.decode(base64Url).replace(/\?$/, '');
-        return JSON.parse(decodedStr);
+        return jwt_decode(token);
     }
 };
 
