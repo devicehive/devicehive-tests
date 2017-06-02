@@ -162,6 +162,44 @@ describe('REST API User', function () {
                 .send(done);
         });
 
+        it('should not create user with invalid login', function (done) {
+            var userWithInvalidLogin = {
+                "login": "a",
+                "role": 0,
+                "status": 0,
+                "password": "string",
+                "oldPassword": "string",
+                "data": {
+                    "jsonString": "string"
+                },
+                "introReviewed": false
+            };
+
+            req.create(path.current)
+                .params({jwt: utils.jwt.admin, data: userWithInvalidLogin})
+                .expectError(status.BAD_REQUEST, 'Field cannot be empty. The length of login should be from 3 to 128 symbols.')
+                .send(done);
+        });
+
+        it('should not create user with invalid password', function (done) {
+            var userWithInvalidLogin = {
+                "login": "aaa",
+                "role": 0,
+                "status": 0,
+                "password": "strin",
+                "oldPassword": "strin",
+                "data": {
+                    "jsonString": "string"
+                },
+                "introReviewed": false
+            };
+
+            req.create(path.current)
+                .params({jwt: utils.jwt.admin, data: userWithInvalidLogin})
+                .expectError(status.BAD_REQUEST, 'Password can contain only from 6 to 128 symbols!')
+                .send(done);
+        });
+
         it('should get user with reviewed intro by id using admin', function (done) {
             req.get(path.current)
                 .params({jwt: utils.jwt.admin, id: reviewedIntroUser.id})
