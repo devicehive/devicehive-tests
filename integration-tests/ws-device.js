@@ -70,6 +70,7 @@ describe('WebSocket API Device Unit', function () {
                     actions: [
                         'CreateDeviceNotification',
                         'GetDeviceNotification',
+                        'GetDevice',
                         'ManageNetwork'
                     ],
                     deviceIds: deviceId,
