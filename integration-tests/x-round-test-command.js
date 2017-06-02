@@ -200,7 +200,7 @@ describe('Round tests for command', function () {
                 clientConn.params({
                         action: 'command/insert',
                         requestId: getRequestId(),
-                        deviceGuid: deviceId,
+                        deviceId: deviceId,
                         command: command
                     })
                     .send();
@@ -224,7 +224,7 @@ describe('Round tests for command', function () {
                 deviceConn.params({
                         action: 'command/update',
                         requestId: getRequestId(),
-                        deviceGuid: deviceId,
+                        deviceId: deviceId,
                         commandId: cmnd.command.id,
                         command: update
                     })
@@ -310,7 +310,7 @@ describe('Round tests for command', function () {
                     deviceConn.params({
                             action: 'command/update',
                             requestId: getRequestId(),
-                            deviceGuid: deviceId,
+                            deviceId: deviceId,
                             commandId: cmnd.command.id,
                             command: update
                         })
@@ -369,7 +369,7 @@ describe('Round tests for command', function () {
                     clientConn.params({
                             action: 'command/insert',
                             requestId: getRequestId(),
-                            deviceGuid: deviceId,
+                            deviceId: deviceId,
                             command: command
                         })
                         .send();

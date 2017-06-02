@@ -13,16 +13,16 @@ var path = {
     DEVICE: '/device',
     CONFIGURATION: '/configuration',
     NOTIFICATION: {
-        get: function (deviceGuid) {
-            return path.combine(path.DEVICE, deviceGuid, 'notification');
+        get: function (deviceId) {
+            return path.combine(path.DEVICE, deviceId, 'notification');
         },
         poll: function () {
             return path.combine(path.DEVICE, 'notification', path.POLL);
         }
     },
     COMMAND: {
-        get: function (deviceGuid) {
-            return path.combine(path.DEVICE, deviceGuid, 'command');
+        get: function (deviceId) {
+            return path.combine(path.DEVICE, deviceId, 'command');
         },
         poll: function () {
             return path.combine(path.DEVICE, 'command', path.POLL);

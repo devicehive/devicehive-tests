@@ -174,7 +174,7 @@ describe('WebSocket API Client Command', function () {
             client.params({
                     action: 'command/insert',
                     requestId: requestId,
-                    deviceGuid: deviceId,
+                    deviceId: deviceId,
                     command: command
                 })
                 .expect({
@@ -209,7 +209,7 @@ describe('WebSocket API Client Command', function () {
             clientInvalidToken.params({
                     action: 'command/insert',
                     requestId: getRequestId(),
-                    deviceGuid: deviceId,
+                    deviceId: deviceId,
                     command: command
                 })
                 .expectError(401, 'Unauthorized')
@@ -228,7 +228,7 @@ describe('WebSocket API Client Command', function () {
                 clientParams = client.params({
                     action: 'command/subscribe',
                     requestId: requestId,
-                    deviceGuids: [deviceId],
+                    deviceIds: [deviceId],
                     names: [COMMAND],
                     timestamp: ts
                 });
@@ -236,7 +236,7 @@ describe('WebSocket API Client Command', function () {
                 clientParams = client.params({
                     action: 'command/subscribe',
                     requestId: requestId,
-                    deviceGuids: [deviceId],
+                    deviceIds: [deviceId],
                     names: [COMMAND]
                 });
             }
@@ -259,7 +259,7 @@ describe('WebSocket API Client Command', function () {
                 client.waitFor('command/insert', cleanUp)
                     .expect({
                         action: 'command/insert',
-                        deviceGuid: deviceId,
+                        deviceId: deviceId,
                         command: { command: COMMAND },
                         subscriptionId: subscriptionId
                     });
@@ -301,7 +301,7 @@ describe('WebSocket API Client Command', function () {
             client.params({
                     action: 'command/subscribe',
                     requestId: getRequestId(),
-                    deviceGuids: [deviceId],
+                    deviceIds: [deviceId],
                     names: [COMMAND]
                 })
                 .send(onSubscribed);
@@ -367,7 +367,7 @@ describe('WebSocket API Client Command', function () {
             client.params({
                     action: 'command/insert',
                     requestId: getRequestId(),
-                    deviceGuid: deviceId,
+                    deviceId: deviceId,
                     command: {
                         command: COMMAND,
                         lifetime: 500,
@@ -386,7 +386,7 @@ describe('WebSocket API Client Command', function () {
                 client.params({
                         action: 'command/update',
                         requestId: requestId,
-                        deviceGuid: deviceId,
+                        deviceId: deviceId,
                         commandId: commandId,
                         command: update
                     })
@@ -432,7 +432,7 @@ describe('WebSocket API Client Command', function () {
             client.params({
                     action: 'command/subscribe',
                     requestId: getRequestId(),
-                    deviceGuids: [deviceId],
+                    deviceIds: [deviceId],
                     names: [COMMAND]
                 })
                 .send(onSubscribed);
@@ -446,7 +446,7 @@ describe('WebSocket API Client Command', function () {
                 client.waitFor('command/insert', cleanUp)
                     .expect({
                         action: 'command/insert',
-                        deviceGuid: deviceId,
+                        deviceId: deviceId,
                         command: command,
                         subscriptionId: subscriptionId
                     });
@@ -524,7 +524,7 @@ describe('WebSocket API Client Command', function () {
             client.params({
                     action: 'command/insert',
                     requestId: getRequestId(),
-                    deviceGuid: deviceId,
+                    deviceId: deviceId,
                     command: {
                         command: COMMAND,
                         lifetime: 500,
@@ -543,7 +543,7 @@ describe('WebSocket API Client Command', function () {
                 client.params({
                         action: 'command/update',
                         requestId: requestId,
-                        deviceGuid: deviceId,
+                        deviceId: deviceId,
                         commandId: commandId,
                         command: update
                     })

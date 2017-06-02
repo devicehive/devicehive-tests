@@ -36,10 +36,10 @@ var utils = {
     loggingOff: false,
 
     jwt: {
-        admin: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VHdWlkcyI6WyIqIl0sImV4cGlyYXRpb24iOjE1MDk3MDc2Njg3MzAsInRva2VuVHlwZSI6IkFDQ0VTUyJ9fQ.J1sd66JL5jLwW_NKHX6d5LClHMuc4mlr77htGrsAZFo',
-        admin_refresh: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VHdWlkcyI6WyIqIl0sImV4cGlyYXRpb24iOjE1MDk3MDc2Njg3NDEsInRva2VuVHlwZSI6IlJFRlJFU0gifX0.lP5AznI2aSi8QmwId4mOBotn6kOaQSzXA8mOGXWlMLw',
-        admin_refresh_exp: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6IDEsICJhY3Rpb25zIjogWyIqIl0sICJuZXR3b3JrSWRzIjogWyIqIl0sICJkZXZpY2VHdWlkcyI6IFsiKiJdLCAiZXhwaXJhdGlvbiI6IDE0Nzg1OTU3MzI4MTksICJ0b2tlblR5cGUiOiAiUkVGUkVTSCJ9fQ.LolmhB5Ca8ejwiRjFnsgYmUwT1Du-t4E1icS5VLXHic',
-        admin_refresh_invalid: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6IDEsICJhY3Rpb25zIjogWyIqIl0sICJuZXR3b3JrSWRzIjogWyIqIl0sICJkZXZpY2VHdWlkcyI6IFsiKiJdLCAiZXhwaXJhdGlvbiI6IDE0OTM4MTk1NjI5NjMsICJ0b2tlblR5cGUiOiAiQUNDRVNTIn19.JRbvZrImGADruDEWRbgHbUt1BAgYmekdiNgTo-YJwBo',
+        admin: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTU5MzQ3MjAwMDAwLCJ0b2tlblR5cGUiOiJBQ0NFU1MifX0.0WFWniapCEMcUriveLfvRG3wNQvC4IcEMcYYacrFXlU',
+        admin_refresh: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTU5MzQ3MjAwMDAwLCJ0b2tlblR5cGUiOiJSRUZSRVNIIn19.kCFPLoGGoCyaHqS3Vv5tjK_d2xQcPKTsM2z4PjPP64Q',
+        admin_refresh_exp: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNDY0NzkzMjkwNTY0LCJ0b2tlblR5cGUiOiJSRUZSRVNIIn19.x_qb6Dy5zKmaD8IZ2E9fXCM894gcZ-Qj2L8CcCxruD8',
+        admin_refresh_invalid: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTE0NzY0ODAwMDAwLCJ0b2tlblR5cGUiOiJBQ0NFU1MifX0.OhEltY7vNKZMo-JLPb9MxB3LUwbXrP_Arhajp_pYSc0',
         createMany: function (params, done) {
             var paramsCopy = params.slice(0);
             function createJWT(callback) {
@@ -101,7 +101,7 @@ var utils = {
             var expDate = new Date();
             expDate.setFullYear(expDate.getFullYear() + 10);
 
-            utils.create(path.JWT + '/create', {jwt: utils.jwt.admin, data: {userId: userId, actions: actions, networkIds: networkIds, deviceGuids: deviceIds, expiration: expDate }}, callback);
+            utils.create(path.JWT + '/create', {jwt: utils.jwt.admin, data: {userId: userId, actions: actions, networkIds: networkIds, deviceIds: deviceIds, expiration: expDate }}, callback);
         }
     },
 
@@ -159,7 +159,7 @@ var utils = {
             utils.create(path.CURRENT_ACCESS_KEY, params, callback);
         },
 
-        getParams: function (label, user, expDate, domains, networkIds, actions, deviceGuids, subnets) {
+        getParams: function (label, user, expDate, domains, networkIds, actions, deviceIds, subnets) {
 
             expDate || (expDate = new Date());
             expDate.setFullYear(expDate.getFullYear() + 10);
@@ -168,11 +168,11 @@ var utils = {
                 domains || ['www.example.com'],
                 networkIds || [1, 2],
                 actions || ['GetNetwork', 'GetDevice'],
-                deviceGuids || ['11111111-2222-3333-4444-555555555555'],
+                deviceIds || ['11111111-2222-3333-4444-555555555555'],
                 subnets || ['127.0.0.1']);
         },
 
-        getParamsObj: function (label, user, expDate, domains, networkIds, actions, deviceGuids, subnets) {
+        getParamsObj: function (label, user, expDate, domains, networkIds, actions, deviceIds, subnets) {
 
             var permission = {};
 
@@ -188,8 +188,8 @@ var utils = {
                 permission.actions = actions;
             }
 
-            if (deviceGuids) {
-                permission.deviceGuids = deviceGuids;
+            if (deviceIds) {
+                permission.deviceIds = deviceIds;
             }
 
             if (subnets) {

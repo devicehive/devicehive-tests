@@ -117,9 +117,9 @@ describe('Round tests for notification', function () {
                     'CreateDeviceNotification'
                 ],
                 networkIds: networkId,
-                deviceGuids: deviceId
+                deviceIds: deviceId
             };
-            utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceGuids,
+            utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceIds,
                 function (err, result) {
                     if (err) {
                         return callback(err);
@@ -181,7 +181,7 @@ describe('Round tests for notification', function () {
             clientConn.params({
                     action: 'notification/subscribe',
                     requestId: getRequestId(),
-                    deviceGuids: [deviceId],
+                    deviceIds: [deviceId],
                     names: [NOTIFICATION]
                 })
                 .send(function (err, result) {
@@ -248,7 +248,7 @@ describe('Round tests for notification', function () {
         function runTest(notification, done) {
 
             var expectedNotif = utils.core.clone(notification);
-            expectedNotif.deviceGuid = deviceId;
+            expectedNotif.deviceId = deviceId;
 
             req.get($path)
                 .params({jwt: jwt})
@@ -284,7 +284,7 @@ describe('Round tests for notification', function () {
             clientConn.params({
                     action: 'notification/subscribe',
                     requestId: getRequestId(),
-                    deviceGuids: [deviceId],
+                    deviceIds: [deviceId],
                     names: [NOTIFICATION]
                 })
                 .send(function (err, result) {
@@ -355,7 +355,7 @@ describe('Round tests for notification', function () {
         function runTest(notification, done) {
 
             var expectedNotif = utils.core.clone(notification);
-            expectedNotif.deviceGuid = deviceId;
+            expectedNotif.deviceId = deviceId;
 
             req.get(clientPath)
                 .params(utils.core.clone(clientAuth))

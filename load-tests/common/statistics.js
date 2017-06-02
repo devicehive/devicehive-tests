@@ -29,13 +29,13 @@ Statistics.prototype = {
         this.sum += value;
     },
 
-    addSubscribed: function (name, guids) {
+    addSubscribed: function (name, deviceIds) {
 
         var self = this;
-        guids || ((guids = ['all']) && (this.all = true));
+        deviceIds || ((deviceIds = ['all']) && (this.all = true));
 
-        guids.forEach(function (guid) {
-            var key = [name, '-', guid].join('');
+        deviceIds.forEach(function (deviceIds) {
+            var key = [name, '-', deviceIds].join('');
             var subscribedExpected = self.subscribedExpected[key];
             if (!subscribedExpected) {
                 subscribedExpected = self.subscribedExpected[key] = {
@@ -48,9 +48,9 @@ Statistics.prototype = {
         });
     },
 
-    addExpected: function (name, guid) {
-        guid = this.all ? 'all' : guid;
-        name = [name, '-', guid].join('');
+    addExpected: function (name, deviceId) {
+        deviceId = this.all ? 'all' : deviceId;
+        name = [name, '-', deviceId].join('');
         var subscribedExpected = this.subscribedExpected[name];
 
         if (!subscribedExpected) {

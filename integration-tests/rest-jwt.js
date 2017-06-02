@@ -89,7 +89,7 @@ describe('REST API JSON Web Tokens', function () {
                 
                 jwtTokenVO.payload.actions.should.containEql('*');
                 jwtTokenVO.payload.networkIds.should.containEql('*');
-                jwtTokenVO.payload.deviceGuids.should.containEql('*');
+                jwtTokenVO.payload.deviceIds.should.containEql('*');
 
                 done();
             });
@@ -109,7 +109,7 @@ describe('REST API JSON Web Tokens', function () {
                 var jwtTokenVO = utils.parseJwt(result.accessToken);
                 
                 if (jwtTokenVO.payload.networkIds.length > 0) {
-                	jwtTokenVO.payload.deviceGuids.should.containEql('*');
+                	jwtTokenVO.payload.deviceIds.should.containEql('*');
                 }
 
                 done();
@@ -160,7 +160,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceGuids: ['*']
+                    deviceIds: ['*']
                 }
             }, function (err, result) {
                 if (err) {
@@ -180,7 +180,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceGuids: ['*'],
+                    deviceIds: ['*'],
                     expiration: "2018-01-01T00:00:00.000Z"
                 }
             }, function (err, result) {
@@ -188,9 +188,9 @@ describe('REST API JSON Web Tokens', function () {
                     return done(err);
                 }
 
-                assert.strictEqual(result.accessToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VHdWlkcyI6WyIqIl0sImV4cGlyYXRpb24iOjE1MTQ3NjQ4MDAwMDAsInRva2VuVHlwZSI6IkFDQ0VTUyJ9fQ'),
+                assert.strictEqual(result.accessToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTE0NzY0ODAwMDAwLCJ0b2tlblR5cGUiOiJBQ0NFU1MifX0'),
                     true);
-                assert.strictEqual(result.refreshToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VHdWlkcyI6WyIqIl0sImV4cGlyYXRpb24iOjE1MTQ3NjQ4MDAwMDAsInRva2VuVHlwZSI6IlJFRlJFU0gifX0'),
+                assert.strictEqual(result.refreshToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTE0NzY0ODAwMDAwLCJ0b2tlblR5cGUiOiJSRUZSRVNIIn19'),
                     true);
 
                 done();
@@ -203,7 +203,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceGuids: ['*']
+                    deviceIds: ['*']
                 }
             }, function (err) {
                 assert.strictEqual(err.error, 'Unauthorized');
@@ -218,7 +218,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceGuids: ['*']
+                    deviceIds: ['*']
                 }
             }, function (err, result) {
                 if (err) {
@@ -238,7 +238,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceGuids: ['*']
+                    deviceIds: ['*']
                 }
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -254,7 +254,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: 9999999999999,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceGuids: ['*']
+                    deviceIds: ['*']
                 }
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');

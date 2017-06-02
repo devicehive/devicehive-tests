@@ -187,7 +187,7 @@ describe('WebSocket API Device Command', function () {
 
             device.params({
                 action: 'command/subscribe',
-                deviceGuids: [deviceId],
+                deviceIds: [deviceId],
                 requestId: requestId
             })
                 .expect({
@@ -205,7 +205,7 @@ describe('WebSocket API Device Command', function () {
                 device.waitFor('command/insert', cleanUp)
                     .expect({
                         action: 'command/insert',
-                        deviceGuid: deviceId,
+                        deviceId: deviceId,
                         command: { command: COMMAND }
                     });
 
@@ -314,7 +314,7 @@ describe('WebSocket API Device Command', function () {
                     user: utils.admin,
                     action: 'command/update',
                     requestId: requestId,
-                    deviceGuid: deviceId,
+                    deviceId: deviceId,
                     commandId: commandId,
                     command: update
                 })
@@ -352,7 +352,7 @@ describe('WebSocket API Device Command', function () {
                 device.waitFor('command/insert', cleanUp)
                     .expect({
                         action: 'command/insert',
-                        deviceGuid: deviceId,
+                        deviceId: deviceId,
                         command: command
                     });
 

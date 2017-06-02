@@ -297,7 +297,7 @@ describe('REST API Network', function () {
     describe('#Create Devices', function () {
 
         var DEVICE = utils.getName('network-device');
-        var DEVICE_GUID = utils.getName('network-guid');
+        var DEVICE_ID = utils.getName('network-id');
 
         var jwt1 = null;
         var jwt2 = null;
@@ -340,7 +340,7 @@ describe('REST API Network', function () {
             }
 
             function createDevice(callback) {
-                req.update(path.get(path.DEVICE, DEVICE_GUID))
+                req.update(path.get(path.DEVICE, DEVICE_ID))
                     .params(utils.device.getParamsObj(DEVICE, utils.jwt.admin,
                         networkId1, {name: DEVICE, version: '1'}))
                     .send(function (err) {
@@ -364,7 +364,7 @@ describe('REST API Network', function () {
                     name: NETWORK_1,
                     description: null,
                     devices: [{
-                        id: DEVICE_GUID,
+                        id: DEVICE_ID,
                         name: DEVICE
                     }]
                 })

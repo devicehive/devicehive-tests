@@ -178,7 +178,7 @@ describe('WebSocket API Client Notification', function () {
             client.params({
                     action: 'notification/insert',
                     requestId: requestId,
-                    deviceGuid: deviceId,
+                    deviceId: deviceId,
                     notification: notification
                 })
                 .expect({
@@ -213,7 +213,7 @@ describe('WebSocket API Client Notification', function () {
             clientInvalidToken.params({
                     action: 'notification/insert',
                     requestId: getRequestId(),
-                    deviceGuid: deviceId,
+                    deviceId: deviceId,
                     notification: notification
                 })
                 .expectError(401, 'Unauthorized')
@@ -229,7 +229,7 @@ describe('WebSocket API Client Notification', function () {
             client.params({
                     action: 'notification/subscribe',
                     requestId: requestId,
-                    deviceGuids: [deviceId],
+                    deviceIds: [deviceId],
                     names: [NOTIFICATION]
                 })
                 .expect({
@@ -251,7 +251,7 @@ describe('WebSocket API Client Notification', function () {
                 client.waitFor('notification/insert', cleanUp)
                     .expect({
                         action: 'notification/insert',
-                        deviceGuid: deviceId,
+                        deviceId: deviceId,
                         notification: { notification: NOTIFICATION },
                         subscriptionId: subscriptionId
                     });
@@ -290,7 +290,7 @@ describe('WebSocket API Client Notification', function () {
             client.params({
                     action: 'notification/subscribe',
                     requestId: getRequestId(),
-                    deviceGuids: [deviceId],
+                    deviceIds: [deviceId],
                     names: [NOTIFICATION]
                 })
                 .send(onSubscribed);
@@ -353,7 +353,7 @@ describe('WebSocket API Client Notification', function () {
             client.params({
                     action: 'notification/subscribe',
                     requestId: getRequestId(),
-                    deviceGuids: [deviceId],
+                    deviceIds: [deviceId],
                     names: [NOTIFICATION]
                 })
                 .send(onSubscribed);
@@ -367,7 +367,7 @@ describe('WebSocket API Client Notification', function () {
                 client.waitFor('notification/insert', cleanUp)
                     .expect({
                         action: 'notification/insert',
-                        deviceGuid: deviceId,
+                        deviceId: deviceId,
                         notification: notification,
                         subscriptionId: subscriptionId
                     });

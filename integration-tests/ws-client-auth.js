@@ -68,9 +68,9 @@ describe('WebSocket API Client Authentication', function () {
                     'UpdateDeviceCommand'
                 ],
                 networkIds: networkId,
-                deviceGuid: void 0
+                deviceId: void 0
             };
-            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceGuid, function (err, result) {
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceId, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
