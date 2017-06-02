@@ -80,7 +80,6 @@ describe('REST API Configuration', function () {
         });
     });
 
-    // Some of tests could be pending due to allowing anonymous user creation in java-server configuration
     describe('#Unauthorized', function () {
         var propertyId = 'jwt.secret';
         var nonPropertyId = 'jwt.not-a-secret';
@@ -125,14 +124,14 @@ describe('REST API Configuration', function () {
     describe('#Not Found', function () {
         var nonPropertyId = 'jwt.not-a-secret';
 
-        it('should fail with 404 when selecting user by non-existing id', function (done) {
+        it('should fail with 404 when selecting configuration by non-existing id', function (done) {
             req.get(path.current)
                 .params({jwt: utils.jwt.admin, id: nonPropertyId})
                 .expectError(status.NOT_FOUND)
                 .send(done);
         });
 
-        it('should succeed when deleting user by non-existing id', function (done) {
+        it('should succeed when deleting configuration by non-existing id', function (done) {
             req.delete(path.current)
                 .params({jwt: utils.jwt.admin, id: nonPropertyId})
                 .send(done);
