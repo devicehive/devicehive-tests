@@ -173,7 +173,7 @@ describe('REST API User', function () {
                     "jsonString": "string"
                 },
                 "introReviewed": false
-            }
+            };
 
             req.create(path.current)
                 .params({jwt: utils.jwt.admin, data: userWithInvalidLogin})
@@ -192,7 +192,7 @@ describe('REST API User', function () {
                     "jsonString": "string"
                 },
                 "introReviewed": false
-            }
+            };
 
             req.create(path.current)
                 .params({jwt: utils.jwt.admin, data: userWithInvalidLogin})
