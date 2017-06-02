@@ -12,7 +12,7 @@ function Command(config) {
     this.commandsPerClient = config.commandsPerClient || 1;
     this.intervalMillis = config.intervalMillis || 1000;
     this.sendToAllDevices = config.sendToAllDevices;
-    this.deviceGuids = config.deviceGuids || [];
+    this.deviceIds = config.deviceIds || [];
     this.commands = config.commands;
     this.parameters = config.parameters || {};
     this.waitDelay = config.waitDelay || 5000;
@@ -40,8 +40,8 @@ Command.prototype = {
         this.ondone = callback;
         this.statistics = new Statistics();
 
-        this.devicesCount = Array.isArray(this.deviceGuids) ?
-            this.deviceGuids.length : this.devicesCount;
+        this.devicesCount = Array.isArray(this.deviceIds) ?
+            this.deviceIds.length : this.devicesCount;
 
         this.total = this.commandsPerClient * this.clientsCount;
 
@@ -52,7 +52,7 @@ Command.prototype = {
         for (var i = 0; i < this.devicesCount; i++) {
             var device = new Sender('device');
             device.props = {
-                deviceGuid: testUtils.getDeviceGuid(this, i)
+                deviceId: testUtils.getDeviceId(this, i)
             };
             device.addErrorCallback(this.onError, this);
             device.addActionCallback('authenticate', this.onDeviceAuthenticate, this);
@@ -78,7 +78,7 @@ Command.prototype = {
         };
 
         if (!this.sendToAllDevices) {
-            data.deviceGuids = [device.props.deviceGuid];
+            data.deviceIds = [device.props.deviceId];
         }
 
         if (this.commands) {
@@ -86,7 +86,7 @@ Command.prototype = {
             var max = device.id % this.commands.length;
             for (var i = 0; i <= max; i++) {
                 var command = this.commands[i];
-                this.statistics.addSubscribed(command, data.deviceGuids);
+                this.statistics.addSubscribed(command, data.deviceIds);
                 data.names.push(command);
             }
         }
@@ -122,8 +122,8 @@ Command.prototype = {
                     requestTime: parameters.requestTime
                 }
             },
-            //deviceId: device.props.deviceGuid, // won't work although it specified in spec...
-            deviceGuid: device.props.deviceGuid,
+            //deviceId: device.props.deviceId, // won't work although it specified in spec...
+            deviceId: device.props.deviceId,
             requestId: utils.getRequestId(),
             action: 'command/update'
         };
@@ -135,7 +135,7 @@ Command.prototype = {
         for (var i = 0; i < this.clientsCount; i++) {
             var client = new Sender('client');
             client.props = {
-                deviceGuids: testUtils.getDeviceGuids(this, client.id)
+                deviceIds: testUtils.getDeviceGuids(this, client.id)
             };
             client.addErrorCallback(this.onError, this);
             client.addActionCallback('authenticate', this.onClientAuthenticate, this);
@@ -170,14 +170,14 @@ Command.prototype = {
         var requestId = utils.getRequestId();
         var time = new Date();
         var command = this.commands[requestId % this.commands.length];
-        var deviceGuid = client.props.deviceGuids[requestId % client.props.deviceGuids.length];
-        this.statistics.addExpected(command, deviceGuid);
+        var deviceId = client.props.deviceIds[requestId % client.props.deviceIds.length];
+        this.statistics.addExpected(command, deviceId);
         var parameters = utils.clone(this.parameters);
         parameters.requestTime = +time;
 
         var cmndData = {
             action: 'command/insert',
-            deviceGuid: deviceGuid,
+            deviceId: deviceId,
             command: {
                 command: command,
                 parameters: parameters

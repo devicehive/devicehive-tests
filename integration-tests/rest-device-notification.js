@@ -12,7 +12,7 @@ describe('REST API Device Notification', function () {
 
     var NETWORK = utils.getName('network-device-notif');
     var DEVICE = utils.getName('device-notif');
-    var DEVICE_GUID = utils.getName('guid-notif-12345');
+    var DEVICE_ID = utils.getName('id-notif-12345');
     var NOTIFICATION = utils.getName('notif-1');
     var NOTIFICATION_2 = utils.getName('notif-2');
 
@@ -31,7 +31,7 @@ describe('REST API Device Notification', function () {
     }
 
     before(function (done) {
-        path.current = path.NOTIFICATION.get(DEVICE_GUID);
+        path.current = path.NOTIFICATION.get(DEVICE_ID);
 
         function createNetwork(callback) {
             var params = {
@@ -54,7 +54,7 @@ describe('REST API Device Notification', function () {
         function createDevice(callback) {
             var params = utils.device.getParamsObj(DEVICE, utils.jwt.admin,
                 networkId, {name: DEVICE, version: '1'});
-            params.id = DEVICE_GUID;
+            params.id = DEVICE_ID;
             utils.update(path.DEVICE, params, function (err) {
                 callback(err);
             });
@@ -88,13 +88,13 @@ describe('REST API Device Notification', function () {
                     user: user,
                     actions: ['GetDeviceNotification','CreateDeviceNotification'],
                     networkIds: networkId,
-                    deviceIds: DEVICE_GUID
+                    deviceIds: DEVICE_ID
                 },
                 {
                     user: nonNetworkUser,
                     actions: ['GetDeviceNotification','CreateDeviceNotification'],
                     networkIds: void 0,
-                    deviceIds: DEVICE_GUID
+                    deviceIds: DEVICE_ID
                 }
             ];
 
@@ -123,14 +123,14 @@ describe('REST API Device Notification', function () {
 
         before(function (done) {
             var params = helper.getParamsObj(NOTIFICATION, jwt1);
-            utils.create(path.NOTIFICATION.get(DEVICE_GUID), params, function (err, result) {
+            utils.create(path.NOTIFICATION.get(DEVICE_ID), params, function (err, result) {
                 if (err) {
                     return done(err);
                 }
 
                 notificationId = result.id;
 
-                utils.create(path.NOTIFICATION.get(DEVICE_GUID), params, function (err) {
+                utils.create(path.NOTIFICATION.get(DEVICE_ID), params, function (err) {
                     done(err);
                 });
             });
@@ -246,7 +246,7 @@ describe('REST API Device Notification', function () {
                     user: user,
                     actions: 'GetDeviceNotification',
                     networkIds: networkId,
-                    deviceIds: DEVICE_GUID
+                    deviceIds: DEVICE_ID
                 }
             ];
 
@@ -262,7 +262,7 @@ describe('REST API Device Notification', function () {
 
                 var params = helper.getParamsObj(NOTIFICATION, utils.jwt.admin);
 
-                utils.create(path.NOTIFICATION.get(DEVICE_GUID), params, function (err, result) {
+                utils.create(path.NOTIFICATION.get(DEVICE_ID), params, function (err, result) {
                     if (err) {
                         return done(err);
                     }
@@ -346,7 +346,7 @@ describe('REST API Device Notification', function () {
         it('should return array with notifications when poll with waitTimeout=3', function (done) {
             var params = {jwt: jwt1};
             var $path = path.combine(path.current, path.POLL);
-            params.query = path.query('waitTimeout', 3, 'deviceGuid', DEVICE);
+            params.query = path.query('waitTimeout', 3, 'deviceId', DEVICE);
             utils.get($path, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.length > 0, true);
@@ -385,14 +385,14 @@ describe('REST API Device Notification', function () {
     });
 
     describe('#Poll Many', function () {
-        it('should return result with deviceGuid', function (done) {
+        it('should return result with deviceId', function (done) {
             var params = {jwt: jwt1};
-            params.query = path.query('names', NOTIFICATION, 'deviceGuids', DEVICE_GUID);
+            params.query = path.query('names', NOTIFICATION, 'deviceIds', DEVICE_ID);
             utils.get(path.NOTIFICATION.poll(), params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
                 assert.strictEqual(result.every(function (item) {
-                    return item.notification === NOTIFICATION && item.deviceGuid === DEVICE_GUID;
+                    return item.notification === NOTIFICATION && item.deviceId === DEVICE_ID;
                 }), true);
                 done();
             });
@@ -413,7 +413,7 @@ describe('REST API Device Notification', function () {
 
         var OTHER_NETWORK = utils.getName('other-network-notif');
         var otherNetworkId = null;
-        var OTHER_DEVICE_GUID = 'other-notif-guid-1234';
+        var OTHER_DEVICE_ID = 'other-notif-id-1234';
 
         before(function (done) {
 
@@ -438,7 +438,7 @@ describe('REST API Device Notification', function () {
             function createDevice(callback) {
                 var params = utils.device.getParamsObj(utils.getName('other-device-notif'), utils.jwt.admin,
                     otherNetworkId, {name: DEVICE, version: '1'});
-                params.id = OTHER_DEVICE_GUID;
+                params.id = OTHER_DEVICE_ID;
                 utils.update(path.DEVICE, params, function (err) {
                     callback(err);
                 });
@@ -456,14 +456,14 @@ describe('REST API Device Notification', function () {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
                 assert.strictEqual(result.every(function (item) {
-                    return item.notification === NOTIFICATION_2 && item.deviceGuid === DEVICE_GUID;
+                    return item.notification === NOTIFICATION_2 && item.deviceId === DEVICE_ID;
                 }), true);
                 done();
             });
 
             setTimeout(function () {
                 var params = helper.getParamsObj(NOTIFICATION_2, utils.jwt.admin);
-                utils.create(path.NOTIFICATION.get(OTHER_DEVICE_GUID), params, function () {});
+                utils.create(path.NOTIFICATION.get(OTHER_DEVICE_ID), params, function () {});
             }, 100);
 
             setTimeout(function () {
@@ -513,7 +513,7 @@ describe('REST API Device Notification', function () {
                     user: user,
                     actions: 'CreateDeviceNotification',
                     networkIds: networkId,
-                    deviceIds: DEVICE_GUID
+                    deviceIds: DEVICE_ID
                 }
             ];
 

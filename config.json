@@ -16,7 +16,7 @@
         "senders": 30,
         "requestsPerSender": 10,
         "intervalMillis": 200,
-        "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
+        "deviceIds": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
         "names": [ "a-first", "a-second" ],
         "requests": [
           {
@@ -40,7 +40,7 @@
         "senders": 30,
         "requestsPerSender": 10,
         "intervalMillis": 200,
-        "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
+        "deviceIds": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
         "names": [ "a-cmd-first", "a-cmd-second" ],
         "requests": [
           {
@@ -63,12 +63,12 @@
         "connections": 20,
         "messagesPerClient": 3,
         "intervalMillis": 100,
-        "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
+        "deviceIds": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
         "names": [ "a-first", "a-second", "a-third", "a-fourth", "a-fifth", "a-sixth" ],
         "messages": [
           {
             "action": "notification/insert",
-            "deviceGuid": "{#deviceGuid}",
+            "deviceId": "{#deviceId}",
             "notification": {
               "notification": "{#name}",
               "parameters": {
@@ -89,12 +89,12 @@
         "messagesPerClient": 5,
         "intervalMillis": 100,
         "devices": 1000000,
-        "deviceGuids": "aaaaaaaa-aaaa-0000-0-000000a{#}",
+        "deviceIds": "aaaaaaaa-aaaa-0000-0-000000a{#}",
         "names": [ "b-first", "b-second", "b-third", "b-fourth", "b-fifth", "b-sixth" ],
         "messages": [
           {
             "action": "notification/insert",
-            "deviceGuid": "{#deviceGuid}",
+            "deviceId": "{#deviceId}",
             "notification": {
               "notification": "{#name}",
               "parameters": {
@@ -114,12 +114,12 @@
         "connections": 20,
         "messagesPerClient": 10,
         "intervalMillis": 100,
-        "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
+        "deviceIds": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
         "names": [ "a-cmd-first", "a-cmd-second", "a-cmd-third", "a-cmd-fourth", "a-cmd-fifth", "a-cmd-sixth" ],
         "messages": [
           {
             "action": "command/insert",
-            "deviceGuid": "{#deviceGuid}",
+            "deviceId": "{#deviceId}",
             "command": {
               "command": "{#name}",
               "parameters": {
@@ -141,7 +141,7 @@
         "notifsPerDevice": 10,
         "intervalMillis": 100,
         "listenAllDevices": false,
-        "deviceGuids": "aaaaaaaa-aaaa-0000-0-000000a{#}",
+        "deviceIds": "aaaaaaaa-aaaa-0000-0-000000a{#}",
         "notifications": [ "a-first", "a-second", "a-third", "a-fourth", "a-fifth", "a-sixth" ],
         "parameters": {
           "t" : "20.0",
@@ -157,7 +157,7 @@
         "notifsPerDevice": 2,
         "intervalMillis": 200,
         "listenAllDevices": true,
-        "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
+        "deviceIds": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
         "notifications": [ "b-first", "b-second", "b-third", "b-fourth", "b-fifth", "b-sixth" ],
         "parameters": {
           "t" : "20.0",
@@ -174,7 +174,7 @@
         "commandsPerClient": 100,
         "intervalMillis": 100,
         "sendToAllDevices": false,
-        "deviceGuids": "aaaaaaaa-aaaa-0000-0-000000a{#}",
+        "deviceIds": "aaaaaaaa-aaaa-0000-0-000000a{#}",
         "commands": [ "a-first", "a-second", "a-third", "a-fourth", "a-fifth", "a-sixth" ],
         "parameters": {
           "t" : "20.0",
@@ -190,7 +190,7 @@
         "commandsPerClient": 2,
         "intervalMillis": 200,
         "sendToAllDevices": false,
-        "deviceGuids": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
+        "deviceIds": [ "e50d6085-2aba-48e9-b1c3-73c673e414be" ],
         "commands": [ "b-cmd-first", "b-cmd-second", "b-cmd-third", "b-cmd-fourth", "b-cmd-fifth", "b-cmd-sixth" ],
         "parameters": {
           "t" : "on",

@@ -40,37 +40,37 @@ module.exports = {
         }
     },
 
-    getDeviceGuid: function (context, index) {
+    getDeviceId: function (context, index) {
         index = index % context.devicesCount;
-        if (Array.isArray(context.deviceGuids)) {
-            return context.deviceGuids[index];
+        if (Array.isArray(context.deviceIds)) {
+            return context.deviceIds[index];
         }
 
         var formattedNumber = ("00000000" + index).slice(-8);
-        return context.deviceGuids.replace('{#}', formattedNumber);
+        return context.deviceIds.replace('{#}', formattedNumber);
     },
 
-    getDeviceGuids: function (context, id) {
+    getDeviceIds: function (context, id) {
         var index = id % context.clientsCount;
         if (context.devicesCount === context.clientsCount) {
 
-            return [this.getDeviceGuid(context, index)];
+            return [this.getDeviceId(context, index)];
 
         }
         if (context.devicesCount < context.clientsCount) {
 
-            return [this.getDeviceGuid(context, index)];
+            return [this.getDeviceId(context, index)];
 
         } else if (context.devicesCount > context.clientsCount) {
 
-            var deviceGuids = [];
+            var deviceIds = [];
             var devicesPerClient = Math.ceil(context.devicesCount / context.clientsCount);
             var startIndex = index * devicesPerClient;
             var endIndex = Math.ceil(index * devicesPerClient + devicesPerClient);
             for (var i = startIndex; i < endIndex; i++) {
-                deviceGuids.push(this.getDeviceGuid(context, i));
+                deviceIds.push(this.getDeviceId(context, i));
             }
-            return deviceGuids;
+            return deviceIds;
 
         }
     },

@@ -114,7 +114,7 @@ describe('WebSocket API Device Notification', function () {
             device.params({
                     action: 'notification/insert',
                     requestId: requestId,
-                    deviceGuid: deviceId,
+                    deviceId: deviceId,
                     notification: notification
                 })
                 .expect({
@@ -161,14 +161,14 @@ describe('WebSocket API Device Notification', function () {
                 .send(done);
         });
 
-        it('should fail when using wrong deviceGuid', function (done) {
+        it('should fail when using wrong deviceId', function (done) {
             device.params({
                     action: 'notification/insert',
                     requestId: getRequestId(),
-                    deviceGuid: 'invalid-device-id',
+                    deviceId: 'invalid-device-id',
                     notification: notification
                 })
-                .expectError(403, 'Device guid is wrong or empty')
+                .expectError(403, 'Device id is wrong or empty')
                 .send(done);
         });
     });
@@ -225,7 +225,7 @@ describe('WebSocket API Device Notification', function () {
 
             device.params({
                 action: 'notification/subscribe',
-                deviceGuids: [deviceId],
+                deviceId: [deviceId],
                 requestId: requestId
             })
                 .expect({
@@ -243,7 +243,7 @@ describe('WebSocket API Device Notification', function () {
                 device.waitFor('notification/insert', cleanUp)
                     .expect({
                         action: 'notification/insert',
-                        deviceGuid: deviceId,
+                        deviceId: deviceId,
                         notification: { notification: NOTIFICATION }
                     });
 

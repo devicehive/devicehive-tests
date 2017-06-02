@@ -9,7 +9,7 @@ function Message(config) {
     this.devicesCount = config.devices;
     this.requestsPerSender = config.requestsPerSender || 1;
     this.intervalMillis = config.intervalMillis || 1000;
-    this.deviceGuids = config.deviceGuids || [];
+    this.deviceIds = config.deviceIds || [];
     this.names = config.names;
     this.requests = config.requests;
     this.waitDelay = config.waitDelay || 5000;
@@ -30,8 +30,8 @@ Message.prototype = {
         this.oncomplete = testUtils.doRestComplete;
         this.ondone = callback;
 
-        this.devicesCount = Array.isArray(this.deviceGuids) ?
-            this.deviceGuids.length : this.devicesCount;
+        this.devicesCount = Array.isArray(this.deviceIds) ?
+            this.deviceIds.length : this.devicesCount;
 
         this.total = this.requestsPerSender * this.sendersCount;
 
