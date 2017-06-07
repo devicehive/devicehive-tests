@@ -407,8 +407,8 @@ describe('REST API User', function () {
 
 
         it('should not be able to update other user if not admin', function (done) {
-            req.update(path.combine(path.USER, user2.id))
-                .params({jwt: jwt, data: {status: 1}})
+            req.update(path.current)
+                .params({jwt: jwt, id: user2.id, data: {status: 1}})
                 .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                 .send(done);
         });
