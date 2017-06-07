@@ -319,16 +319,68 @@ describe('REST API User', function () {
     describe('#Update Partial', function () {
 
         var user = null;
+        var user2 = null;
+        var jwt = null;
 
         before(function (done) {
-            utils.createUser2(0, void 0, function (err, result) {
-                if (err) {
-                    return done(err);
-                }
+            function createUser(callback) {
+                utils.createUser2(1, void 0, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
 
-                user = result.user;
-                done();
-            })
+                    user = result.user;
+                    callback();
+                })
+            }
+
+            function createUser2(callback) {
+                utils.createUser2(1, void 0, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    user2 = result.user;
+                    callback();
+                })
+            }
+
+            function createJWT(callback) {
+                utils.jwt.create(user.id, ['GetCurrentUser', 'UpdateCurrentUser'], void 0, void 0, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    jwt = result.accessToken;
+                    callback()
+                })
+            }
+
+            async.series([
+                createUser,
+                createUser2,
+                createJWT
+            ], done);
+        });
+
+        it('should update current user introReviewed field', function (done) {
+            req.update(path.combine(path.USER, path.CURRENT))
+                .params({jwt: jwt, data: {introReviewed: true}})
+                .send(function (err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    req.get(path.combine(path.USER, path.CURRENT))
+                        .params({jwt: jwt})
+                        .expect({
+                            id: user.id,
+                            login: user.login,
+                            role: 1,
+                            status: 0,
+                            introReviewed: true
+                        })
+                        .send(done);
+                });
         });
 
         it('should partially update user account', function (done) {
@@ -344,35 +396,37 @@ describe('REST API User', function () {
                         .expect({
                             id: user.id,
                             login: user.login,
-                            role: 0,
+                            role: 1,
                             status: 1,
                             lastLogin: null,
-                            introReviewed: false
-                        })
-                        .send(done);
-                });
-        });
-
-        it('should update user introReviewed field', function (done) {
-            req.update(path.current)
-                .params({jwt: utils.jwt.admin, id: user.id, data: {introReviewed: true}})
-                .send(function (err) {
-                    if (err) {
-                        return done(err);
-                    }
-
-                    req.get(path.current)
-                        .params({jwt: utils.jwt.admin, id: user.id})
-                        .expect({
-                            id: user.id,
-                            login: user.login,
-                            role: 0,
-                            status: 1,
                             introReviewed: true
                         })
                         .send(done);
                 });
         });
+
+
+        it('should not be able to update other user if not admin', function (done) {
+            req.update(path.current)
+                .params({jwt: jwt, id: user2.id, data: {status: 1}})
+                .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                .send(done);
+        });
+
+        it('should not be able to update user status if not admin', function (done) {
+            req.update(path.combine(path.USER, path.CURRENT))
+                .params({jwt: jwt, data: {status: 1}})
+                .expectError(status.FORBIDDEN, 'Admin permissions required for this action')
+                .send(done);
+        });
+
+        it('should not be able to update user role if not admin', function (done) {
+            req.update(path.combine(path.USER, path.CURRENT))
+                .params({jwt: jwt, data: {role: 1}})
+                .expectError(status.FORBIDDEN, 'Admin permissions required for this action')
+                .send(done);
+        });
+
     });
 
     describe('#Delete', function () {
