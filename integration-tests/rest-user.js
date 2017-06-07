@@ -319,6 +319,7 @@ describe('REST API User', function () {
     describe('#Update Partial', function () {
 
         var user = null;
+        var user2 = null;
         var jwt = null;
 
         before(function (done) {
@@ -329,6 +330,17 @@ describe('REST API User', function () {
                     }
 
                     user = result.user;
+                    callback();
+                })
+            }
+
+            function createUser2(callback) {
+                utils.createUser2(1, void 0, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    user2 = result.user;
                     callback();
                 })
             }
@@ -345,6 +357,7 @@ describe('REST API User', function () {
 
             async.series([
                 createUser,
+                createUser2,
                 createJWT
             ], done);
         });
@@ -391,6 +404,29 @@ describe('REST API User', function () {
                         .send(done);
                 });
         });
+
+
+        it('should not be able to update other user if not admin', function (done) {
+            req.update(path.combine(path.USER, user2.id))
+                .params({jwt: jwt, data: {status: 1}})
+                .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                .send(done);
+        });
+
+        it('should not be able to update user status if not admin', function (done) {
+            req.update(path.combine(path.USER, path.CURRENT))
+                .params({jwt: jwt, data: {status: 1}})
+                .expectError(status.FORBIDDEN, 'Admin permissions required for this action')
+                .send(done);
+        });
+
+        it('should not be able to update user role if not admin', function (done) {
+            req.update(path.combine(path.USER, path.CURRENT))
+                .params({jwt: jwt, data: {role: 1}})
+                .expectError(status.FORBIDDEN, 'Admin permissions required for this action')
+                .send(done);
+        });
+
     });
 
     describe('#Delete', function () {
