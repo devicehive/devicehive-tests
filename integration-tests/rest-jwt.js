@@ -197,6 +197,37 @@ describe('REST API JSON Web Tokens', function () {
             });
         });
 
+        it.only('should create access token without provided expiration date', function (done) {
+            utils.create(path.JWT + '/create', {jwt: utils.jwt.admin,
+                data: {
+                    userId: 1,
+                    actions: ['*'],
+                    networkIds: ['*'],
+                    deviceIds: ['*']
+                }
+            }, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                assert(result.accessToken != null);
+                assert(result.refreshToken != null);
+
+                var accessTokenVO = utils.parseJwt(result.accessToken);
+                var refreshTokenVO = utils.parseJwt(result.refreshToken);
+                var defaultTokenLifeTime = 30 * 60 * 1000;
+                var expTime = new Date().getTime() + defaultTokenLifeTime;
+
+                var shift = accessTokenVO.payload.expiration - expTime;
+                assert(shift < 10000);
+
+                shift = refreshTokenVO.payload.expiration - expTime;
+                assert(shift < 10000);
+
+                done();
+            });
+        });
+
         it('should return error when creating token with refresh jwt', function (done) {
             utils.create(path.JWT + '/create', {jwt: utils.jwt.admin_refresh,
                 data: {
