@@ -313,6 +313,21 @@ var utils = {
             });
     },
 
+    getBackend: function ($path, params, cb, responseStatus) {
+        if(!responseStatus){responseStatus = status.EXPECTED_READ}
+        new Http(getParam("backendRestUrl"), path.get($path, params.id, params.query), this.loggingOff)
+            .get(params, function (err, result, xhr) {
+                if (err) {
+                    err.httpStatus = xhr.status;
+                    return cb(err);
+                }
+
+                assert.strictEqual(xhr.status, responseStatus);
+
+                cb(null, result);
+            });
+    },
+
     update: function ($path, params, cb) {
         var updatePath = path.get($path, params.id, params.query);
         new Http(this.url, updatePath, this.loggingOff)
