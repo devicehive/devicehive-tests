@@ -385,7 +385,7 @@ describe('REST API User', function () {
 
         it('should partially update user account', function (done) {
             req.update(path.current)
-                .params({jwt: utils.jwt.admin, id: user.id, data: {status: 1}})
+                .params({jwt: utils.jwt.admin, id: user.id, data: {status: 0}})
                 .send(function (err) {
                     if (err) {
                         return done(err);
@@ -397,7 +397,7 @@ describe('REST API User', function () {
                             id: user.id,
                             login: user.login,
                             role: 1,
-                            status: 1,
+                            status: 0,
                             lastLogin: null,
                             introReviewed: true
                         })
