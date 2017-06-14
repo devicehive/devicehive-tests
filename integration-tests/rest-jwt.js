@@ -218,11 +218,8 @@ describe('REST API JSON Web Tokens', function () {
                 var defaultTokenLifeTime = 30 * 60 * 1000;
                 var expTime = new Date().getTime() + defaultTokenLifeTime;
 
-                var shift = accessTokenVO.payload.expiration - expTime;
-                assert(shift < 10000);
-
-                shift = refreshTokenVO.payload.expiration - expTime;
-                assert(shift < 10000);
+                assert(accessTokenVO.payload.expiration - expTime < 10000);
+                assert(refreshTokenVO.payload.expiration - expTime < 10000);
 
                 done();
             });
