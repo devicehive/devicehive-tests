@@ -320,7 +320,9 @@ describe('REST API User', function () {
 
         var user = null;
         var user2 = null;
+        var user3 = null;
         var jwt = null;
+        var jwt2 = null;
 
         before(function (done) {
             function createUser(callback) {
@@ -345,6 +347,17 @@ describe('REST API User', function () {
                 })
             }
 
+            function createUser3(callback) {
+                utils.createUser2(1, void 0, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    user3 = result.user;
+                    callback();
+                })
+            }
+
             function createJWT(callback) {
                 utils.jwt.create(user.id, ['GetCurrentUser', 'UpdateCurrentUser'], void 0, void 0, function (err, result) {
                     if (err) {
@@ -355,10 +368,22 @@ describe('REST API User', function () {
                 })
             }
 
+            function createJWT2(callback) {
+                utils.jwt.create(user3.id, ['GetCurrentUser', 'UpdateCurrentUser'], void 0, void 0, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    jwt2 = result.accessToken;
+                    callback()
+                })
+            }
+
             async.series([
                 createUser,
                 createUser2,
-                createJWT
+                createUser3,
+                createJWT,
+                createJWT2
             ], done);
         });
 
@@ -385,7 +410,7 @@ describe('REST API User', function () {
 
         it('should partially update user account', function (done) {
             req.update(path.current)
-                .params({jwt: utils.jwt.admin, id: user.id, data: {status: 0}})
+                .params({jwt: utils.jwt.admin, id: user.id, data: {status: 1}})
                 .send(function (err) {
                     if (err) {
                         return done(err);
@@ -397,7 +422,7 @@ describe('REST API User', function () {
                             id: user.id,
                             login: user.login,
                             role: 1,
-                            status: 0,
+                            status: 1,
                             lastLogin: null,
                             introReviewed: true
                         })
@@ -415,14 +440,14 @@ describe('REST API User', function () {
 
         it('should not be able to update user status if not admin', function (done) {
             req.update(path.combine(path.USER, path.CURRENT))
-                .params({jwt: jwt, data: {status: 1}})
+                .params({jwt: jwt2, data: {status: 1}})
                 .expectError(status.FORBIDDEN, 'Admin permissions required for this action')
                 .send(done);
         });
 
         it('should not be able to update user role if not admin', function (done) {
             req.update(path.combine(path.USER, path.CURRENT))
-                .params({jwt: jwt, data: {role: 1}})
+                .params({jwt: jwt2, data: {role: 1}})
                 .expectError(status.FORBIDDEN, 'Admin permissions required for this action')
                 .send(done);
         });
