@@ -18,30 +18,14 @@ describe('Round tests for notification', function () {
 
     var NOTIFICATION = utils.getName('round-notification');
     var DEVICE = utils.getName('round-notif-device');
+    var NETWORK = utils.getName('network-device-cmd');
 
     var notifications = [];
 
     var deviceDef = {
         name: DEVICE,
         status: 'Online',
-        data: {a: '1', b: '2'},
-        network: {
-            name: utils.getName('round-notif-network'),
-            description: 'lorem ipsum dolor sit amet'
-        },
-        deviceClass: {
-            name: DEVICE,
-            version: '1',
-            isPermanent: true,
-            offlineTimeout: 1234,
-            data: {c: '3', d: '4'},
-            equipment: [{
-                name: "_integr-test-eq",
-                code: "321",
-                type: "_integr-test-type",
-                data: {e: '5', f: '6'}
-            }]
-        }
+        data: {a: '1', b: '2'}
     };
     var deviceId = utils.getName('round-notif-device-id');
     var networkId = null;
@@ -76,7 +60,26 @@ describe('Round tests for notification', function () {
             });
         }
 
+        function createNetwork(callback) {
+            var params = {
+                jwt: utils.jwt.admin,
+                data: {
+                    name: NETWORK
+                }
+            };
+
+            utils.create(path.NETWORK, params, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                networkId = result.id;
+                callback()
+            });
+        }
+
         function createDevice(callback) {
+            deviceDef.networkId = networkId;
             req.update(path.get(path.DEVICE, deviceId))
                 .params({jwt: utils.jwt.admin, data: deviceDef})
                 .send(function (err) {
@@ -91,7 +94,6 @@ describe('Round tests for notification', function () {
                                 return callback(err);
                             }
 
-                            networkId = result.network.id;
                             callback();
                         })
                 });
@@ -115,9 +117,9 @@ describe('Round tests for notification', function () {
                     'CreateDeviceNotification'
                 ],
                 networkIds: networkId,
-                deviceGuids: deviceId
+                deviceIds: deviceId
             };
-            utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceGuids,
+            utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceIds,
                 function (err, result) {
                     if (err) {
                         return callback(err);
@@ -160,6 +162,7 @@ describe('Round tests for notification', function () {
         async.series([
             initNotifications,
             getWsUrl,
+            createNetwork,
             createDevice,
             createUser,
             createJWT,
@@ -178,7 +181,7 @@ describe('Round tests for notification', function () {
             clientConn.params({
                     action: 'notification/subscribe',
                     requestId: getRequestId(),
-                    deviceGuids: [deviceId],
+                    deviceIds: [deviceId],
                     names: [NOTIFICATION]
                 })
                 .send(function (err, result) {
@@ -245,7 +248,7 @@ describe('Round tests for notification', function () {
         function runTest(notification, done) {
 
             var expectedNotif = utils.core.clone(notification);
-            expectedNotif.deviceGuid = deviceId;
+            expectedNotif.deviceId = deviceId;
 
             req.get($path)
                 .params({jwt: jwt})
@@ -281,7 +284,7 @@ describe('Round tests for notification', function () {
             clientConn.params({
                     action: 'notification/subscribe',
                     requestId: getRequestId(),
-                    deviceGuids: [deviceId],
+                    deviceIds: [deviceId],
                     names: [NOTIFICATION]
                 })
                 .send(function (err, result) {
@@ -352,7 +355,7 @@ describe('Round tests for notification', function () {
         function runTest(notification, done) {
 
             var expectedNotif = utils.core.clone(notification);
-            expectedNotif.deviceGuid = deviceId;
+            expectedNotif.deviceId = deviceId;
 
             req.get(clientPath)
                 .params(utils.core.clone(clientAuth))

@@ -11,7 +11,7 @@ function Message(config) {
     this.devicesCount = config.devices;
     this.messagesPerClient = config.messagesPerClient || 1;
     this.intervalMillis = config.intervalMillis || 1000;
-    this.deviceGuids = config.deviceGuids || [];
+    this.deviceIds = config.deviceIds || [];
     this.names = config.names;
     this.messages = config.messages;
     this.waitDelay = config.waitDelay || 5000;
@@ -39,8 +39,8 @@ Message.prototype = {
         this.ondone = callback;
         this.requestTime = {};
 
-        this.devicesCount = Array.isArray(this.deviceGuids) ?
-            this.deviceGuids.length : this.devicesCount;
+        this.devicesCount = Array.isArray(this.deviceIds) ?
+            this.deviceIds.length : this.devicesCount;
 
         this.total = this.messagesPerClient * this.connCount;
 
@@ -96,12 +96,12 @@ Message.prototype = {
             return self.names[requestId % self.names.length];
         });
 
-        testUtils.substitute(message, '{#deviceGuid}', function () {
-            return testUtils.getDeviceGuid(self, sender.id);
+        testUtils.substitute(message, '{#deviceId}', function () {
+            return testUtils.getDeviceId(self, sender.id);
         });
 
-        testUtils.substitute(message, '{#deviceGuids}', function () {
-            return testUtils.getDeviceGuids(self, sender);
+        testUtils.substitute(message, '{#deviceIds}', function () {
+            return testUtils.getDeviceIds(self, sender);
         });
 
         testUtils.substitute(message, '{#requestId}', function () {

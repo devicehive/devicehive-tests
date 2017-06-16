@@ -11,26 +11,13 @@ describe('WebSocket API Device Unit', function () {
     var url = null;
 
     var DEVICE = utils.getName('ws-device');
+    var NETWORK = utils.getName('ws-cmd-network');
+    var NETWORK_KEY = utils.getName('ws-cmd-network-key');
     var token = null;
 
     var device = {
         name: DEVICE,
-        data: {a: '1', b: '2'},
-        network: {
-            name: utils.getName('ws-network'),
-            description: 'lorem ipsum dolor sit amet'
-        },
-        deviceClass: {
-            name: DEVICE,
-            isPermanent: true,
-            data: {c: '3', d: '4'},
-            equipment: [{
-                name: "_integr-test-eq",
-                code: "321",
-                type: "_integr-test-type",
-                data: {e: '5', f: '6'}
-            }]
-        }
+        data: {a: '1', b: '2'}
     };
     var deviceId = utils.getName('ws-device-id');
 
@@ -47,9 +34,27 @@ describe('WebSocket API Device Unit', function () {
     describe('#device/get', function () {
 
         var conn = null;
+        var networkId = null;
 
         before(function (done) {
+        	function createNetwork(callback) {
+                var params = {
+                    jwt: utils.jwt.admin,
+                    data: { name: NETWORK, key: NETWORK_KEY }
+                };
+
+                utils.create(path.NETWORK, params, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    networkId = result.id;
+                    callback();
+                });
+            }
+
             function createDevice(callback) {
+            	device.networkId = networkId;
                 req.update(path.get(path.DEVICE, deviceId))
                     .params({jwt: utils.jwt.admin, data: device})
                     .send(callback);
@@ -65,6 +70,7 @@ describe('WebSocket API Device Unit', function () {
                     actions: [
                         'CreateDeviceNotification',
                         'GetDeviceNotification',
+                        'GetDevice',
                         'ManageNetwork'
                     ],
                     deviceIds: deviceId,
@@ -90,6 +96,7 @@ describe('WebSocket API Device Unit', function () {
             }
 
             async.series([
+            	createNetwork,
                 createDevice,
                 createToken,
                 createConn,
@@ -133,9 +140,27 @@ describe('WebSocket API Device Unit', function () {
     describe('#device/save', function () {
 
         var conn = null;
+        var networkId = null;
 
         before(function (done) {
+        	function createNetwork(callback) {
+                var params = {
+                    jwt: utils.jwt.admin,
+                    data: { name: NETWORK, key: NETWORK_KEY }
+                };
+
+                utils.create(path.NETWORK, params, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    networkId = result.id;
+                    callback();
+                });
+            }
+
             function createDevice(callback) {
+            	device.networkId = networkId;
                 req.update(path.get(path.DEVICE, deviceId))
                     .params({jwt: utils.jwt.admin, data: device})
                     .send(callback);
@@ -177,6 +202,7 @@ describe('WebSocket API Device Unit', function () {
             }
 
             async.series([
+            	createNetwork,
                 createDevice,
                 createToken,
                 createConn,

@@ -113,16 +113,39 @@ describe('REST API User', function () {
     describe('#Create', function () {
 
         var user = null;
+        var reviewedIntroUser = {
+            login: utils.getName('intro-usr'),
+            password: utils.NEW_USER_PASSWORD
+        };
 
         before(function (done) {
-            utils.createUser2(0, void 0, function (err, result) {
-                if (err) {
-                    return done(err);
-                }
+            function createUser(callback) {
+                utils.createUser2(0, void 0, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
 
-                user = result.user;
-                done();
-            })
+                    user = result.user;
+                    callback();
+                })
+            }
+
+            function createReviewedIntroUser(callback) {
+                utils.createReviewedIntroUser(reviewedIntroUser.login, reviewedIntroUser.password, 0, 0,
+                    function (err, result) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        reviewedIntroUser.id = result.id;
+                        callback();
+                    })
+            }
+
+            async.series([
+                createUser,
+                createReviewedIntroUser
+            ], done);
         });
 
         it('should get user by id using admin', function (done) {
@@ -133,45 +156,68 @@ describe('REST API User', function () {
                     login: user.login,
                     role: 0,
                     status: 0,
-                    lastLogin: null
+                    lastLogin: null,
+                    introReviewed: false
+                })
+                .send(done);
+        });
+
+        it('should not create user with invalid login', function (done) {
+            var userWithInvalidLogin = {
+                "login": "a",
+                "role": 0,
+                "status": 0,
+                "password": "string",
+                "oldPassword": "string",
+                "data": {
+                    "jsonString": "string"
+                },
+                "introReviewed": false
+            };
+
+            req.create(path.current)
+                .params({jwt: utils.jwt.admin, data: userWithInvalidLogin})
+                .expectError(status.BAD_REQUEST, 'Field cannot be empty. The length of login should be from 3 to 128 symbols.')
+                .send(done);
+        });
+
+        it('should not create user with invalid password', function (done) {
+            var userWithInvalidLogin = {
+                "login": "aaa",
+                "role": 0,
+                "status": 0,
+                "password": "strin",
+                "oldPassword": "strin",
+                "data": {
+                    "jsonString": "string"
+                },
+                "introReviewed": false
+            };
+
+            req.create(path.current)
+                .params({jwt: utils.jwt.admin, data: userWithInvalidLogin})
+                .expectError(status.BAD_REQUEST, 'Password can contain only from 6 to 128 symbols!')
+                .send(done);
+        });
+
+        it('should get user with reviewed intro by id using admin', function (done) {
+            req.get(path.current)
+                .params({jwt: utils.jwt.admin, id: reviewedIntroUser.id})
+                .expect({
+                    id: reviewedIntroUser.id,
+                    login: reviewedIntroUser.login,
+                    role: 0,
+                    status: 0,
+                    lastLogin: null,
+                    introReviewed: true
                 })
                 .send(done);
         });
     });
 
-    describe('#Create OAuth', function () {
-
-        var user = {
-            login: utils.getName('oauth-usr-1'),
-            password: utils.NEW_USER_PASSWORD
-        };
-
-        before(function (done) {
-            req.create(path.current)
-                .params({
-                    jwt: utils.jwt.admin,
-                    data: {
-                        login: user.login,
-                        password: user.password,
-                        facebookLogin: 'facebook',
-                        role: 0,
-                        status: 0 }
-                })
-                .send(function (err, result) {
-                    if (err) {
-                        return done(err);
-                    }
-
-                    user.id = result.id;
-                    done();
-                });
-        });
-
-    });
-
     describe('#Create Existing', function () {
 
-        var LOGIN = utils.getName('oauth-usr-2');
+        var LOGIN = utils.getName('usr-1');
 
         before(function (done) {
             req.create(path.current)
@@ -180,7 +226,6 @@ describe('REST API User', function () {
                     data: {
                         login: LOGIN,
                         password: utils.NEW_USER_PASSWORD,
-                        facebookLogin: 'facebook-2',
                         role: 0,
                         status: 0 }
                 })
@@ -205,10 +250,10 @@ describe('REST API User', function () {
     describe('#Create User Networks', function () {
 
         var user = {
-            login: utils.getName('usr-3'),
+            login: utils.getName('usr-2'),
             password: utils.NEW_USER_PASSWORD
         };
-        var NETWORK = utils.getName('usr-network-3');
+        var NETWORK = utils.getName('usr-network-2');
         var networkId = null;
 
         before(function (done) {
@@ -274,16 +319,93 @@ describe('REST API User', function () {
     describe('#Update Partial', function () {
 
         var user = null;
+        var user2 = null;
+        var user3 = null;
+        var jwt = null;
+        var jwt2 = null;
 
         before(function (done) {
-            utils.createUser2(0, void 0, function (err, result) {
-                if (err) {
-                    return done(err);
-                }
+            function createUser(callback) {
+                utils.createUser2(1, void 0, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
 
-                user = result.user;
-                done();
-            })
+                    user = result.user;
+                    callback();
+                })
+            }
+
+            function createUser2(callback) {
+                utils.createUser2(1, void 0, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    user2 = result.user;
+                    callback();
+                })
+            }
+
+            function createUser3(callback) {
+                utils.createUser2(1, void 0, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    user3 = result.user;
+                    callback();
+                })
+            }
+
+            function createJWT(callback) {
+                utils.jwt.create(user.id, ['GetCurrentUser', 'UpdateCurrentUser'], void 0, void 0, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    jwt = result.accessToken;
+                    callback()
+                })
+            }
+
+            function createJWT2(callback) {
+                utils.jwt.create(user3.id, ['GetCurrentUser', 'UpdateCurrentUser'], void 0, void 0, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    jwt2 = result.accessToken;
+                    callback()
+                })
+            }
+
+            async.series([
+                createUser,
+                createUser2,
+                createUser3,
+                createJWT,
+                createJWT2
+            ], done);
+        });
+
+        it('should update current user introReviewed field', function (done) {
+            req.update(path.combine(path.USER, path.CURRENT))
+                .params({jwt: jwt, data: {introReviewed: true}})
+                .send(function (err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    req.get(path.combine(path.USER, path.CURRENT))
+                        .params({jwt: jwt})
+                        .expect({
+                            id: user.id,
+                            login: user.login,
+                            role: 1,
+                            status: 0,
+                            introReviewed: true
+                        })
+                        .send(done);
+                });
         });
 
         it('should partially update user account', function (done) {
@@ -299,13 +421,37 @@ describe('REST API User', function () {
                         .expect({
                             id: user.id,
                             login: user.login,
-                            role: 0,
+                            role: 1,
                             status: 1,
-                            lastLogin: null
+                            lastLogin: null,
+                            introReviewed: true
                         })
                         .send(done);
                 });
         });
+
+
+        it('should not be able to update other user if not admin', function (done) {
+            req.update(path.current)
+                .params({jwt: jwt, id: user2.id, data: {status: 1}})
+                .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                .send(done);
+        });
+
+        it('should not be able to update user status if not admin', function (done) {
+            req.update(path.combine(path.USER, path.CURRENT))
+                .params({jwt: jwt2, data: {status: 1}})
+                .expectError(status.FORBIDDEN, 'Admin permissions required for this action')
+                .send(done);
+        });
+
+        it('should not be able to update user role if not admin', function (done) {
+            req.update(path.combine(path.USER, path.CURRENT))
+                .params({jwt: jwt2, data: {role: 1}})
+                .expectError(status.FORBIDDEN, 'Admin permissions required for this action')
+                .send(done);
+        });
+
     });
 
     describe('#Delete', function () {
@@ -385,7 +531,9 @@ describe('REST API User', function () {
         });
     });
 
+    // Some of tests could be pending due to allowing anonymous user creation in java-server configuration
     describe('#Unauthorized', function () {
+
         describe('#No Authorization', function () {
             it('should fail with 401 if auth parameters omitted', function (done) {
                 req.get(path.current)
@@ -408,10 +556,11 @@ describe('REST API User', function () {
                     .send(done);
             });
 
+
             it('should fail with 401 when creating user with no auth parameters', function (done) {
                 req.create(path.current)
                     .params({jwt: null, data: {login: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.NOT_AUTHORIZED)
                     .send(done);
             });
 
@@ -438,7 +587,6 @@ describe('REST API User', function () {
         });
 
         describe('#User Authorization', function () {
-
             var nonNetworkUser = null;
             var nonNetworkUserJwt = null;
 
@@ -496,7 +644,7 @@ describe('REST API User', function () {
             it('should fail with 401 when creating user with invalid jwt', function (done) {
                 req.create(path.current)
                     .params({jwt: nonNetworkUserJwt, data: {login: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.NOT_AUTHORIZED)
                     .send(done);
             });
 
@@ -546,7 +694,7 @@ describe('REST API User', function () {
             it('should fail with 401 when creating user using invalid access key', function (done) {
                 req.create(path.current)
                     .params({jwt: jwt, data: {login: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.NOT_AUTHORIZED)
                     .send(done);
             });
 

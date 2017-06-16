@@ -1,6 +1,7 @@
 var assert = require('assert');
 var async = require('async');
 var format = require('util').format;
+var should = require('should');
 var utils = require('./common/utils');
 var path = require('./common/path');
 var status = require('./common/http').status;
@@ -9,10 +10,25 @@ var req = require('./common/request');
 describe('REST API JSON Web Tokens', function () {
     this.timeout(90000);
 
+    var adminUser = null;
     var user = null;
     var inactiveUser = null;
 
+    var defaultAccessTokenLifeTime = 1800000;
+    var defaultRefreshTokenLifeTime = 15724800000;
+
     before(function (done) {
+
+        function createAdminUser(callback) {
+            utils.createUser2(0, void 0, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                adminUser = result.user;
+                callback();
+            });
+        }
 
         function createUser(callback) {
             utils.createUser2(1, void 0, function (err, result) {
@@ -37,9 +53,83 @@ describe('REST API JSON Web Tokens', function () {
         }
 
         async.series([
+            createAdminUser,
             createUser,
             createInactiveUser
         ], done);
+    });
+
+    describe('#Login', function() {
+        it('should create token using basic authentication with valid credentials', function (done) {
+            utils.create(path.JWT, {data: {
+                    login: utils.admin.login,
+                    password: utils.admin.password
+                }
+            }, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                assert(result.accessToken != null);
+                assert(result.refreshToken != null);
+
+                done();
+            });
+        });
+
+        it('should create a token with admin permissions for an admin user', function (done) {
+            utils.create(path.JWT, {data: {
+                    login: adminUser.login,
+                    password: adminUser.password
+                }
+            }, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                assert(result.accessToken != null);
+                var jwtTokenVO = utils.parseJwt(result.accessToken);
+                
+                jwtTokenVO.payload.actions.should.containEql('*');
+                jwtTokenVO.payload.networkIds.should.containEql('*');
+                jwtTokenVO.payload.deviceIds.should.containEql('*');
+
+                done();
+            });
+        });
+
+        it('should create a token with client permissions for a client user', function (done) {
+            utils.create(path.JWT, {data: {
+                    login: user.login,
+                    password: user.password
+                }
+            }, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                assert(result.accessToken != null);
+                var jwtTokenVO = utils.parseJwt(result.accessToken);
+                
+                if (jwtTokenVO.payload.networkIds.length > 0) {
+                	jwtTokenVO.payload.deviceIds.should.containEql('*');
+                }
+
+                done();
+            });
+        });
+
+        it('should return error when creating token using basic authentication with invalid credentials', function (done) {
+            utils.create(path.JWT, {data: {
+                login: utils.admin.login,
+                password: 1111
+            }
+            }, function (err) {
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                done();
+            });
+        });
     });
 
     describe('#Create', function() {
@@ -68,12 +158,12 @@ describe('REST API JSON Web Tokens', function () {
         });
 
         it('should create token with all permissions, networks and devices', function (done) {
-            utils.create(path.JWT, {jwt: utils.jwt.admin,
+            utils.create(path.JWT + '/create', {jwt: utils.jwt.admin,
                 data: {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceGuids: ['*']
+                    deviceIds: ['*']
                 }
             }, function (err, result) {
                 if (err) {
@@ -87,13 +177,85 @@ describe('REST API JSON Web Tokens', function () {
             });
         });
 
-        it('should return error when creating token with refresh jwt', function (done) {
-            utils.create(path.JWT, {jwt: utils.jwt.admin_refresh,
+        it('should create token with custom expiration date', function (done) {
+            utils.create(path.JWT + '/create', {jwt: utils.jwt.admin,
                 data: {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceGuids: ['*']
+                    deviceIds: ['*'],
+                    expiration: "2018-01-01T00:00:00.000Z"
+                }
+            }, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                assert.strictEqual(result.accessToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTE0NzY0ODAwMDAwLCJ0b2tlblR5cGUiOiJBQ0NFU1MifX0'),
+                    true);
+                assert.strictEqual(result.refreshToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTE0NzY0ODAwMDAwLCJ0b2tlblR5cGUiOiJSRUZSRVNIIn19'),
+                    true);
+
+                done();
+            });
+        });
+
+        it('should create access token without provided expiration date', function (done) {
+            utils.create(path.JWT + '/create', {jwt: utils.jwt.admin,
+                data: {
+                    userId: 1,
+                    actions: ['*'],
+                    networkIds: ['*'],
+                    deviceIds: ['*']
+                }
+            }, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                assert(result.accessToken != null);
+                assert(result.refreshToken != null);
+
+                var accessTokenVO = utils.parseJwt(result.accessToken);
+                var refreshTokenVO = utils.parseJwt(result.refreshToken);
+                var expAccessTime = new Date().getTime() + defaultAccessTokenLifeTime;
+                var expRefreshTime = new Date().getTime() + defaultRefreshTokenLifeTime;
+
+                assert(accessTokenVO.payload.expiration - expAccessTime < 1000);
+                assert(refreshTokenVO.payload.expiration - expRefreshTime < 1000);
+
+                done();
+            });
+        });
+
+        it('should create access token without provided expiration date', function (done) {
+            utils.create(path.JWT + '/refresh', {
+                data: {
+                    refreshToken: utils.jwt.admin_refresh
+
+            }}, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                assert(result.accessToken != null);
+
+                var accessTokenVO = utils.parseJwt(result.accessToken);
+                var expTime = new Date().getTime() + defaultAccessTokenLifeTime;
+
+                assert(accessTokenVO.payload.expiration - expTime < 1000);
+
+                done();
+            });
+        });
+
+        it('should return error when creating token with refresh jwt', function (done) {
+            utils.create(path.JWT + '/create', {jwt: utils.jwt.admin_refresh,
+                data: {
+                    userId: 1,
+                    actions: ['*'],
+                    networkIds: ['*'],
+                    deviceIds: ['*']
                 }
             }, function (err) {
                 assert.strictEqual(err.error, 'Unauthorized');
@@ -103,12 +265,12 @@ describe('REST API JSON Web Tokens', function () {
         });
 
         it('should create token with ManageToken permission', function (done) {
-            utils.create(path.JWT, {jwt: jwt1,
+            utils.create(path.JWT + '/create', {jwt: jwt1,
                 data: {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceGuids: ['*']
+                    deviceIds: ['*']
                 }
             }, function (err, result) {
                 if (err) {
@@ -123,12 +285,12 @@ describe('REST API JSON Web Tokens', function () {
         });
 
         it('should not create token without ManageToken permission', function(done){
-            utils.create(path.JWT, {jwt: jwt2,
+            utils.create(path.JWT + '/create', {jwt: jwt2,
                 data: {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceGuids: ['*']
+                    deviceIds: ['*']
                 }
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -139,23 +301,23 @@ describe('REST API JSON Web Tokens', function () {
         });
 
         it('should not create token for invalid User', function (done) {
-            utils.create(path.JWT, {jwt: utils.jwt.admin,
+            utils.create(path.JWT + '/create', {jwt: utils.jwt.admin,
                 data: {
                     userId: 9999999999999,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceGuids: ['*']
+                    deviceIds: ['*']
                 }
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'Unauthorized');
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                assert.strictEqual(err.error, 'Invalid request parameters');
+                assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
                 done();
             });
         });
 
         it('should not create token with error User is not active', function (done) {
-            utils.create(path.JWT, {jwt: utils.jwt.admin,
+            utils.create(path.JWT + '/create', {jwt: utils.jwt.admin,
                 data: {
                     userId: inactiveUser.id,
                     actions: ['*'],
@@ -164,8 +326,8 @@ describe('REST API JSON Web Tokens', function () {
                 }
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'Unauthorized');
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                assert.strictEqual(err.error, 'Invalid request parameters');
+                assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
                 done();
             });
 

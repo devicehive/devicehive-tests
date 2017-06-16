@@ -12,7 +12,7 @@ function Notification(config) {
     this.notifsPerDevice = config.notifsPerDevice || 1;
     this.intervalMillis = config.intervalMillis || 1000;
     this.listenAllDevices = config.listenAllDevices;
-    this.deviceGuids = config.deviceGuids || [];
+    this.deviceIds = config.deviceIds || [];
     this.notifications = config.notifications;
     this.parameters = config.parameters || {};
     this.waitDelay = config.waitDelay || 5000;
@@ -39,8 +39,8 @@ Notification.prototype = {
         this.ondone = callback;
         this.statistics = new Statistics();
 
-        this.devicesCount = Array.isArray(this.deviceGuids) ?
-            this.deviceGuids.length : this.devicesCount;
+        this.devicesCount = Array.isArray(this.deviceIds) ?
+            this.deviceIds.length : this.devicesCount;
 
         this.total = this.notifsPerDevice * this.devicesCount;
 
@@ -74,7 +74,7 @@ Notification.prototype = {
         };
 
         if (!this.listenAllDevices) {
-            data.deviceGuids = testUtils.getDeviceGuids(this, client.id);
+            data.deviceIds = testUtils.getDeviceGuids(this, client.id);
         }
 
         if (this.notifications) {
@@ -82,7 +82,7 @@ Notification.prototype = {
             var max = client.id % this.notifications.length;
             for (var i = 0; i <= max; i++) {
                 var notification = this.notifications[i];
-                this.statistics.addSubscribed(notification, data.deviceGuids);
+                this.statistics.addSubscribed(notification, data.deviceIds);
                 data.names.push(notification);
             }
         }
@@ -102,7 +102,7 @@ Notification.prototype = {
         for (var i = 0; i < this.devicesCount; i++) {
             var device = new Sender('device');
             device.props = {
-                deviceGuid: testUtils.getDeviceGuid(this, i)
+                deviceId: testUtils.getDeviceId(this, i)
             };
             device.addErrorCallback(this.onError, this);
             device.addActionCallback('authenticate', this.onDeviceAuthenticate, this);
@@ -136,13 +136,13 @@ Notification.prototype = {
         var requestId = utils.getRequestId();
         var time = new Date();
         var notification = this.notifications[requestId % this.notifications.length];
-        this.statistics.addExpected(notification, device.props.deviceGuid);
+        this.statistics.addExpected(notification, device.props.deviceId);
         var parameters = utils.clone(this.parameters);
         parameters.requestTime = +time;
 
         var notifData = {
             action: 'notification/insert',
-            deviceGuid: device.props.deviceGuid,
+            deviceId: device.props.deviceId,
             notification: {
                 notification: notification,
                 parameters: parameters

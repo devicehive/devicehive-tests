@@ -13,29 +13,29 @@ HttpSender.prototype = {
 
     type: {
         notification: function (sender, request) {
-            var deviceGuid = testUtils.getDeviceGuid(sender.context, sender.requestId);
+            var deviceId = testUtils.getDeviceId(sender.context, sender.requestId);
 
             return {
                 method: request.method,
-                path: '/device/' + deviceGuid + '/notification',
+                path: '/device/' + deviceId + '/notification',
                 data: request.data
             };
         },
         command: function (sender, request) {
-            var deviceGuid = testUtils.getDeviceGuid(sender.context, sender.requestId);
+            var deviceId = testUtils.getDeviceId(sender.context, sender.requestId);
 
             return {
                 method: request.method,
-                path: '/device/' + deviceGuid + '/command',
+                path: '/device/' + deviceId + '/command',
                 data: request.data
             };
         },
         poll: function (sender, request) {
-            var deviceGuid = testUtils.getDeviceGuid(sender.context, sender.requestId);
+            var deviceId = testUtils.getDeviceId(sender.context, sender.requestId);
 
             return {
                 method: request.method,
-                path: '/device/' + deviceGuid + '/command/poll',
+                path: '/device/' + deviceId + '/command/poll',
                 data: request.data
             };
         }
@@ -60,12 +60,12 @@ HttpSender.prototype = {
             return context.names[self.requestId % context.names.length];
         });
 
-        testUtils.substitute(request.data, '{#deviceGuid}', function () {
-            return testUtils.getDeviceGuid(context, self.requestId);
+        testUtils.substitute(request.data, '{#deviceId}', function () {
+            return testUtils.getDeviceId(context, self.requestId);
         });
 
-        testUtils.substitute(request.data, '{#deviceGuids}', function () {
-            return testUtils.getDeviceGuids(context, self.requestId);
+        testUtils.substitute(request.data, '{#deviceIds}', function () {
+            return testUtils.getDeviceIds(context, self.requestId);
         });
 
         testUtils.substitute(request.data, '{#requestId}', function () {

@@ -10,7 +10,6 @@ describe('REST API Network', function () {
 
     var NETWORK_1 = utils.getName('network-1');
     var NETWORK_2 = utils.getName('network-2');
-    var NETWORK_KEY = utils.getName('network-key');
     var networkId1 = null;
     var networkId2 = null;
     var user = null;
@@ -22,7 +21,7 @@ describe('REST API Network', function () {
         function createNetwork1(callback) {
             var params = {
                 jwt: utils.jwt.admin,
-                data: { name: NETWORK_1, key: NETWORK_KEY }
+                data: { name: NETWORK_1 }
             };
 
             utils.create(path.NETWORK, params, function (err, result) {
@@ -38,7 +37,7 @@ describe('REST API Network', function () {
         function createNetwork2(callback) {
             var params = {
                 jwt: utils.jwt.admin,
-                data: { name: NETWORK_2, key: NETWORK_KEY }
+                data: { name: NETWORK_2 }
             };
 
             utils.create(path.NETWORK, params, function (err, result) {
@@ -86,12 +85,14 @@ describe('REST API Network', function () {
         var jwt1 = null;
         var jwt2 = null;
         var jwt3 = null;
+        var jwt4 = null;
 
         before(function (done) {
             var params = [
                 {
                     user: user,
-                    actions: 'GetNetwork'
+                    actions: 'GetNetwork',
+                    networkIds: ['*']
                 },
                 {
                     user: user,
@@ -102,6 +103,10 @@ describe('REST API Network', function () {
                     user: user,
                     actions: 'GetNetwork',
                     networkIds: [networkId1]
+                },
+                {
+                    user: user,
+                    actions: 'GetNetwork'
                 }
             ];
 
@@ -113,6 +118,7 @@ describe('REST API Network', function () {
                     jwt1 = result[0];
                     jwt2 = result[1];
                     jwt3 = result[2];
+                    jwt4 = result[3];
                     callback();
                 });
             }
@@ -145,20 +151,29 @@ describe('REST API Network', function () {
             req.get(path.current)
                 .params({jwt: utils.jwt.admin})
                 .query('name', NETWORK_1)
-                .expect([{id: networkId1, name: NETWORK_1, key: NETWORK_KEY}])
+                .expect([{id: networkId1, name: NETWORK_1}])
                 .send(done);
         });
 
         it('should get all networks', function (done) {
             req.get(path.current)
                 .params({jwt: jwt1})
-                .expect([{id: networkId1, name: NETWORK_1, key: NETWORK_KEY}])
+                .expect([{id: networkId1, name: NETWORK_1}])
                 .send(done);
         });
 
-        it('should get none of networks', function (done) {
+        it('should get none of networks #1', function (done) {
             req.get(path.current)
                 .params({jwt: jwt2})
+                .expectTrue(function (result) {
+                    return utils.core.isEmptyArray(result);
+                })
+                .send(done);
+        });
+
+        it('should get none of networks #2', function (done) {
+            req.get(path.current)
+                .params({jwt: jwt4})
                 .expectTrue(function (result) {
                     return utils.core.isEmptyArray(result);
                 })
@@ -168,7 +183,7 @@ describe('REST API Network', function () {
         it('should get network', function (done) {
             req.get(path.current)
                 .params({jwt: jwt3})
-                .expect([{id: networkId1, name: NETWORK_1, key: NETWORK_KEY}])
+                .expect([{id: networkId1, name: NETWORK_1}])
                 .send(done);
         });
     });
@@ -244,7 +259,7 @@ describe('REST API Network', function () {
         it('should succeed when getting network using valid jwt', function (done) {
             req.get(path.current)
                 .params({jwt: jwt4, id: networkId1})
-                .expect({id: networkId1, name: NETWORK_1, key: NETWORK_KEY})
+                .expect({id: networkId1, name: NETWORK_1})
                 .send(done);
         });
     });
@@ -252,7 +267,7 @@ describe('REST API Network', function () {
     describe('#Create', function () {
 
         it('should create network using admin jwt', function (done) {
-            var network = {name: utils.getName('network-3'), key: NETWORK_KEY};
+            var network = {name: utils.getName('network-3')};
 
             req.create(path.current)
                 .params({jwt: utils.jwt.admin, data: network})
@@ -282,10 +297,7 @@ describe('REST API Network', function () {
     describe('#Create Devices', function () {
 
         var DEVICE = utils.getName('network-device');
-        var DEVICE_CLASS_VERSION = '1';
-        var DEVICE_GUID = utils.getName('network-guid');
-
-        var deviceClassId = null;
+        var DEVICE_ID = utils.getName('network-id');
 
         var jwt1 = null;
         var jwt2 = null;
@@ -327,22 +339,10 @@ describe('REST API Network', function () {
                 });
             }
 
-            function createDeviceClass(callback) {
-                req.create(path.DEVICE_CLASS)
-                    .params(utils.deviceClass.getParamsObj(DEVICE, utils.jwt.admin, DEVICE_CLASS_VERSION))
-                    .send(function (err, result) {
-                        if (err) {
-                            return callback(err);
-                        }
-                        deviceClassId = result.id;
-                        callback();
-                    });
-            }
-
             function createDevice(callback) {
-                req.update(path.get(path.DEVICE, DEVICE_GUID))
+                req.update(path.get(path.DEVICE, DEVICE_ID))
                     .params(utils.device.getParamsObj(DEVICE, utils.jwt.admin,
-                        {name: NETWORK_1, key: NETWORK_KEY}, {name: DEVICE, version: '1'}))
+                        networkId1, {name: DEVICE, version: '1'}))
                     .send(function (err) {
                         if (err) {
                             return callback(err);
@@ -353,7 +353,6 @@ describe('REST API Network', function () {
 
             async.series([
                 createJWTs,
-                createDeviceClass,
                 createDevice
             ], done);
         });
@@ -365,12 +364,8 @@ describe('REST API Network', function () {
                     name: NETWORK_1,
                     description: null,
                     devices: [{
-                        id: DEVICE_GUID,
-                        name: DEVICE,
-                        deviceClass: {
-                            id: deviceClassId,
-                            name: DEVICE
-                        }
+                        id: DEVICE_ID,
+                        name: DEVICE
                     }]
                 })
                 .send(done);
@@ -408,7 +403,7 @@ describe('REST API Network', function () {
             req.create(path.current)
                 .params({
                     jwt: utils.jwt.admin,
-                    data: { name: utils.getName('network-4'), key: NETWORK_KEY }
+                    data: { name: utils.getName('network-4')}
                 })
                 .send(function (err, result) {
                     if (err) {
@@ -423,7 +418,6 @@ describe('REST API Network', function () {
         it('should update with admin jwt', function (done) {
             var update = {
                 name:utils.getName('network-4-update'),
-                key: NETWORK_KEY,
                 description: 'lorem ipsum dolor sit amet'
             };
             req.update(path.current)
@@ -455,7 +449,6 @@ describe('REST API Network', function () {
                         .params({jwt: utils.jwt.admin, id: networkId1})
                         .expect({
                             name: NETWORK_1,
-                            key: NETWORK_KEY,
                             description: 'lorem ipsum dolor sit amet'
                         })
                         .send(done);
