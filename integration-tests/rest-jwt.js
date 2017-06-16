@@ -14,6 +14,9 @@ describe('REST API JSON Web Tokens', function () {
     var user = null;
     var inactiveUser = null;
 
+    var defaultAccessTokenLifeTime = 1800000;
+    var defaultRefreshTokenLifeTime = 15724800000;
+
     before(function (done) {
 
         function createAdminUser(callback) {
@@ -197,7 +200,7 @@ describe('REST API JSON Web Tokens', function () {
             });
         });
 
-        it.only('should create access token without provided expiration date', function (done) {
+        it('should create access token without provided expiration date', function (done) {
             utils.create(path.JWT + '/create', {jwt: utils.jwt.admin,
                 data: {
                     userId: 1,
@@ -215,11 +218,32 @@ describe('REST API JSON Web Tokens', function () {
 
                 var accessTokenVO = utils.parseJwt(result.accessToken);
                 var refreshTokenVO = utils.parseJwt(result.refreshToken);
-                var defaultTokenLifeTime = 30 * 60 * 1000;
-                var expTime = new Date().getTime() + defaultTokenLifeTime;
+                var expAccessTime = new Date().getTime() + defaultAccessTokenLifeTime;
+                var expRefreshTime = new Date().getTime() + defaultRefreshTokenLifeTime;
 
-                assert(accessTokenVO.payload.expiration - expTime < 10000);
-                assert(refreshTokenVO.payload.expiration - expTime < 10000);
+                assert(accessTokenVO.payload.expiration - expAccessTime < 1000);
+                assert(refreshTokenVO.payload.expiration - expRefreshTime < 1000);
+
+                done();
+            });
+        });
+
+        it('should create access token without provided expiration date', function (done) {
+            utils.create(path.JWT + '/refresh', {
+                data: {
+                    refreshToken: utils.jwt.admin_refresh
+
+            }}, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                assert(result.accessToken != null);
+
+                var accessTokenVO = utils.parseJwt(result.accessToken);
+                var expTime = new Date().getTime() + defaultAccessTokenLifeTime;
+
+                assert(accessTokenVO.payload.expiration - expTime < 1000);
 
                 done();
             });
