@@ -137,6 +137,104 @@ describe('WebSocket API Device Unit', function () {
         });
     });
 
+    describe('#device/list', function () {
+
+        var conn = null;
+        var networkId = null;
+
+        before(function (done) {
+            function createNetwork(callback) {
+                var params = {
+                    jwt: utils.jwt.admin,
+                    data: { name: NETWORK, key: NETWORK_KEY }
+                };
+
+                utils.create(path.NETWORK, params, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    networkId = result.id;
+                    callback();
+                });
+            }
+
+            function createDevice(callback) {
+                device.networkId = networkId;
+                req.update(path.get(path.DEVICE, deviceId))
+                    .params({jwt: utils.jwt.admin, data: device})
+                    .send(callback);
+            }
+
+            function createConn(callback) {
+                conn = new Websocket(url, 'device');
+                conn.connect(callback);
+            }
+
+            function createToken(callback) {
+                var args = {
+                    actions: [
+                        'CreateDeviceNotification',
+                        'GetDeviceNotification',
+                        'GetDevice',
+                        'ManageNetwork'
+                    ],
+                    deviceIds: deviceId,
+                    networkIds: void 0
+                };
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceIds, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    token = result.accessToken;
+                    callback()
+                })
+            }
+
+            function authenticateConn(callback) {
+                conn.params({
+                    action: 'authenticate',
+                    requestId: getRequestId(),
+                    deviceId: deviceId,
+                    token: token
+                })
+                    .send(callback);
+            }
+
+            async.series([
+                createNetwork,
+                createDevice,
+                createToken,
+                createConn,
+                authenticateConn
+            ], done);
+        });
+
+        it('should get information about device list', function (done) {
+            var requestId = getRequestId();
+
+            var expectedDevice = utils.core.clone(device);
+            delete expectedDevice.key;
+
+            conn.params({
+                action: 'device/list',
+                requestId: requestId
+            })
+                .expect({
+                    action: 'device/list',
+                    requestId: requestId,
+                    status: 'success',
+                    devices: [expectedDevice]
+                })
+                .send(done);
+        });
+
+        after(function (done) {
+            conn.close();
+            utils.clearDataJWT(done);
+        });
+    });
+
     describe('#device/save', function () {
 
         var conn = null;
