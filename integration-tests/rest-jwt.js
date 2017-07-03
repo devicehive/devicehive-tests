@@ -380,5 +380,18 @@ describe('REST API JSON Web Tokens', function () {
                 done();
             });
         });
+        
+        it('should not refresh token with error refresh token has invalid signature', function (done) {
+            utils.create(path.JWT + '/refresh', {
+                data: {
+                    refreshToken: utils.jwt.admin_refresh_invalid_signature
+                }
+            }, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                done();
+            });
+        });
     });
 });
