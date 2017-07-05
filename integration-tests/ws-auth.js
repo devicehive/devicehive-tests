@@ -5,7 +5,7 @@ var req = require('./common/request');
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
-describe('WebSocket API Client Authentication', function () {
+describe('WebSocket API Authentication', function () {
     this.timeout(90000);
     var url = null;
 
@@ -94,7 +94,7 @@ describe('WebSocket API Client Authentication', function () {
             var requestId = getRequestId();
 
             function createConnection(callback) {
-                client = new Websocket(url, 'client');
+                client = new Websocket(url);
                 client.connect(callback);
             }
 
@@ -128,7 +128,7 @@ describe('WebSocket API Client Authentication', function () {
             var client = null;
 
             function createConnection(callback) {
-                client = new Websocket(url, 'client');
+                client = new Websocket(url);
                 client.connect(callback);
             }
 
@@ -158,7 +158,7 @@ describe('WebSocket API Client Authentication', function () {
             var client = null;
 
             function createConnection(callback) {
-                client = new Websocket(url, 'client');
+                client = new Websocket(url);
                 client.connect(callback);
             }
 
@@ -191,7 +191,7 @@ describe('WebSocket API Client Authentication', function () {
             var requestId = getRequestId();
 
             function createConnection(callback) {
-                client = new Websocket(url, 'client');
+                client = new Websocket(url);
                 client.connect(callback);
             }
 
@@ -225,7 +225,7 @@ describe('WebSocket API Client Authentication', function () {
             var client = null;
 
             function createConnection(callback) {
-                client = new Websocket(url, 'client');
+                client = new Websocket(url);
                 client.connect(callback);
             }
 
@@ -255,7 +255,7 @@ describe('WebSocket API Client Authentication', function () {
             var client = null;
 
             function createConnection(callback) {
-                client = new Websocket(url, 'client');
+                client = new Websocket(url);
                 client.connect(callback);
             }
 

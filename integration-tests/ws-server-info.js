@@ -4,11 +4,11 @@ var req = require('./common/request');
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
-describe('WebSocket API Device Server Info', function () {
+describe('WebSocket API Server Info', function () {
     var url = null;
 
     before(function (done) {
-        req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
+        req.get(path.INFO).params({token: utils.jwt.admin}).send(function (err, result) {
             if (err) {
                 return done(err);
             }
@@ -20,14 +20,14 @@ describe('WebSocket API Device Server Info', function () {
     describe('#server/info', function () {
 
         it('should get server info, no auth', function (done) {
-            var device = new Websocket(url, 'device');
-            device.connect(function (err) {
+            var client = new Websocket(url);
+            client.connect(function (err) {
                 if (err) {
                     return done(err);
                 }
 
                 var requestId = getRequestId();
-                device.params({
+                client.params({
                         action: 'server/info',
                         requestId: requestId
                     })

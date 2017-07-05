@@ -6,7 +6,7 @@ var req = require('./common/request');
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
-describe('WebSocket API Device Unit', function () {
+describe('WebSocket API Device', function () {
     this.timeout(90000);
     var url = null;
 
@@ -61,7 +61,7 @@ describe('WebSocket API Device Unit', function () {
             }
 
             function createConn(callback) {
-                conn = new Websocket(url, 'device');
+                conn = new Websocket(url);
                 conn.connect(callback);
             }
 
@@ -167,7 +167,7 @@ describe('WebSocket API Device Unit', function () {
             }
 
             function createConn(callback) {
-                conn = new Websocket(url, 'device');
+                conn = new Websocket(url);
                 conn.connect(callback);
             }
 
@@ -265,7 +265,7 @@ describe('WebSocket API Device Unit', function () {
             }
 
             function createConn(callback) {
-                conn = new Websocket(url, 'device');
+                conn = new Websocket(url);
                 conn.connect(callback);
             }
 

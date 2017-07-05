@@ -6,7 +6,7 @@ var req = require('./common/request');
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
-describe('WebSocket API Client Command', function () {
+describe('WebSocket API Command', function () {
     this.timeout(90000);
     var url = null;
 
@@ -20,6 +20,7 @@ describe('WebSocket API Client Command', function () {
     var user = null;
     var token = null;
     var invalidToken = null;
+    var device = null;
 
     var clientToken = null;
     var clientInvalidToken = null;
@@ -109,13 +110,18 @@ describe('WebSocket API Client Command', function () {
             })
         }
 
+        function createConn(callback) {
+            device = new Websocket(url);
+            device.connect(callback);
+        }
+
         function createConnTokenAuth(callback) {
-            clientToken = new Websocket(url, 'client');
+            clientToken = new Websocket(url);
             clientToken.connect(callback);
         }
 
         function createConnInvalidTokenAuth(callback) {
-            clientInvalidToken = new Websocket(url, 'client');
+            clientInvalidToken = new Websocket(url);
             clientInvalidToken.connect(callback);
         }
         function authenticateWithToken(callback) {
@@ -135,7 +141,16 @@ describe('WebSocket API Client Command', function () {
             })
                 .send(callback);
         }
-        
+
+        function authenticateConn(callback) {
+            device.params({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: token
+            })
+                .send(callback);
+        }
+
         async.series([
             getWsUrl,
             createNetwork,
@@ -145,8 +160,10 @@ describe('WebSocket API Client Command', function () {
             createInvalidToken,
             createConnTokenAuth,
             createConnInvalidTokenAuth,
+            createConn,
             authenticateWithToken,
-            authenticateWithInvalidToken
+            authenticateWithInvalidToken,
+            authenticateConn
         ], done);
     });
     
@@ -291,6 +308,54 @@ describe('WebSocket API Client Command', function () {
         });
         it('should subscribe to device commands with timestamp, jwt authorization', function (done) {
             runTest(clientToken, new Date().toISOString(), done);
+        });
+
+        it('should subscribe to device commands for single device', function (done) {
+            var requestId = getRequestId();
+
+            device.params({
+                action: 'command/subscribe',
+                deviceIds: [deviceId],
+                requestId: requestId
+            })
+                .expect({
+                    action: 'command/subscribe',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .send(onSubscribed);
+
+            function onSubscribed(err) {
+                if (err) {
+                    return done(err);
+                }
+
+                device.waitFor('command/insert', cleanUp)
+                    .expect({
+                        action: 'command/insert',
+                        deviceId: deviceId,
+                        command: { command: COMMAND }
+                    });
+
+                req.create(path.COMMAND.get(deviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {command: COMMAND}
+                    })
+                    .send();
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    device.params({
+                        action: 'command/unsubscribe',
+                        requestId: getRequestId()
+                    })
+                        .send(done);
+                }
+            }
         });
     });
 
@@ -566,6 +631,80 @@ describe('WebSocket API Client Command', function () {
 
         it('should notify when command was updated, jwt auth', function (done) {
             runTest(clientToken, done);
+        });
+    });
+
+    describe('#srv: command/insert', function () {
+
+        it('should notify when command was inserted, device auth', function (done) {
+            var command = {
+                command: COMMAND,
+                parameters: {a: '1', b: '2'},
+                lifetime: 100500,
+                status: 'Inserted',
+                result: {done: 'yes'}
+            };
+
+            device.params({
+                action: 'command/subscribe',
+                requestId: getRequestId()
+            })
+                .send(onSubscribed);
+
+            function onSubscribed(err) {
+                if (err) {
+                    return done(err);
+                }
+
+                device.waitFor('command/insert', cleanUp)
+                    .expect({
+                        action: 'command/insert',
+                        deviceId: deviceId,
+                        command: command
+                    });
+
+                req.create(path.COMMAND.get(deviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: command
+                    })
+                    .send();
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    device.params({
+                        action: 'command/unsubscribe',
+                        requestId: getRequestId()
+                    })
+                        .send(done);
+                }
+            }
+        });
+
+        it('should not notify when command was inserted without prior subscription, device auth', function (done) {
+            var command = {
+                command: COMMAND,
+                parameters: {a: '3', b: '4'},
+                lifetime: 500100,
+                status: 'Inserted',
+                result: {done: 'yes'}
+            };
+
+            device.waitFor('command/insert', function (err) {
+                assert.strictEqual(!(!err), true, 'Commands should not arrive');
+                utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\' for 2000ms'});
+                done();
+            });
+
+            req.create(path.COMMAND.get(deviceId))
+                .params({
+                    jwt: utils.jwt.admin,
+                    data: command
+                })
+                .send();
         });
     });
 
