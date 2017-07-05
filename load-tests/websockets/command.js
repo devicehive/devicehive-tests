@@ -135,7 +135,7 @@ Command.prototype = {
         for (var i = 0; i < this.clientsCount; i++) {
             var client = new Sender('client');
             client.props = {
-                deviceIds: testUtils.getDeviceGuids(this, client.id)
+                deviceIds: testUtils.getDeviceIds(this, client.id)
             };
             client.addErrorCallback(this.onError, this);
             client.addActionCallback('authenticate', this.onClientAuthenticate, this);

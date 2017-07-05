@@ -7,7 +7,7 @@ function WsSender(name, props) {
     this.id = connId++;
     this.name = name + '#' + this.id;
     this.actionCallbacks = {};
-    this.socket = new WebSocket(utils.getConfig('server:wsUrl') + '/client');
+    this.socket = new WebSocket(utils.getConfig('server:wsUrl'));
     this.props = props;
 }
 
@@ -50,7 +50,7 @@ WsSender.prototype = {
 
         var authData = {
             action : "authenticate",
-            accessKey : utils.getConfig('server:accessKey'),
+            token : utils.getConfig('server:jwt'),
             login : null,
             password : null,
             requestId : utils.getRequestId()

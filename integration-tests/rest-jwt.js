@@ -322,7 +322,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: inactiveUser.id,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceGuids: ['*']
+                    deviceIds: ['*']
                 }
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
