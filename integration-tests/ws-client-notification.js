@@ -114,23 +114,23 @@ describe('WebSocket API Client Notification', function () {
         }
 
         function createConnTokenAuth(callback) {
-            clientToken = new Websocket(url, 'client');
+            clientToken = new Websocket(url);
             clientToken.connect(callback);
         }
 
         function createConnAdminTokenAuth(callback) {
-            adminValidToken = new Websocket(url, 'client');
+            adminValidToken = new Websocket(url);
             adminValidToken.connect(callback);
         }
 
 
         function createConnInvalidTokenAuth(callback) {
-            clientInvalidToken = new Websocket(url, 'client');
+            clientInvalidToken = new Websocket(url);
             clientInvalidToken.connect(callback);
         }
 
         function createConnRefreshTokenAuth(callback) {
-            refreshToken = new Websocket(url, 'client');
+            refreshToken = new Websocket(url);
             refreshToken.connect(callback);
         }
 

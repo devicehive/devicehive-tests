@@ -61,7 +61,7 @@ describe('WebSocket API Device Unit', function () {
             }
 
             function createConn(callback) {
-                conn = new Websocket(url, 'device');
+                conn = new Websocket(url);
                 conn.connect(callback);
             }
 
@@ -167,7 +167,7 @@ describe('WebSocket API Device Unit', function () {
             }
 
             function createConn(callback) {
-                conn = new Websocket(url, 'device');
+                conn = new Websocket(url);
                 conn.connect(callback);
             }
 
@@ -265,7 +265,7 @@ describe('WebSocket API Device Unit', function () {
             }
 
             function createConn(callback) {
-                conn = new Websocket(url, 'device');
+                conn = new Websocket(url);
                 conn.connect(callback);
             }
 

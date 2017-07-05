@@ -84,7 +84,7 @@ describe('WebSocket API Device Command', function () {
         }
 
         function createConn(callback) {
-            device = new Websocket(url, 'device');
+            device = new Websocket(url);
             device.connect(callback);
         }
 

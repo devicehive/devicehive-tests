@@ -110,12 +110,12 @@ describe('WebSocket API Client Command', function () {
         }
 
         function createConnTokenAuth(callback) {
-            clientToken = new Websocket(url, 'client');
+            clientToken = new Websocket(url);
             clientToken.connect(callback);
         }
 
         function createConnInvalidTokenAuth(callback) {
-            clientInvalidToken = new Websocket(url, 'client');
+            clientInvalidToken = new Websocket(url);
             clientInvalidToken.connect(callback);
         }
         function authenticateWithToken(callback) {

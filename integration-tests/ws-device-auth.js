@@ -89,7 +89,7 @@ describe('WebSocket API Device Authentication', function () {
             var requestId = getRequestId();
 
             function createConnection(callback) {
-                device = new Websocket(url, 'device');
+                device = new Websocket(url);
                 device.connect(callback);
             }
 
@@ -123,7 +123,7 @@ describe('WebSocket API Device Authentication', function () {
             var device = null;
 
             function createConnection(callback) {
-                device = new Websocket(url, 'device');
+                device = new Websocket(url);
                 device.connect(callback);
             }
 
@@ -153,7 +153,7 @@ describe('WebSocket API Device Authentication', function () {
             var device = null;
 
             function createConnection(callback) {
-                device = new Websocket(url, 'device');
+                device = new Websocket(url);
                 device.connect(callback);
             }
 

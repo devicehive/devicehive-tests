@@ -20,7 +20,7 @@ describe('WebSocket API Device Server Info', function () {
     describe('#server/info', function () {
 
         it('should get server info, no auth', function (done) {
-            var device = new Websocket(url, 'device');
+            var device = new Websocket(url);
             device.connect(function (err) {
                 if (err) {
                     return done(err);

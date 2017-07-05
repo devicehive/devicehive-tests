@@ -131,7 +131,7 @@ describe('Round tests for notification', function () {
         }
 
         function createDeviceConn(callback) {
-            deviceConn = new Websocket(url, 'device');
+            deviceConn = new Websocket(url);
             deviceConn.connect(callback);
         }
 
@@ -146,7 +146,7 @@ describe('Round tests for notification', function () {
         }
 
         function createClientConn(callback) {
-            clientConn = new Websocket(url, 'client');
+            clientConn = new Websocket(url);
             clientConn.connect(callback);
         }
 
