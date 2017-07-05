@@ -6,7 +6,7 @@ var req = require('./common/request');
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
-describe('WebSocket API Device Unit', function () {
+describe('WebSocket API Device', function () {
     this.timeout(90000);
     var url = null;
 
