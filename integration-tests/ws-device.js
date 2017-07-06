@@ -112,7 +112,7 @@ describe('WebSocket API Device', function () {
  
         });
 
-        it('should get information about current device', function (done) {
+        it('should not get information about device without deviceId', function (done) {
             var requestId = getRequestId();
 
             var expectedDevice = utils.core.clone(device);
@@ -122,12 +122,7 @@ describe('WebSocket API Device', function () {
                     action: 'device/get',
                     requestId: requestId
                 })
-                .expect({
-                    action: 'device/get',
-                    requestId: requestId,
-                    status: 'success',
-                    device: expectedDevice
-                })
+                .expectError(400, 'Device id is wrong or empty')
                 .send(done);
         });
 
