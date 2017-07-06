@@ -337,7 +337,6 @@ describe('WebSocket API Notification', function () {
                 client.waitFor('notification/insert', cleanUp)
                     .expect({
                         action: 'notification/insert',
-                        deviceId: deviceId,
                         notification: { notification: NOTIFICATION },
                         subscriptionId: subscriptionId
                     });
@@ -437,7 +436,6 @@ describe('WebSocket API Notification', function () {
                 device.waitFor('notification/insert', cleanUp)
                     .expect({
                         action: 'notification/insert',
-                        deviceId: deviceId,
                         notification: { notification: NOTIFICATION }
                     });
 
@@ -547,7 +545,6 @@ describe('WebSocket API Notification', function () {
                 client.waitFor('notification/insert', cleanUp)
                     .expect({
                         action: 'notification/insert',
-                        deviceId: deviceId,
                         notification: notification,
                         subscriptionId: subscriptionId
                     });

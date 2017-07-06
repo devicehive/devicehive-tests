@@ -276,7 +276,6 @@ describe('WebSocket API Command', function () {
                 client.waitFor('command/insert', cleanUp)
                     .expect({
                         action: 'command/insert',
-                        deviceId: deviceId,
                         command: { command: COMMAND },
                         subscriptionId: subscriptionId
                     });
@@ -333,7 +332,6 @@ describe('WebSocket API Command', function () {
                 device.waitFor('command/insert', cleanUp)
                     .expect({
                         action: 'command/insert',
-                        deviceId: deviceId,
                         command: { command: COMMAND }
                     });
 
@@ -511,7 +509,6 @@ describe('WebSocket API Command', function () {
                 client.waitFor('command/insert', cleanUp)
                     .expect({
                         action: 'command/insert',
-                        deviceId: deviceId,
                         command: command,
                         subscriptionId: subscriptionId
                     });
@@ -659,7 +656,6 @@ describe('WebSocket API Command', function () {
                 device.waitFor('command/insert', cleanUp)
                     .expect({
                         action: 'command/insert',
-                        deviceId: deviceId,
                         command: command
                     });
 
