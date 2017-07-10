@@ -19,12 +19,10 @@ describe('WebSocket API Notification', function () {
     var deviceId = utils.getName('ws-notif-device-id');
     var user = null;
     var token = null;
-    var adminToken = null;
     var invalidToken = null;
     var device = null;
 
     var clientToken = null;
-    var adminValidToken = null;
     var refreshToken = null;
     var clientInvalidToken = null;
 
@@ -94,11 +92,6 @@ describe('WebSocket API Notification', function () {
             })
         }
 
-        function createAdminToken(callback) {
-            adminToken = utils.jwt.admin;
-            callback();
-        }
-
         function createInvalidToken(callback) {
             var args = {
                 actions: [ 'GetNetwork' ],
@@ -124,12 +117,6 @@ describe('WebSocket API Notification', function () {
             clientToken.connect(callback);
         }
 
-        function createConnAdminTokenAuth(callback) {
-            adminValidToken = new Websocket(url);
-            adminValidToken.connect(callback);
-        }
-
-
         function createConnInvalidTokenAuth(callback) {
             clientInvalidToken = new Websocket(url);
             clientInvalidToken.connect(callback);
@@ -145,15 +132,6 @@ describe('WebSocket API Notification', function () {
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: token
-                })
-                .send(callback);
-        }
-
-        function authenticateWithAdminToken(callback) {
-            adminValidToken.params({
-                    action: 'authenticate',
-                    requestId: getRequestId(),
-                    token: adminToken
                 })
                 .send(callback);
         }
@@ -182,15 +160,12 @@ describe('WebSocket API Notification', function () {
             createUser,
             createDevice,
             createToken,
-            createAdminToken,
             createInvalidToken,
             createConn,
             createConnTokenAuth,
-            createConnAdminTokenAuth,
             createConnInvalidTokenAuth,
             createConnRefreshTokenAuth,
             authenticateWithToken,
-            authenticateWithAdminToken,
             authenticateWithInvalidToken,
             authenticateConn
         ], done);
@@ -272,37 +247,24 @@ describe('WebSocket API Notification', function () {
         });
 
         it('should fail when using wrong deviceId', function (done) {
+            var invalidDeviceId = 'invalid-device-id';  
             device.params({
                 action: 'notification/insert',
                 requestId: getRequestId(),
-                deviceId: 'invalid-device-id',
+                deviceId: invalidDeviceId,
                 notification: notification
             })
-                .expectError(403, 'Device id is wrong or empty')
+                .expectError(404, 'Device with such deviceId = ' + invalidDeviceId + ' not found')
                 .send(done);
         });
 
-        it('should not fail for user with one device available', function (done) {
+        it('should fail when no deviceId is provided', function (done) {
             clientToken.params({
                 action: 'notification/insert',
                 requestId: getRequestId(),
                 notification: notification
             })
-                .expect({
-                    "status": "success"
-                })
-                .send(done);
-        });
-        
-        it('should not fail for user with all device available', function (done) {
-            adminValidToken.params({
-                action: 'notification/insert',
-                requestId: getRequestId(),
-                notification: notification
-            })
-                .expect({
-                    "status": "success"
-                })
+                .expectError(400, 'Device id is wrong or empty')
                 .send(done);
         });
     });
