@@ -126,6 +126,19 @@ describe('WebSocket API Device', function () {
                 .send(done);
         });
 
+        it('should return 404 when no device exists', function (done) {
+            var requestId = getRequestId();
+            var invalidDeviceId = 'invalid-device-id';
+
+            conn.params({
+                action: 'device/get',
+                deviceId: invalidDeviceId,
+                requestId: requestId
+            })
+                .expectError(404, 'Device with such deviceId = ' + invalidDeviceId + ' not found')
+                .send(done);
+        });
+
         after(function (done) {
             conn.close();
             utils.clearDataJWT(done);

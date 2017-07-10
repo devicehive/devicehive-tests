@@ -309,6 +309,8 @@ describe('REST API Device Unit', function () {
         var invalidJWT1 = null;
         var invalidJWT2 = null;
         var invalidJWT3 = null;
+        var invalidDeviceId = 'invalid-device-id';
+
         var jwt = null;
         var allNetworksJwt = null;
 
@@ -366,7 +368,7 @@ describe('REST API Device Unit', function () {
 
         });
 
-        it('should fail with 404 #1', function (done) {
+        it('should fail with 401 #1', function (done) {
             var params = {jwt: invalidJWT1};
             params.id = DEVICE_ID;
             utils.get(path.current, params, function (err) {
@@ -376,7 +378,7 @@ describe('REST API Device Unit', function () {
             });
         });
 
-        it('should fail with 404 #2', function (done) {
+        it('should fail with 401 #2', function (done) {
             var params = {jwt: invalidJWT2};
             params.id = DEVICE_ID;
             utils.get(path.current, params, function (err) {
@@ -386,11 +388,21 @@ describe('REST API Device Unit', function () {
             });
         });
 
-        it('should fail with 404 #3', function (done) {
+        it('should fail with 401 #3', function (done) {
             var params = {jwt: invalidJWT3};
             params.id = DEVICE_ID;
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+
+                done();
+            });
+        });
+
+        it('should fail with 404 when no device exists', function (done) {
+            var params = {jwt: utils.jwt.admin};
+            params.id = invalidDeviceId;
+            utils.get(path.current, params, function (err) {
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
 
                 done();
             });
