@@ -10,7 +10,8 @@ describe('WebSocket API Device', function () {
     this.timeout(90000);
     var url = null;
 
-    var DEVICE = utils.getName('ws-device');
+    var DEVICE = utils.getName('ws-device-1');
+    var DEVICE2 = utils.getName('ws-device-2');
     var NETWORK = utils.getName('ws-cmd-network');
     var NETWORK_KEY = utils.getName('ws-cmd-network-key');
     var token = null;
@@ -19,7 +20,12 @@ describe('WebSocket API Device', function () {
         name: DEVICE,
         data: {a: '1', b: '2'}
     };
-    var deviceId = utils.getName('ws-device-id');
+    var device2 = {
+        name: DEVICE2,
+        data: {a: '11', b: '12'}
+    };
+    var deviceId = utils.getName('ws-device-id-1');
+    var deviceId2 = utils.getName('ws-device-id-2');
 
     before(function (done) {
         req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
@@ -89,7 +95,6 @@ describe('WebSocket API Device', function () {
                 conn.params({
                         action: 'authenticate',
                         requestId: getRequestId(),
-                        deviceId: deviceId,
                         token: token
                     })
                     .send(callback);
@@ -174,6 +179,13 @@ describe('WebSocket API Device', function () {
                     .send(callback);
             }
 
+            function createDevice2(callback) {
+                device2.networkId = networkId;
+                req.update(path.get(path.DEVICE, deviceId2))
+                    .params({jwt: utils.jwt.admin, data: device2})
+                    .send(callback);
+            }
+
             function createConn(callback) {
                 conn = new Websocket(url);
                 conn.connect(callback);
@@ -187,7 +199,7 @@ describe('WebSocket API Device', function () {
                         'GetDevice',
                         'ManageNetwork'
                     ],
-                    deviceIds: deviceId,
+                    deviceIds: [deviceId, deviceId2],
                     networkIds: void 0
                 };
                 utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceIds, function (err, result) {
@@ -203,7 +215,6 @@ describe('WebSocket API Device', function () {
                 conn.params({
                     action: 'authenticate',
                     requestId: getRequestId(),
-                    deviceId: deviceId,
                     token: token
                 })
                     .send(callback);
@@ -212,13 +223,14 @@ describe('WebSocket API Device', function () {
             async.series([
                 createNetwork,
                 createDevice,
+                createDevice2,
                 createToken,
                 createConn,
                 authenticateConn
             ], done);
         });
 
-        it('should get information about device list', function (done) {
+        it('should get the first device only', function (done) {
             var requestId = getRequestId();
 
             var expectedDevice = utils.core.clone(device);
@@ -226,13 +238,37 @@ describe('WebSocket API Device', function () {
 
             conn.params({
                 action: 'device/list',
-                requestId: requestId
+                requestId: requestId,
+                namePattern: '%ws-device-1%'
             })
                 .expect({
                     action: 'device/list',
                     requestId: requestId,
                     status: 'success',
                     devices: [expectedDevice]
+                })
+                .send(done);
+        });
+
+        it('should get devices in correct order', function (done) {
+            var requestId = getRequestId();
+
+            var expectedDevice = utils.core.clone(device);
+            var expectedDevice2 = utils.core.clone(device2);
+            delete expectedDevice.key;
+            delete expectedDevice2.key;
+
+            conn.params({
+                action: 'device/list',
+                requestId: requestId,
+                sortField: 'name',
+                sortOrder: 'asc'
+            })
+                .expect({
+                    action: 'device/list',
+                    requestId: requestId,
+                    status: 'success',
+                    devices: [expectedDevice, expectedDevice2]
                 })
                 .send(done);
         });
