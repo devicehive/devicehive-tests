@@ -185,6 +185,236 @@ describe('WebSocket API Authentication', function () {
         });
     });
 
+    describe('#token', function () {
+        it('should get tokens using login and password', function (done) {
+            var client = null;
+            var requestId = getRequestId();
+
+            function createConnection(callback) {
+                client = new Websocket(url);
+                client.connect(callback);
+            }
+
+            function runTest(callback) {
+                client.params({
+                    action: 'token',
+                    requestId: requestId,
+                    login: user.login,
+                    password: utils.NEW_USER_PASSWORD
+                })
+                    .expect({
+                        action: 'token',
+                        status: 'success',
+                        requestId: requestId
+                    })
+                    .send(callback);
+            }
+
+            async.series([
+                createConnection,
+                runTest
+            ], function (err) {
+                if (client) {
+                    client.close();
+                }
+
+                done(err);
+            });
+        });
+
+        it('should return error using invalid password', function (done) {
+            var client = null;
+            var requestId = getRequestId();
+
+            function createConnection(callback) {
+                client = new Websocket(url);
+                client.connect(callback);
+            }
+
+            function runTest(callback) {
+                client.params({
+                    action: 'token',
+                    requestId: requestId,
+                    login: user.login,
+                    password: "123"
+                })
+                    .expectError(401, 'Unauthorized')
+                    .send(callback);
+            }
+
+            async.series([
+                createConnection,
+                runTest
+            ], function (err) {
+                if (client) {
+                    client.close();
+                }
+
+                done(err);
+            });
+        });
+    });
+
+    describe('#token/create', function () {
+        it('should create tokens using admin authentication', function (done) {
+            var client = null;
+            var requestId = getRequestId();
+
+            function createConnection(callback) {
+                client = new Websocket(url);
+                client.connect(callback);
+            }
+
+            function authenticateConn(callback) {
+                client.params({
+                    action: 'authenticate',
+                    requestId: getRequestId(),
+                    token: utils.jwt.admin
+                })
+                    .send(callback);
+            }
+
+            function runTest(callback) {
+                client.params({
+                    action: 'token/create',
+                    requestId: requestId,
+                    payload: {userId: user.id}
+                })
+                    .expect({
+                        action: 'token/create',
+                        status: 'success',
+                        requestId: requestId
+                    })
+                    .send(callback);
+            }
+
+            async.series([
+                createConnection,
+                authenticateConn,
+                runTest
+            ], function (err) {
+                if (client) {
+                    client.close();
+                }
+
+                done(err);
+            });
+        });
+
+        it('should return error using client authentication', function (done) {
+            var client = null;
+            var requestId = getRequestId();
+
+            function createConnection(callback) {
+                client = new Websocket(url);
+                client.connect(callback);
+            }
+
+            function authenticateConn(callback) {
+                client.params({
+                    action: 'authenticate',
+                    requestId: getRequestId(),
+                    token: token
+                })
+                    .send(callback);
+            }
+
+            function runTest(callback) {
+                client.params({
+                    action: 'token/create',
+                    requestId: requestId,
+                    payload: {userId: user.id}
+                })
+                    .expectError(401, 'Unauthorized')
+                    .send(callback);
+            }
+
+            async.series([
+                createConnection,
+                authenticateConn,
+                runTest
+            ], function (err) {
+                if (client) {
+                    client.close();
+                }
+
+                done(err);
+            });
+        });
+
+        it('should return error without authentication', function (done) {
+            var client = null;
+            var requestId = getRequestId();
+
+            function createConnection(callback) {
+                client = new Websocket(url);
+                client.connect(callback);
+            }
+
+            function runTest(callback) {
+                client.params({
+                    action: 'token/create',
+                    requestId: requestId,
+                    payload: {userId: user.id}
+                })
+                    .expectError(401, 'Unauthorized')
+                    .send(callback);
+            }
+
+            async.series([
+                createConnection,
+                runTest
+            ], function (err) {
+                if (client) {
+                    client.close();
+                }
+
+                done(err);
+            });
+        });
+
+        it('should return error with invalid payload', function (done) {
+            var client = null;
+            var requestId = getRequestId();
+
+            function createConnection(callback) {
+                client = new Websocket(url);
+                client.connect(callback);
+            }
+
+            function authenticateConn(callback) {
+                client.params({
+                    action: 'authenticate',
+                    requestId: getRequestId(),
+                    token: utils.jwt.admin
+                })
+                    .send(callback);
+            }
+
+            function runTest(callback) {
+                client.params({
+                    action: 'token/create',
+                    requestId: requestId,
+                    payload: {userId: -1}
+                })
+                    .expectError(500, 'JwtToken: User with specified id -1 was not found')
+                    .send(callback);
+            }
+
+            async.series([
+                createConnection,
+                authenticateConn,
+                runTest
+            ], function (err) {
+                if (client) {
+                    client.close();
+                }
+
+                done(err);
+            });
+        });
+    });
+
     describe('#token/refresh', function () {
         it('should refresh access token using refresh jwt', function (done) {
             var client = null;
