@@ -588,6 +588,17 @@ describe('REST API Device Notification', function () {
                 done();
             });
         });
+
+        it('should not have notification name in response', function (done) {
+            var params = helper.getParamsObj(NOTIFICATION, null, null, null);
+            params.jwt = jwt;
+            utils.create(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.equal(result.notification === undefined, true);
+
+                done();
+            });
+        });
     });
 
     describe('#Update', function () {
