@@ -15,12 +15,16 @@ describe('WebSocket API Notification', function () {
     var NETWORK_KEY = utils.getName('ws-notif-network-key');
 
     var NOTIFICATION = utils.getName('ws-notification');
+    var NOTIFICATION1 = utils.getName('ws-notification-1');
+    var NOTIFICATION2 = utils.getName('ws-notification-2');
 
     var deviceId = utils.getName('ws-notif-device-id');
     var user = null;
     var token = null;
     var invalidToken = null;
     var device = null;
+    var notificationId1 = null;
+    var notificationId2 = null;
 
     var clientToken = null;
     var refreshToken = null;
@@ -72,6 +76,44 @@ describe('WebSocket API Notification', function () {
                 .params(utils.device.getParamsObj(DEVICE, utils.jwt.admin,
                     networkId, {name: DEVICE, version: '1'}))
                 .send(callback);
+        }
+
+        function insertNotification1(callback) {
+            var params = {
+                jwt: utils.jwt.admin,
+                data: {
+                    notification: NOTIFICATION1,
+                    parameters: {a: '1', b: '1'}
+                }
+            };
+
+            utils.create(path.NOTIFICATION.get(deviceId), params, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                notificationId1 = result.id;
+                callback();
+            });
+        }
+
+        function insertNotification2(callback) {
+            var params = {
+                jwt: utils.jwt.admin,
+                data: {
+                    notification: NOTIFICATION2,
+                    parameters: {a: '2', b: '2'}
+                }
+            };
+
+            utils.create(path.NOTIFICATION.get(deviceId), params, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                notificationId2 = result.id;
+                callback();
+            });
         }
 
         function createToken(callback) {
@@ -159,6 +201,8 @@ describe('WebSocket API Notification', function () {
             createNetwork,
             createUser,
             createDevice,
+            insertNotification1,
+            insertNotification2,
             createToken,
             createInvalidToken,
             createConn,
@@ -265,6 +309,159 @@ describe('WebSocket API Notification', function () {
                 notification: notification
             })
                 .expectError(400, 'Device id is wrong or empty')
+                .send(done);
+        });
+    });
+
+    describe('#notification/list', function () {
+
+        function runTest(client, done) {
+            var requestId = getRequestId();
+            client.params({
+                action: 'notification/list',
+                requestId: requestId,
+                deviceId: deviceId
+            })
+                .expect({
+                    action: 'notification/list',
+                    status: 'success',
+                    requestId: requestId
+                })
+                .assert(function (result) {
+                    var notificationIds = result.notifications.map(function (notification) {
+                        return notification.id;
+                    });
+                    var areNotificationsInList = notificationIds.indexOf(notificationId1) >= 0 
+                        && notificationIds.indexOf(notificationId2) >= 0;
+
+                    assert.equal(areNotificationsInList, true, "Commands with required ids are not in the list");
+                })
+                .send(done);
+        }
+
+        it('should check if inserted notifications are in results', function (done) {
+            runTest(clientToken, done);
+        });
+
+        it('should fail when using wrong jwt', function (done) {
+            clientInvalidToken.params({
+                action: 'notification/list',
+                requestId: getRequestId(),
+                deviceId: deviceId
+            })
+                .expectError(401, 'Unauthorized')
+                .send(done);
+        });
+
+        it('should fail when using wrong deviceId', function (done) {
+            var invalidDeviceId = 'invalid-device-id';
+            device.params({
+                action: 'notification/list',
+                requestId: getRequestId(),
+                deviceId: invalidDeviceId
+            })
+                .expectError(404, 'Device with such deviceId = ' + invalidDeviceId + ' not found')
+                .send(done);
+        });
+
+        it('should fail when no deviceId is provided', function (done) {
+            clientToken.params({
+                action: 'notification/list',
+                requestId: getRequestId()
+            })
+                .expectError(400, 'Device id is wrong or empty')
+                .send(done);
+        });
+    });
+
+    describe('#notification/get', function () {
+
+        function runTest(client, done) {
+            var requestId = getRequestId();
+            client.params({
+                action: 'notification/get',
+                requestId: requestId,
+                deviceId: deviceId,
+                notificationId: notificationId1
+            }).expect({
+                action: 'notification/get',
+                status: 'success',
+                requestId: requestId
+            }).assert(function (result) {
+                assert.equal(result.notification.id, notificationId1, "Notifications with required id is not returned");
+            }).send(done);
+        }
+
+        it('should check if inserted commands are in results', function (done) {
+            runTest(clientToken, done);
+        });
+
+        it('should fail when using wrong jwt', function (done) {
+            clientInvalidToken.params({
+                action: 'notification/get',
+                requestId: getRequestId(),
+                deviceId: deviceId,
+                notificationId: notificationId1
+            })
+                .expectError(401, 'Unauthorized')
+                .send(done);
+        });
+
+        it('should fail when using wrong deviceId', function (done) {
+            var invalidDeviceId = 'invalid-device-id';
+            device.params({
+                action: 'notification/get',
+                requestId: getRequestId(),
+                deviceId: invalidDeviceId,
+                notificationId: notificationId1
+            })
+                .expectError(404, 'Device with such deviceId = ' + invalidDeviceId + ' not found')
+                .send(done);
+        });
+
+        it('should fail when no deviceId is provided', function (done) {
+            clientToken.params({
+                action: 'notification/get',
+                requestId: getRequestId(),
+                notificationId: notificationId1
+            })
+                .expectError(400, 'Device id is wrong or empty')
+                .send(done);
+        });
+
+        it('should fail when no notificationId is provided', function (done) {
+            clientToken.params({
+                action: 'notification/get',
+                requestId: getRequestId(),
+                deviceId: deviceId
+            })
+                .expectError(400, 'Notification id is wrong or empty')
+                .send(done);
+        });
+
+        it('should fail when not integer notificationId is provided', function (done) {
+            var invalidNotificationId = 'invalid-notification-id';
+            
+            clientToken.params({
+                action: 'notification/get',
+                requestId: getRequestId(),
+                deviceId: deviceId,
+                notificationId: invalidNotificationId
+            })
+                .expectError(400, 'Notification id is wrong or empty')
+                .send(done);
+        });
+
+        it('should fail when not existing notificationId is provided', function (done) {
+            var invalidNotificationId = 123454321;
+
+            clientToken.params({
+                action: 'notification/get',
+                requestId: getRequestId(),
+                deviceId: deviceId,
+                notificationId: invalidNotificationId
+            })
+                .expectError(404, 'Notification with id = ' + invalidNotificationId + ' not found')
                 .send(done);
         });
     });
