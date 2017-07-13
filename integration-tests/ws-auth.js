@@ -397,7 +397,7 @@ describe('WebSocket API Authentication', function () {
                     requestId: requestId,
                     payload: {userId: -1}
                 })
-                    .expectError(500, 'JwtToken: User with specified id -1 was not found')
+                    .expectError(404, 'User with id = -1 not found')
                     .send(callback);
             }
 
