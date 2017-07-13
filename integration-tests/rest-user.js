@@ -509,7 +509,7 @@ describe('REST API User', function () {
 
                     req.get(path.current)
                         .params({jwt: utils.jwt.admin, id: user.id})
-                        .expectError(status.NOT_FOUND, format('User not found'))
+                        .expectError(status.NOT_FOUND, format('User with id = ' + user.id + ' not found'))
                         .send(done);
                 });
         });
@@ -748,14 +748,14 @@ describe('REST API User', function () {
         it('should fail with 404 when selecting user by non-existing id', function (done) {
             req.get(path.current)
                 .params({jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID})
-                .expectError(status.NOT_FOUND, format('User not found'))
+                .expectError(status.NOT_FOUND, format('User with id = ' + utils.NON_EXISTING_ID + ' not found'))
                 .send(done);
         });
 
         it('should fail with 404 when updating user by non-existing id', function (done) {
             req.update(path.current)
                 .params({jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID})
-                .expectError(status.NOT_FOUND, format('User not found'))
+                .expectError(status.NOT_FOUND, format('User with id = ' + utils.NON_EXISTING_ID + ' not found'))
                 .send(done);
         });
 
