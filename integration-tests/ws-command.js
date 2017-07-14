@@ -901,6 +901,7 @@ describe('WebSocket API Command', function () {
 
     after(function (done) {
         clientToken.close();
+        clientInvalidToken.close();
         utils.clearDataJWT(done);
     });
 });
