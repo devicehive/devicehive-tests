@@ -167,17 +167,6 @@ describe('WebSocket API Configuration', function () {
         });
 
         after(function (done) {
-            // connTokenAuth.params({
-            //     action: 'configuration/delete',
-            //     requestId: requestId,
-            //     name: configurationName
-            // })
-            //     .expect({
-            //         action: 'configuration/delete',
-            //         requestId: requestId,
-            //         status: 'success'
-            //     })
-            //     .send(done)
             utils.delete(path.current, {
                     id: configurationName,
                     jwt: utils.jwt.admin
@@ -196,18 +185,6 @@ describe('WebSocket API Configuration', function () {
         var configurationValue = "ws_test_value_delete";
 
         before(function (done) {
-            // connTokenAuth.params({
-            //     action: 'configuration/put',
-            //     requestId: requestId,
-            //     name: configurationName,
-            //     value: configurationName
-            // })
-            //     .expect({
-            //         action: 'configuration/put',
-            //         requestId: requestId,
-            //         status: 'success'
-            //     })
-            //     .send(done)
             utils.update(path.current, {
                     id:  configurationName,
                     data: configurationValue,
@@ -232,23 +209,23 @@ describe('WebSocket API Configuration', function () {
                     requestId: requestId,
                     status: 'success'
                 })
-                .send(done);
+                .send(onDelete);
 
-            // function onDelete(err, result) {
-            //     if (err) {
-            //         return done(err);
-            //     }
-            //
-            //     utils.get(path.current, {
-            //         id: configurationName,
-            //         jwt: utils.jwt.admin
-            //     }, function (err, result) {
-            //         if (err) {
-            //             return done();
-            //         }
-            //         done(result);
-            //     });
-            // }
+            function onDelete(err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                utils.get(path.current, {
+                    id: configurationName,
+                    jwt: utils.jwt.admin
+                }, function (err, result) {
+                    if (err) {
+                        return done();
+                    }
+                    done(result);
+                });
+            }
 
             
         });
