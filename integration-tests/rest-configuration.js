@@ -63,6 +63,7 @@ describe('REST API Configuration', function () {
         before(function (done) {
             utils.update(path.current, {
                 id: propertyId,
+                data: propertyId,
                 jwt: utils.jwt.admin
             }, function () {
                 done();
@@ -76,6 +77,17 @@ describe('REST API Configuration', function () {
                     jwt: utils.jwt.admin
                 })
                 .expect(status.EXPECTED_DELETED)
+                .send(done);
+        });
+
+        it('should fail when delete non existing configuration', function(done){
+            var invalidConfigurationName = 'invalid-configuration-name';
+            req.delete(path.current)
+                .params({
+                    id: invalidConfigurationName,
+                    jwt: utils.jwt.admin
+                })
+                .expectError(404, 'Requested config with name = ' + invalidConfigurationName + ' not found in the database')
                 .send(done);
         });
     });
@@ -131,9 +143,10 @@ describe('REST API Configuration', function () {
                 .send(done);
         });
 
-        it('should succeed when deleting configuration by non-existing id', function (done) {
+        it('should fail when deleting configuration by non-existing id', function (done) {
             req.delete(path.current)
                 .params({jwt: utils.jwt.admin, id: nonPropertyId})
+                .expectError(status.NOT_FOUND)
                 .send(done);
         });
     });

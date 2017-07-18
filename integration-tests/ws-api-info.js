@@ -28,9 +28,9 @@ describe('WebSocket API Server Info', function () {
 
                 var requestId = getRequestId();
                 client.params({
-                        action: 'server/info',
-                        requestId: requestId
-                    })
+                    action: 'server/info',
+                    requestId: requestId
+                })
                     .expect({
                         action: 'server/info',
                         status: 'success',
@@ -38,6 +38,33 @@ describe('WebSocket API Server Info', function () {
                     })
                     .assert(function (result) {
                         utils.hasPropsWithValues(result.info, ['apiVersion', 'serverTimestamp', 'restServerUrl']);
+                    })
+                    .send(done);
+            });
+        });
+    });
+
+    describe('#cluster/info', function () {
+
+        it('should get cluster info, no auth', function (done) {
+            var client = new Websocket(url);
+            client.connect(function (err) {
+                if (err) {
+                    return done(err);
+                }
+
+                var requestId = getRequestId();
+                client.params({
+                    action: 'cluster/info',
+                    requestId: requestId
+                })
+                    .expect({
+                        action: 'cluster/info',
+                        status: 'success',
+                        requestId: requestId
+                    })
+                    .assert(function (result) {
+                        utils.hasPropsWithValues(result.clusterInfo, ['bootstrap.servers', 'zookeeper.connect']);
                     })
                     .send(done);
             });
