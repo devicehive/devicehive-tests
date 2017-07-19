@@ -306,12 +306,56 @@ describe('REST API Device Command', function () {
             utils.get($path, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.length > 0, true);
+                assert.strictEqual(result[0].timestamp === result[0].lastUpdated, true);
                 done();
             });
 
             setTimeout(function () {
                 var params = helper.getParamsObj(COMMAND, jwt);
                 utils.create(path.current, params, function () {});
+            }, 100);
+        })
+
+        it('should return array with commands when poll updated with waitTimeout=3', function (done) {
+            var params = {
+                jwt: jwt
+            };
+            var $path = path.combine(path.current, path.POLL);
+            params.query = path.query('waitTimeout', 3, 'returnUpdatedCommands', true);
+            utils.get($path, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.length > 0, true);
+                assert.strictEqual(result[0].timestamp !== result[0].lastUpdated, true);
+                done();
+            });
+
+            setTimeout(function () {
+                var params = helper.getParamsObj(COMMAND, jwt);
+                utils.create(path.current, params, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    params.id = result.id;
+                    utils.update(path.current, params, function () {});
+                });
+            }, 100);
+        })
+
+        it('should return empty array with commands when poll updated with waitTimeout=3', function (done) {
+            var params = {
+                jwt: jwt
+            };
+            var $path = path.combine(path.current, path.POLL);
+            params.query = path.query('waitTimeout', 3, 'returnUpdatedCommands', true);
+            utils.get($path, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.length === 0, true);
+                done();
+            });
+
+            setTimeout(function () {
+                var params = helper.getParamsObj(COMMAND, jwt);
+                utils.create(path.current, params, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                });
             }, 100);
         })
     });
