@@ -306,6 +306,7 @@ describe('REST API Device Command', function () {
             utils.get($path, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.length > 0, true);
+                assert.strictEqual(result[0].timestamp === result[0].lastUpdated, true);
                 done();
             });
 
@@ -324,6 +325,7 @@ describe('REST API Device Command', function () {
             utils.get($path, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.length > 0, true);
+                assert.strictEqual(result[0].timestamp !== result[0].lastUpdated, true);
                 done();
             });
 
