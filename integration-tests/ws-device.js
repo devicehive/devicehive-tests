@@ -132,6 +132,21 @@ describe('WebSocket API Device', function () {
                 .send(done);
         });
 
+        it('should return 400 when deviceId is null', function (done) {
+            var requestId = getRequestId();
+
+            var expectedDevice = utils.core.clone(device);
+            delete expectedDevice.key;
+
+            conn.params({
+                action: 'device/get',
+                requestId: requestId,
+                deviceId: null
+            })
+                .expectError(400, 'Device id is wrong or empty')
+                .send(done);
+        });
+
         it('should return 404 when no device exists', function (done) {
             var requestId = getRequestId();
             var invalidDeviceId = 'invalid-device-id';
