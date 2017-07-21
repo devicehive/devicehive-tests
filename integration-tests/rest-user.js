@@ -305,10 +305,8 @@ describe('REST API User', function () {
                             status: 0,
                             lastLogin: null,
                             networks: [{
-                                network: {
                                     id: networkId,
                                     name: NETWORK
-                                }
                             }]
                         })
                         .send(done);
