@@ -141,7 +141,22 @@ describe('REST API Device Command', function () {
             });
         });
 
-        it('should return user commands by start date', function (done) {
+        it('should return user commands by start date without timezone', function (done) {
+            var params = {jwt: jwt};
+            var date = new Date();
+            date.setHours(date.getHours() - 1);
+            var dateISOString = date.toISOString();
+            params.query = path.query('start', dateISOString.substring(0, dateISOString.length - 1));
+            utils.get(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(utils.core.isArrayOfLength(result, 2), true, 'Is array of 2 objects');
+                assert.strictEqual(result.some(hasCommand), true);
+
+                done();
+            });
+        });
+
+        it('should return user commands by start date with timezone', function (done) {
             var params = {jwt: jwt};
             var date = new Date();
             date.setHours(date.getHours() - 1);
