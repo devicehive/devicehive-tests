@@ -448,7 +448,7 @@ describe('WebSocket API Notification', function () {
                 deviceId: deviceId,
                 notificationId: invalidNotificationId
             })
-                .expectError(400, 'Notification id is wrong or empty')
+                .expectError(400, 'Invalid request parameters')
                 .send(done);
         });
 

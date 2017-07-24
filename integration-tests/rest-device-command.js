@@ -365,17 +365,19 @@ describe('REST API Device Command', function () {
             var params = {jwt: jwt};
             var $path = path.combine(path.current, path.POLL);
 
-            for (i = 0; i < 5; i++) {
-              var params = helper.getParamsObj(utils.getName('' + i), jwt);
-              utils.create(path.current, params, function () {});
-            }
-
             params.query = path.query('waitTimeout', 3, 'timestamp', beforeCreateCommandsTimestamp, 'limit', 3);
             utils.get($path, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
-                assert.strictEqual(result.length == 3, true);
+                assert.strictEqual(result.length === 3, true);
                 done();
             });
+
+            setTimeout(function () {
+                for (i = 0; i < 5; i++) {
+                    var params = helper.getParamsObj(utils.getName('' + i), jwt);
+                    utils.create(path.current, params, function () {});
+                }
+            }, 100)
 
         })
     });

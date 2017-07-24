@@ -718,8 +718,7 @@ describe('REST API Device Notification', function () {
             params.id = utils.NON_EXISTING_ID;
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error,
-                    format('Notification with id = %s not found', params.id));
+                assert.strictEqual(err.error, 'Requested notification not found');
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                 done();
             })
