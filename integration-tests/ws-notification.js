@@ -448,7 +448,7 @@ describe('WebSocket API Notification', function () {
                 deviceId: deviceId,
                 notificationId: invalidNotificationId
             })
-                .expectError(400, 'Invalid request parameters')
+                .expectError(400, 'Notification id is wrong or empty')
                 .send(done);
         });
 
@@ -461,7 +461,7 @@ describe('WebSocket API Notification', function () {
                 deviceId: deviceId,
                 notificationId: invalidNotificationId
             })
-                .expectError(404, 'Notification with id = ' + invalidNotificationId + ' not found')
+                .expectError(404, 'Requested notification not found')
                 .send(done);
         });
     });
