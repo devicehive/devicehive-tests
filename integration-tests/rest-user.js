@@ -757,9 +757,10 @@ describe('REST API User', function () {
                 .send(done);
         });
 
-        it('should succeed when deleting user by non-existing id', function (done) {
+        it('should fail when deleting user by non-existing id', function (done) {
             req.delete(path.current)
                 .params({jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID})
+                .expectError(status.NOT_FOUND, format('User with id = ' + utils.NON_EXISTING_ID + ' not found'))
                 .send(done);
         });
     });
