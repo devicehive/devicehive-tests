@@ -217,6 +217,9 @@ describe('WebSocket API Command', function () {
                 token: utils.jwt.admin_refresh
             })
                 .expectError(401, 'Invalid credentials')
+                .assert(function (result) {
+                    utils.hasPropsWithValues(result.notification, ['action', 'requestId', 'code', 'status', 'error']);
+                })
                 .send(done);
         });
     });
