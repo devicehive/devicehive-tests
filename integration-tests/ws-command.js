@@ -242,7 +242,7 @@ describe('WebSocket API Command', function () {
                     requestId: requestId
                 })
                 .assert(function (result) {
-                    utils.hasPropsWithValues(result.command, ['id', 'timestamp', 'userId']);
+                    utils.hasPropsWithValues(result.command, ['id', 'timestamp', 'lastUpdated', 'userId']);
                 })
                 .send(onInsert);
 
@@ -817,7 +817,10 @@ describe('WebSocket API Command', function () {
                         action: 'command/update',
                         command: {id: commandId}
                     })
-                    .expect({command: update});
+                    .expect({command: update})
+                    .assert(function (result) {
+                        utils.hasPropsWithValues(result, ['command', 'action', 'subscriptionId']);
+                    });
             }
         }
 
