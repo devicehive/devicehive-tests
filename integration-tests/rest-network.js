@@ -617,9 +617,10 @@ describe('REST API Network', function () {
                 .send(done);
         });
 
-        it('should succeed when deleting network by non-existing id', function (done) {
+        it('should fail with 404 when deleting network by non-existing id', function (done) {
             req.delete(path.current)
                 .params({jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID})
+                .expectError(status.NOT_FOUND, format('Network with id = %s not found', utils.NON_EXISTING_ID))
                 .send(done);
         });
     });
