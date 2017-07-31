@@ -253,6 +253,38 @@ describe('WebSocket API Authentication', function () {
                 done(err);
             });
         });
+
+        it('should return error using invalid login', function (done) {
+            var client = null;
+            var requestId = getRequestId();
+
+            function createConnection(callback) {
+                client = new Websocket(url);
+                client.connect(callback);
+            }
+
+            function runTest(callback) {
+                client.params({
+                    action: 'token',
+                    requestId: requestId,
+                    login: 'invalid-login',
+                    password: 'invalid-password'
+                })
+                    .expectError(401, 'Unauthorized')
+                    .send(callback);
+            }
+
+            async.series([
+                createConnection,
+                runTest
+            ], function (err) {
+                if (client) {
+                    client.close();
+                }
+
+                done(err);
+            });
+        });
     });
 
     describe('#token/create', function () {
