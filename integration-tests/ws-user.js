@@ -556,7 +556,7 @@ describe('WebSocket API User', function () {
                 action: 'user/updateCurrent',
                 requestId: requestId,
                 userId: user.id,
-                user: {data: "data"}
+                user: {data: {userdata: "userdata"}}
             })
             .send(function (err) {
                 if (err) {
@@ -1029,7 +1029,7 @@ describe('WebSocket API User', function () {
                 action: 'user/update',
                 requestId: getRequestId(),
                 userId: utils.NON_EXISTING_ID,
-                user: {data: 123}
+                user: {data: {userdata: 123}}
             })
                 .expectError(status.NOT_FOUND, format('User with id = ' + utils.NON_EXISTING_ID + ' not found'))
                 .send(done);

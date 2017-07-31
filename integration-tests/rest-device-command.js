@@ -568,7 +568,7 @@ describe('REST API Device Command', function () {
 
         var commandUpdate = {
             status: 'Done',
-            result: 'OK'
+            result: {status: 'OK'}
         };
 
         it('should return empty response with status 204 when polling not processed command', function (done) {
@@ -589,7 +589,7 @@ describe('REST API Device Command', function () {
             utils.get($path, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.status, commandUpdate.status);
-                assert.strictEqual(result.result, commandUpdate.result);
+                assert.deepEqual(result.result, commandUpdate.result);
                 done();
             });
 
@@ -613,7 +613,7 @@ describe('REST API Device Command', function () {
                 utils.get($path, params, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
                     assert.strictEqual(result.status, commandUpdate.status);
-                    assert.strictEqual(result.result, commandUpdate.result);
+                    assert.deepEqual(result.result, commandUpdate.result);
                     done();
                 });
             },10);

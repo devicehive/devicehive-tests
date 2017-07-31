@@ -408,7 +408,7 @@ describe('REST API User', function () {
 
         it('should update current user data field', function (done) {
             req.update(path.combine(path.USER, path.CURRENT))
-                .params({jwt: jwt, data: {data: "data"}})
+                .params({jwt: jwt, data: {data: {userdata: "userdata"}}})
                 .send(function (err) {
                     if (err) {
                         return done(err);
