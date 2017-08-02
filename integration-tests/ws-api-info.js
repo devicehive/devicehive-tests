@@ -37,7 +37,7 @@ describe('WebSocket API Server Info', function () {
                         requestId: requestId
                     })
                     .assert(function (result) {
-                        utils.hasPropsWithValues(result.info, ['apiVersion', 'serverTimestamp', 'restServerUrl']);
+                        utils.hasPropsWithValues(result.info, ['apiVersion', 'serverTimestamp', 'restServerUrl', 'ehcacheStats']);
                     })
                     .send(done);
             });
