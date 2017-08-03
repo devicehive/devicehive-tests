@@ -28,7 +28,10 @@ describe('REST API User', function () {
 
         it('should return all users when using admin credentials', function (done) {
             req.get(path.current)
-                .params({jwt: utils.jwt.admin})
+                .params({
+                    jwt: utils.jwt.admin,
+                    take: 10000
+                })
                 .expectTrue(function (result) {
                     return utils.core.isArrayNonEmpty(result);
                 })
@@ -42,7 +45,10 @@ describe('REST API User', function () {
 
         it('should get user by login', function (done) {
             req.get(path.current)
-                .params({jwt: utils.jwt.admin})
+                .params({
+                    jwt: utils.jwt.admin,
+                    take: 10000
+                })
                 .query('login', user.login)
                 .expect([{
                     id: user.id,
@@ -53,7 +59,10 @@ describe('REST API User', function () {
 
         it('should get non-existing user, no error', function (done) {
             req.get(path.current)
-                .params({jwt: utils.jwt.admin})
+                .params({
+                    jwt: utils.jwt.admin,
+                    take: 10000
+                })
                 .query('login', 'non-existing')
                 .expectTrue(function (result) {
                     return utils.core.isEmptyArray(result);
