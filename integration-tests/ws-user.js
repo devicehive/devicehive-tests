@@ -174,7 +174,8 @@ describe('WebSocket API User', function () {
             conn.params({
                 action: 'user/list',
                 requestId: requestId,
-                login: user.login
+                login: user.login,
+                take: 10000
             })
                 .expect({
                     action: 'user/list',
@@ -193,7 +194,8 @@ describe('WebSocket API User', function () {
             conn.params({
                 action: 'user/list',
                 requestId: requestId,
-                login: 'non-existing'
+                login: 'non-existing',
+                take: 10000
             })
                 .expect({
                     action: 'user/list',
