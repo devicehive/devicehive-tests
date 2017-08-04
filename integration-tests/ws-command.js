@@ -500,14 +500,92 @@ describe('WebSocket API Command', function () {
             }
         }
 
-        it('should subscribe to device commands, jwt authorization', function (done) {
+        function runTestWithUpdatedCommands(client, ts, done) {
+            var requestId = getRequestId();
+            var subscriptionId = null;
+            var clientParams = null;
+            if (ts != null) {
+                clientParams = client.params({
+                    action: 'command/subscribe',
+                    requestId: requestId,
+                    deviceIds: [deviceId],
+                    returnUpdatedCommands: true,
+                    names: [COMMAND],
+                    timestamp: ts
+                });
+            } else {
+                clientParams = client.params({
+                    action: 'command/subscribe',
+                    requestId: requestId,
+                    deviceIds: [deviceId],
+                    returnUpdatedCommands: true,
+                    names: [COMMAND]
+                });
+            }
+            clientParams.expect({
+                action: 'command/subscribe',
+                requestId: requestId,
+                status: 'success'
+            })
+                .expectTrue(function (result) {
+                    return utils.core.hasStringValue(result.subscriptionId);
+                })
+                .send(onSubscribed);
+
+            function onSubscribed(err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                subscriptionId = result.subscriptionId;
+                client.waitFor('command/update', cleanUp)
+                    .expect({
+                        action: 'command/update',
+                        command: {command: COMMAND},
+                        subscriptionId: subscriptionId
+                    });
+
+                req.create(path.COMMAND.get(deviceId))
+                    .params({
+                        jwt: token,
+                        data: {command: COMMAND}
+                    })
+                    .send(function(err, result) {
+                        if (err) {
+                            return done(err);
+                        }
+                        
+                        req.update(path.combine(path.COMMAND.get(deviceId), result.id))
+                            .params({
+                                jwt: token,
+                                data: {command: COMMAND}
+                            }).send();
+                    });
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    client.params({
+                        action: 'command/unsubscribe',
+                        requestId: getRequestId(),
+                        subscriptionId: subscriptionId
+                    })
+                        .send(done);
+                }
+            }
+        }
+
+        it('should subscribe to device commands, no returnUpdated, jwt authorization', function (done) {
             runTest(clientToken, null, done);
         });
-        it('should subscribe to device commands with timestamp, jwt authorization', function (done) {
+        
+        it('should subscribe to device commands with timestamp, no returnUpdated, jwt authorization', function (done) {
             runTest(clientToken, new Date().toISOString(), done);
         });
 
-        it('should subscribe to device commands for single device', function (done) {
+        it('should subscribe to device commands for single device, no returnUpdated,', function (done) {
             var requestId = getRequestId();
 
             device.params({
@@ -539,6 +617,72 @@ describe('WebSocket API Command', function () {
                         data: {command: COMMAND}
                     })
                     .send();
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    device.params({
+                        action: 'command/unsubscribe',
+                        requestId: getRequestId()
+                    })
+                        .send(done);
+                }
+            }
+        });
+
+        it('should subscribe to device commands, returnUpdated=true, jwt authorization', function (done) {
+            runTestWithUpdatedCommands(clientToken, null, done);
+        });
+
+        it('should subscribe to device commands with timestamp, returnUpdated = true, jwt authorization', function (done) {
+            runTestWithUpdatedCommands(clientToken, new Date().toISOString(), done);
+        });
+
+        it('should subscribe to device commands for single device, returnUpdated = true', function (done) {
+            var requestId = getRequestId();
+
+            device.params({
+                action: 'command/subscribe',
+                deviceIds: [deviceId],
+                returnUpdatedCommands: true,
+                requestId: requestId
+            })
+                .expect({
+                    action: 'command/subscribe',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .send(onSubscribed);
+
+            function onSubscribed(err) {
+                if (err) {
+                    return done(err);
+                }
+
+                device.waitFor('command/update', cleanUp)
+                    .expect({
+                        action: 'command/update',
+                        command: { command: COMMAND }
+                    });
+
+                req.create(path.COMMAND.get(deviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {command: COMMAND}
+                    })
+                    .send(function(err, result) {
+                        if (err) {
+                            return done(err);
+                        }
+
+                        req.update(path.combine(path.COMMAND.get(deviceId), result.id))
+                            .params({
+                                jwt: token,
+                                data: {command: COMMAND}
+                            }).send();
+                    });
 
                 function cleanUp(err) {
                     if (err) {
@@ -807,24 +951,13 @@ describe('WebSocket API Command', function () {
                         commandId: commandId,
                         command: update
                     })
-                    .send(onCommandUpdated);
-            }
-
-            function onCommandUpdated(err) {
-                if (err) {
-                    return done(err);
-                }
-
-                client.waitFor('command/update', done)
                     .expect({
                         action: 'command/update',
-                        command: {id: commandId}
+                        status: "success"
                     })
-                    .expect({command: update})
-                    .assert(function (result) {
-                        utils.hasPropsWithValues(result, ['command', 'action', 'subscriptionId']);
-                    });
+                    .send(done);
             }
+
         }
 
         it('should notify when command was updated, jwt auth', function (done) {
