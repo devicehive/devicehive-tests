@@ -40,6 +40,7 @@ var utils = {
         admin_refresh: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTU5MzQ3MjAwMDAwLCJ0b2tlblR5cGUiOiJSRUZSRVNIIn19.kCFPLoGGoCyaHqS3Vv5tjK_d2xQcPKTsM2z4PjPP64Q',
         admin_refresh_exp: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNDY0NzkzMjkwNTY0LCJ0b2tlblR5cGUiOiJSRUZSRVNIIn19.x_qb6Dy5zKmaD8IZ2E9fXCM894gcZ-Qj2L8CcCxruD8',
         admin_refresh_invalid: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTE0NzY0ODAwMDAwLCJ0b2tlblR5cGUiOiJBQ0NFU1MifX0.OhEltY7vNKZMo-JLPb9MxB3LUwbXrP_Arhajp_pYSc0',
+        admin_refresh_invalid_signature: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTU5MzQ3MjAwMDAwLCJ0b2tlblR5cGUiOiJSRUZSRVNIIn19.kCFPLoGGoCyaHqS3Vv5tjK_d2xQcPKTsM2z4PhKP64Q',
         createMany: function (params, done) {
             var paramsCopy = params.slice(0);
             function createJWT(callback) {

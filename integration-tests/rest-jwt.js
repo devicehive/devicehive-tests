@@ -322,7 +322,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: inactiveUser.id,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceGuids: ['*']
+                    deviceIds: ['*']
                 }
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -372,6 +372,19 @@ describe('REST API JSON Web Tokens', function () {
             utils.create(path.JWT + '/refresh', {
                 data: {
                     refreshToken: utils.jwt.admin_refresh_exp
+                }
+            }, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                done();
+            });
+        });
+        
+        it('should not refresh token with error refresh token has invalid signature', function (done) {
+            utils.create(path.JWT + '/refresh', {
+                data: {
+                    refreshToken: utils.jwt.admin_refresh_invalid_signature
                 }
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');

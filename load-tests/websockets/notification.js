@@ -74,7 +74,7 @@ Notification.prototype = {
         };
 
         if (!this.listenAllDevices) {
-            data.deviceIds = testUtils.getDeviceGuids(this, client.id);
+            data.deviceIds = testUtils.getDeviceIds(this, client.id);
         }
 
         if (this.notifications) {

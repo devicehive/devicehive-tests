@@ -102,7 +102,7 @@ HttpSender.prototype = {
         };
 
         xhr.setRequestHeader('Authorization',
-            'Bearer ' + utils.getConfig('server:accessKey'));
+            'Bearer ' + utils.getConfig('server:jwt'));
 
         xhr.send(params.data);
     },

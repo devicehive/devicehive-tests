@@ -28,7 +28,10 @@ describe('REST API User', function () {
 
         it('should return all users when using admin credentials', function (done) {
             req.get(path.current)
-                .params({jwt: utils.jwt.admin})
+                .params({
+                    jwt: utils.jwt.admin,
+                    take: 10000
+                })
                 .expectTrue(function (result) {
                     return utils.core.isArrayNonEmpty(result);
                 })
@@ -42,7 +45,10 @@ describe('REST API User', function () {
 
         it('should get user by login', function (done) {
             req.get(path.current)
-                .params({jwt: utils.jwt.admin})
+                .params({
+                    jwt: utils.jwt.admin,
+                    take: 10000
+                })
                 .query('login', user.login)
                 .expect([{
                     id: user.id,
@@ -53,7 +59,10 @@ describe('REST API User', function () {
 
         it('should get non-existing user, no error', function (done) {
             req.get(path.current)
-                .params({jwt: utils.jwt.admin})
+                .params({
+                    jwt: utils.jwt.admin,
+                    take: 10000
+                })
                 .query('login', 'non-existing')
                 .expectTrue(function (result) {
                     return utils.core.isEmptyArray(result);
@@ -305,10 +314,8 @@ describe('REST API User', function () {
                             status: 0,
                             lastLogin: null,
                             networks: [{
-                                network: {
                                     id: networkId,
                                     name: NETWORK
-                                }
                             }]
                         })
                         .send(done);
@@ -408,6 +415,35 @@ describe('REST API User', function () {
                 });
         });
 
+        it('should update current user data field', function (done) {
+            req.update(path.combine(path.USER, path.CURRENT))
+                .params({jwt: jwt, data: {data: {userdata: "userdata"}}})
+                .send(function (err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    req.update(path.combine(path.USER, path.CURRENT))
+                        .params({jwt: jwt, data: {data: null}})
+                        .send(function (err) {
+                            if (err) {
+                                return done(err);
+                            }
+
+                            req.get(path.combine(path.USER, path.CURRENT))
+                                .params({jwt: jwt})
+                                .expect({
+                                    id: user.id,
+                                    login: user.login,
+                                    role: 1,
+                                    status: 0,
+                                    data: null
+                                })
+                                .send(done);
+                        });
+                });
+        });
+
         it('should partially update user account', function (done) {
             req.update(path.current)
                 .params({jwt: utils.jwt.admin, id: user.id, data: {status: 1}})
@@ -480,7 +516,7 @@ describe('REST API User', function () {
 
                     req.get(path.current)
                         .params({jwt: utils.jwt.admin, id: user.id})
-                        .expectError(status.NOT_FOUND, format('User not found'))
+                        .expectError(status.NOT_FOUND, format('User with id = ' + user.id + ' not found'))
                         .send(done);
                 });
         });
@@ -719,20 +755,21 @@ describe('REST API User', function () {
         it('should fail with 404 when selecting user by non-existing id', function (done) {
             req.get(path.current)
                 .params({jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID})
-                .expectError(status.NOT_FOUND, format('User not found'))
+                .expectError(status.NOT_FOUND, format('User with id = ' + utils.NON_EXISTING_ID + ' not found'))
                 .send(done);
         });
 
         it('should fail with 404 when updating user by non-existing id', function (done) {
             req.update(path.current)
                 .params({jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID})
-                .expectError(status.NOT_FOUND, format('User not found'))
+                .expectError(status.NOT_FOUND, format('User with id = ' + utils.NON_EXISTING_ID + ' not found'))
                 .send(done);
         });
 
-        it('should succeed when deleting user by non-existing id', function (done) {
+        it('should fail when deleting user by non-existing id', function (done) {
             req.delete(path.current)
                 .params({jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID})
+                .expectError(status.NOT_FOUND, format('User with id = ' + utils.NON_EXISTING_ID + ' not found'))
                 .send(done);
         });
     });

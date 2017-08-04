@@ -141,7 +141,22 @@ describe('REST API Device Command', function () {
             });
         });
 
-        it('should return user commands by start date', function (done) {
+        it('should return user commands by start date without timezone', function (done) {
+            var params = {jwt: jwt};
+            var date = new Date();
+            date.setHours(date.getHours() - 1);
+            var dateISOString = date.toISOString();
+            params.query = path.query('start', dateISOString.substring(0, dateISOString.length - 1));
+            utils.get(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(utils.core.isArrayOfLength(result, 2), true, 'Is array of 2 objects');
+                assert.strictEqual(result.some(hasCommand), true);
+
+                done();
+            });
+        });
+
+        it('should return user commands by start date with timezone', function (done) {
             var params = {jwt: jwt};
             var date = new Date();
             date.setHours(date.getHours() - 1);
@@ -306,12 +321,56 @@ describe('REST API Device Command', function () {
             utils.get($path, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.length > 0, true);
+                assert.strictEqual(result[0].timestamp === result[0].lastUpdated, true);
                 done();
             });
 
             setTimeout(function () {
                 var params = helper.getParamsObj(COMMAND, jwt);
                 utils.create(path.current, params, function () {});
+            }, 100);
+        })
+
+        it('should return array with commands when poll updated with waitTimeout=3', function (done) {
+            var params = {
+                jwt: jwt
+            };
+            var $path = path.combine(path.current, path.POLL);
+            params.query = path.query('waitTimeout', 3, 'returnUpdatedCommands', true);
+            utils.get($path, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.length > 0, true);
+                assert.strictEqual(result[0].timestamp !== result[0].lastUpdated, true);
+                done();
+            });
+
+            setTimeout(function () {
+                var params = helper.getParamsObj(COMMAND, jwt);
+                utils.create(path.current, params, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    params.id = result.id;
+                    utils.update(path.current, params, function () {});
+                });
+            }, 100);
+        })
+
+        it('should return empty array with commands when poll updated with waitTimeout=3', function (done) {
+            var params = {
+                jwt: jwt
+            };
+            var $path = path.combine(path.current, path.POLL);
+            params.query = path.query('waitTimeout', 3, 'returnUpdatedCommands', true);
+            utils.get($path, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.length === 0, true);
+                done();
+            });
+
+            setTimeout(function () {
+                var params = helper.getParamsObj(COMMAND, jwt);
+                utils.create(path.current, params, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                });
             }, 100);
         })
     });
@@ -321,17 +380,19 @@ describe('REST API Device Command', function () {
             var params = {jwt: jwt};
             var $path = path.combine(path.current, path.POLL);
 
-            for (i = 0; i < 5; i++) {
-              var params = helper.getParamsObj(utils.getName('' + i), jwt);
-              utils.create(path.current, params, function () {});
-            }
-
             params.query = path.query('waitTimeout', 3, 'timestamp', beforeCreateCommandsTimestamp, 'limit', 3);
             utils.get($path, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
-                assert.strictEqual(result.length == 3, true);
+                assert.strictEqual(result.length === 3, true);
                 done();
             });
+
+            setTimeout(function () {
+                for (i = 0; i < 5; i++) {
+                    var params = helper.getParamsObj(utils.getName('' + i), jwt);
+                    utils.create(path.current, params, function () {});
+                }
+            }, 100)
 
         })
     });
@@ -507,7 +568,7 @@ describe('REST API Device Command', function () {
 
         var commandUpdate = {
             status: 'Done',
-            result: 'OK'
+            result: {status: 'OK'}
         };
 
         it('should return empty response with status 204 when polling not processed command', function (done) {
@@ -528,7 +589,7 @@ describe('REST API Device Command', function () {
             utils.get($path, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.status, commandUpdate.status);
-                assert.strictEqual(result.result, commandUpdate.result);
+                assert.deepEqual(result.result, commandUpdate.result);
                 done();
             });
 
@@ -552,7 +613,7 @@ describe('REST API Device Command', function () {
                 utils.get($path, params, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
                     assert.strictEqual(result.status, commandUpdate.status);
-                    assert.strictEqual(result.result, commandUpdate.result);
+                    assert.deepEqual(result.result, commandUpdate.result);
                     done();
                 });
             },10);
