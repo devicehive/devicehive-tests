@@ -444,6 +444,27 @@ describe('REST API User', function () {
                 });
         });
 
+        it('should update current user password field', function (done) {
+            req.update(path.combine(path.USER, path.CURRENT))
+                .params({jwt: jwt, data: {password: "devicehive"}})
+                .send(function (err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    req.get(path.combine(path.USER, path.CURRENT))
+                        .params({jwt: jwt})
+                        .expect({
+                            id: user.id,
+                            login: user.login,
+                            role: 1,
+                            status: 0,
+                            data: null
+                        })
+                        .send(done);
+                });
+        });
+
         it('should partially update user account', function (done) {
             req.update(path.current)
                 .params({jwt: utils.jwt.admin, id: user.id, data: {status: 1}})

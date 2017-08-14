@@ -143,10 +143,10 @@ describe('WebSocket API User', function () {
     });
 
     describe('#Get All', function () {
-        
+
         it('should return all users', function (done) {
             var requestId = getRequestId();
-            
+
             conn.params({
                 action: 'user/list',
                 requestId: requestId,
@@ -170,7 +170,7 @@ describe('WebSocket API User', function () {
 
         it('should get user by login', function (done) {
             var requestId = getRequestId();
-            
+
             conn.params({
                 action: 'user/list',
                 requestId: requestId,
@@ -190,7 +190,7 @@ describe('WebSocket API User', function () {
 
         it('should get non-existing user, no error', function (done) {
             var requestId = getRequestId();
-            
+
             conn.params({
                 action: 'user/list',
                 requestId: requestId,
@@ -254,7 +254,7 @@ describe('WebSocket API User', function () {
 
         it('should get user by id', function (done) {
             var requestId = getRequestId();
-            
+
             conn.params({
                 action: 'user/get',
                 requestId: requestId,
@@ -275,7 +275,7 @@ describe('WebSocket API User', function () {
 
         it('should not create user with invalid login', function (done) {
             var requestId = getRequestId();
-            
+
             var userWithInvalidLogin = {
                 "login": "a",
                 "role": 0,
@@ -299,7 +299,7 @@ describe('WebSocket API User', function () {
 
         it('should not create user with invalid password', function (done) {
             var requestId = getRequestId();
-            
+
             var userWithInvalidPassword = {
                 "login": "aaa",
                 "role": 0,
@@ -323,7 +323,7 @@ describe('WebSocket API User', function () {
 
         it('should get user with reviewed intro by id using admin', function (done) {
             var requestId = getRequestId();
-            
+
             adminConn.params({
                 action: 'user/get',
                 requestId: requestId,
@@ -432,7 +432,7 @@ describe('WebSocket API User', function () {
                         return done(err);
                     }
                     var requestId2 = getRequestId();
-                    
+
                     adminConn.params({
                         action: 'user/get',
                         requestId: requestId2,
@@ -464,7 +464,7 @@ describe('WebSocket API User', function () {
         var jwt2 = null;
 
         before(function (done) {
-            
+
             function createUser1(callback) {
                 utils.createUser2(1, void 0, function (err, result) {
                     if (err) {
@@ -565,7 +565,7 @@ describe('WebSocket API User', function () {
                 if (err) {
                     return done(err);
                 }
-                
+
                 conn.params({
                     action: 'user/updateCurrent',
                     requestId: requestId2,
@@ -576,7 +576,7 @@ describe('WebSocket API User', function () {
                     if (err) {
                         return done(err);
                     }
-                    
+
                     conn.params({
                         action: 'user/getCurrent',
                         requestId: requestId3,
@@ -595,13 +595,46 @@ describe('WebSocket API User', function () {
             });
         });
 
+        it('should update current user password field', function (done) {
+            var requestId = getRequestId();
+            var requestId2 = getRequestId();
+
+            conn.params({
+                action: 'user/updateCurrent',
+                requestId: requestId,
+                userId: user.id,
+                user: {password: "devicehive"}
+            })
+                .send(function (err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+
+                    conn.params({
+                        action: 'user/getCurrent',
+                        requestId: requestId2,
+                        userId: user.id
+                    })
+                        .expect({
+                            current: {
+                                id: user.id,
+                                login: user.login,
+                                status: 0,
+                                data: null
+                            }
+                        })
+                        .send(done);
+                });
+        });
+
         it('should partially update user account', function (done) {
             var requestId = getRequestId();
 
             adminConn.params({
-                action: 'user/updateCurrent',
+                action: 'user/update',
                 requestId: requestId,
-                userId: adminUser.id,
+                userId: user.id,
                 user: {status: 1}
             })
                 .send(function (err) {
@@ -610,24 +643,23 @@ describe('WebSocket API User', function () {
                     }
 
                     adminConn.params({
-                        action: 'user/getCurrent',
+                        action: 'user/get',
                         requestId: requestId,
-                        userId: adminUser.id,
+                        userId: user.id
                     })
                         .expect({
-                            current: {
-                                id: adminUser.id,
-                                login: adminUser.login,
-                                role: 0,
+                            user: {
+                                id: user.id,
+                                login: user.login,
+                                role: 1,
                                 status: 1,
                                 lastLogin: null,
-                                introReviewed: false
+                                introReviewed: true
                             }
                         })
                         .send(done);
                 });
         });
-
 
         it('should not be able to update other user if not admin', function (done) {
             var requestId = getRequestId();
@@ -687,7 +719,7 @@ describe('WebSocket API User', function () {
 
         it('should fail with 404 when trying to get deleted user', function (done) {
             var requestId = getRequestId();
-            
+
             conn.params({
                 action: 'user/delete',
                 requestId: requestId,
@@ -722,7 +754,7 @@ describe('WebSocket API User', function () {
 
         it('should not allow to delete a user that owns current client jwt with ManageUser permission', function(done){
             var requestId = getRequestId();
-            
+
             conn.params({
                 action: 'user/delete',
                 requestId: requestId,
@@ -730,12 +762,12 @@ describe('WebSocket API User', function () {
             })
                 .expectError(status.FORBIDDEN, cantDeleteYourselfMessage)
                 .send(done);
-            
+
         });
     });
 
     describe('#Bad Request', function () {
-        
+
         it('should fail with 400 when trying to create user with invalid parameters', function (done) {
             var requestId = getRequestId();
 
@@ -1002,7 +1034,7 @@ describe('WebSocket API User', function () {
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
-            
+
             after(function (done) {
                 nonNetworkConn.close();
                 refreshConn.close();

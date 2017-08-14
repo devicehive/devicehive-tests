@@ -12,7 +12,7 @@
     "tests": [
       {
         "type": "rest-message",
-        "disabled": false,
+        "disabled": true,
         "name": "30 REST notifications, 1 device",
         "senders": 30,
         "requestsPerSender": 10,
@@ -36,7 +36,7 @@
       },
       {
         "type": "rest-message",
-        "disabled": false,
+        "disabled": true,
         "name": "30 REST commands, 1 device",
         "senders": 30,
         "requestsPerSender": 10,
@@ -59,7 +59,7 @@
       },
       {
         "type": "ws-message",
-        "disabled": false,
+        "disabled": true,
         "name": "20 connections, 3 notifications, 1 device",
         "connections": 20,
         "messagesPerClient": 3,
@@ -84,7 +84,7 @@
       },
       {
         "type": "ws-message",
-        "disabled": false,
+        "disabled": true,
         "name": "20 connections, 5 notifications, 99999999 devices",
         "connections": 20,
         "messagesPerClient": 5,
@@ -110,7 +110,7 @@
       },
       {
         "type": "ws-message",
-        "disabled": false,
+        "disabled": true,
         "name": "20 clients, 10 commands, 1 device",
         "connections": 20,
         "messagesPerClient": 10,
@@ -135,7 +135,7 @@
       },
       {
         "type": "ws-notification",
-        "disabled": false,
+        "disabled": true,
         "name": "Full cycle: 4 devices, 10 notifications, 1 client",
         "clients": 1,
         "devices": 4,
@@ -152,7 +152,7 @@
       },
       {
         "type": "ws-notification",
-        "disabled": false,
+        "disabled": true,
         "name": "Full cycle: 1 device, 2 notifications, 4 clients",
         "clients": 4,
         "notifsPerDevice": 2,
@@ -168,7 +168,7 @@
       },
       {
         "type": "ws-command",
-        "disabled": false,
+        "disabled": true,
         "name": "Full cycle: 1 client, 100 commands, 4 devices",
         "clients": 1,
         "devices": 4,
@@ -185,7 +185,7 @@
       },
       {
         "type": "ws-command",
-        "disabled": false,
+        "disabled": true,
         "name": "Full cycle: 4 clients, 2 commands, 1 device",
         "clients": 4,
         "commandsPerClient": 2,
