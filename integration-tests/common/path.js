@@ -10,6 +10,7 @@ var path = {
     JWT: '/token',
     NETWORK: '/network',
     INFO: '/info',
+    INFO_CACHE: '/info/cache',
     HEALTH: '/health',
     DEVICE: '/device',
     CONFIGURATION: '/configuration',

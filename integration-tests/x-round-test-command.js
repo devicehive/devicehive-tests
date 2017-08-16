@@ -10,7 +10,7 @@ describe('Round tests for command', function () {
     this.timeout(60000);
     var url = null;
 
-    var INTERVAL = 1000;
+    var INTERVAL = 2000;
     var TOTAL_COMMANDS = 10;
 
     var COMMAND = utils.getName('round-command');

@@ -37,7 +37,34 @@ describe('WebSocket API Server Info', function () {
                         requestId: requestId
                     })
                     .assert(function (result) {
-                        utils.hasPropsWithValues(result.info, ['apiVersion', 'serverTimestamp', 'restServerUrl', 'ehcacheStats']);
+                        utils.hasPropsWithValues(result.info, ['apiVersion', 'serverTimestamp', 'restServerUrl']);
+                    })
+                    .send(done);
+            });
+        });
+    });
+
+    describe('#server/cacheInfo', function () {
+
+        it('should get server info, no auth', function (done) {
+            var client = new Websocket(url);
+            client.connect(function (err) {
+                if (err) {
+                    return done(err);
+                }
+
+                var requestId = getRequestId();
+                client.params({
+                    action: 'server/cacheInfo',
+                    requestId: requestId
+                })
+                    .expect({
+                        action: 'server/cacheInfo',
+                        status: 'success',
+                        requestId: requestId
+                    })
+                    .assert(function (result) {
+                        utils.hasPropsWithValues(result.cacheInfo, ['serverTimestamp', 'ehcacheStats']);
                     })
                     .send(done);
             });
