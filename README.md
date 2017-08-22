@@ -27,6 +27,19 @@ When running tests in WebStorm you can export test results to .html file:
 
 ![export_tests.png](https://bitbucket.org/repo/M6o9ee/images/3334473711-export_tests.png)
 
+### Environment configuration ###
+
+* All tests use JWT tokens to procceed/fail with authentication process. To make hardcoded JWT tokens work you need to run them on DeviceHive server with JWT_SECRET=devicehive (default value). 
+To configure your DeviceHive installation run following from your terminal:
+
+**$ export JWT_SECRET=devicehive**
+
+and only after this run 
+
+**$ mvn clean package -DskipTests** 
+
+from your DeviceHive java server home folder.
+
 ### Tests structure ###
 
 * *describe()* closure defines a group of tests
