@@ -178,7 +178,15 @@ describe('Round tests for command', function () {
                     action: 'command/subscribe',
                     requestId: getRequestId()
                 })
-                .send(done);
+                .send(function () {
+                    clientConn.params({
+                        action: 'command/subscribe',
+                        returnUpdatedCommands: true,
+                        requestId: getRequestId()
+                    })
+                        .send(done);        
+                });
+            
         });
 
         function runTestDelayed(command, done) {
@@ -342,9 +350,17 @@ describe('Round tests for command', function () {
         var $path = null;
         var pollPath = null;
 
-        before(function () {
+        before(function (done) {
             $path = path.COMMAND.get(deviceId);
             pollPath = path.combine($path, path.POLL);
+            
+            clientConn.params({
+                action: 'command/subscribe',
+                returnUpdatedCommands: true,
+                requestId: getRequestId()
+            })
+                .send(done);
+            
         });
 
         function runTestDelayed(command, done) {
