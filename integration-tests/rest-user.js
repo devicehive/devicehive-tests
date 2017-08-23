@@ -572,7 +572,7 @@ describe('REST API User', function () {
                     }
                     req.delete(path.current)
                         .params({jwt: jwt.accessToken, id: user.id})
-                        .expectError(status.NOT_AUTHORIZED, "Unauthorized")
+                        .expectError(status.FORBIDDEN, "Access is denied")
                         .send(done);
                 });
             });
@@ -677,10 +677,10 @@ describe('REST API User', function () {
 
             });
 
-            it('should fail with 401 when selecting users with invalid jwt', function (done) {
+            it('should fail with 403 when selecting users with invalid jwt', function (done) {
                 req.get(path.current)
                     .params({jwt: nonNetworkUserJwt})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
@@ -691,31 +691,31 @@ describe('REST API User', function () {
                     .send(done);
             });
 
-            it('should fail with 401 when getting user with invalid jwt', function (done) {
+            it('should fail with 403 when getting user with invalid jwt', function (done) {
                 req.get(path.current)
                     .params({jwt: nonNetworkUserJwt, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
-            it('should fail with 401 when creating user with invalid jwt', function (done) {
+            it('should fail with 403 when creating user with invalid jwt', function (done) {
                 req.create(path.current)
                     .params({jwt: nonNetworkUserJwt, data: {login: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED)
+                    .expectError(status.FORBIDDEN)
                     .send(done);
             });
 
-            it('should fail with 401 when updating user with invalid jwt', function (done) {
+            it('should fail with 403 when updating user with invalid jwt', function (done) {
                 req.update(path.current)
                     .params({jwt: nonNetworkUserJwt, id: utils.NON_EXISTING_ID, data: {login: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
-            it('should fail with 401 when deleting user with invalid jwt', function (done) {
+            it('should fail with 403 when deleting user with invalid jwt', function (done) {
                 req.delete(path.current)
                     .params({jwt: nonNetworkUserJwt, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
         });
@@ -734,38 +734,38 @@ describe('REST API User', function () {
                 })
             });
 
-            it('should fail with 401 when getting list using invalid access key', function (done) {
+            it('should fail with 403 when getting list using invalid access key', function (done) {
                 req.get(path.current)
                     .params({jwt: jwt})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
-            it('should fail with 401 when selecting user by id using invalid access key', function (done) {
+            it('should fail with 403 when selecting user by id using invalid access key', function (done) {
                 req.get(path.current)
                     .params({jwt: jwt, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
-            it('should fail with 401 when creating user using invalid access key', function (done) {
+            it('should fail with 403 when creating user using invalid access key', function (done) {
                 req.create(path.current)
                     .params({jwt: jwt, data: {login: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED)
+                    .expectError(status.FORBIDDEN)
                     .send(done);
             });
 
-            it('should fail with 401 when updating user using invalid access key', function (done) {
+            it('should fail with 403 when updating user using invalid access key', function (done) {
                 req.update(path.current)
                     .params({jwt: jwt, id: utils.NON_EXISTING_ID, data: {login: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
-            it('should fail with 401 when deleting user with no auth parameters', function (done) {
+            it('should fail with 403 when deleting user with no auth parameters', function (done) {
                 req.delete(path.current)
                     .params({jwt: jwt, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
         });

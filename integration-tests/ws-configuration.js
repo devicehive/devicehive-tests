@@ -250,29 +250,29 @@ describe('WebSocket API Configuration', function () {
         var invalidConfigurationName = 'jwt.not-a-secret';
         var configurationValue = "test_value_delete";
 
-        it('should fail with 401 if auth parameters omitted', function (done) {
+        it('should fail with 403 if token is invalid', function (done) {
             connInvalidTokenAuth.params({
                 action: 'configuration/get',
                 requestId: requestId,
                 name: configurationName
             })
-                .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                .expectError(status.FORBIDDEN, 'Access is denied')
                 .send(done);
         });
 
-        it('should fail with 401 when selecting configuration by not existing id, no auth parameters, no data',
+        it('should fail with 403 when selecting configuration by not existing id, invalid auth parameters, no data',
             function (done) {
                 connInvalidTokenAuth.params({
                     action: 'configuration/get',
                     requestId: requestId,
                     name: invalidConfigurationName
                 })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             }
         );
 
-        it('should fail with 401 when updating configuration by not existing id, no auth parameters',
+        it('should fail with 403 when updating configuration by not existing id, invalid auth parameters',
             function (done) {
                 connInvalidTokenAuth.params({
                     action: 'configuration/put',
@@ -280,19 +280,19 @@ describe('WebSocket API Configuration', function () {
                     name: invalidConfigurationName,
                     value: configurationValue
                 })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             }
         );
 
-        it('should fail with 401 when deleting configuration with no auth parameters',
+        it('should fail with 403 when deleting configuration with invalid auth parameters',
             function (done) {
                 connInvalidTokenAuth.params({
                     action: 'configuration/delete',
                     requestId: requestId,
                     name: invalidConfigurationName
                 })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             }
         );

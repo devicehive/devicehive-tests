@@ -368,31 +368,31 @@ describe('REST API Device Unit', function () {
 
         });
 
-        it('should fail with 401 #1', function (done) {
+        it('should fail with 403 #1', function (done) {
             var params = {jwt: invalidJWT1};
             params.id = DEVICE_ID;
             utils.get(path.current, params, function (err) {
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
 
                 done();
             });
         });
 
-        it('should fail with 401 #2', function (done) {
+        it('should fail with 403 #2', function (done) {
             var params = {jwt: invalidJWT2};
             params.id = DEVICE_ID;
             utils.get(path.current, params, function (err) {
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
 
                 done();
             });
         });
 
-        it('should fail with 401 #3', function (done) {
+        it('should fail with 403 #3', function (done) {
             var params = {jwt: invalidJWT3};
             params.id = DEVICE_ID;
             utils.get(path.current, params, function (err) {
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
 
                 done();
             });
@@ -874,7 +874,7 @@ describe('REST API Device Unit', function () {
             var params = {jwt: invalidJWT};
             params.id = NEW_DEVICE_ID;
             utils.delete(path.current, params, function (err) {
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
                 done();
             });
         });
@@ -958,11 +958,11 @@ describe('REST API Device Unit', function () {
                 done();
             });
         });
-        it('should return unauthorized error', function (done) {
+        it('should return access is denied error', function (done) {
             var params = {jwt: invalidJwt};
             params.id = NEW_DEVICE_ID;
             utils.get(path.current, params, function (err) {
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
                 done();
             });
         });
