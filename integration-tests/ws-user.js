@@ -940,18 +940,18 @@ describe('WebSocket API User', function () {
 
             });
 
-            it('should fail with 401 when selecting users with invalid jwt', function (done) {
+            it('should fail with 403 when selecting users with invalid jwt', function (done) {
                 var requestId = getRequestId();
 
                 nonNetworkConn.params({
                     action: 'user/list',
                     requestId: getRequestId()
                 })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
-            it('should fail with 401 when selecting user by id with invalid jwt', function (done) {
+            it('should fail with 403 when selecting user by id with invalid jwt', function (done) {
                 var requestId = getRequestId();
 
                 nonNetworkConn.params({
@@ -959,7 +959,7 @@ describe('WebSocket API User', function () {
                     requestId: getRequestId(),
                     userId: nonNetworkUser.id
                 })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
@@ -975,18 +975,18 @@ describe('WebSocket API User', function () {
                     .send(done);
             });
 
-            it('should fail with 401 when selecting users no auth', function (done) {
+            it('should fail with 403 when selecting users no auth', function (done) {
                 var requestId = getRequestId();
 
                 nonNetworkConn.params({
                     action: 'user/list',
                     requestId: getRequestId()
                 })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
-            it('should fail with 401 when getting user with invalid jwt', function (done) {
+            it('should fail with 403 when getting user with invalid jwt', function (done) {
                 var requestId = getRequestId();
 
                 nonNetworkConn.params({
@@ -994,11 +994,11 @@ describe('WebSocket API User', function () {
                     requestId: getRequestId(),
                     userId: utils.NON_EXISTING_ID
                 })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
-            it('should fail with 401 when creating user with invalid jwt', function (done) {
+            it('should fail with 403 when creating user with invalid jwt', function (done) {
                 var requestId = getRequestId();
 
                 nonNetworkConn.params({
@@ -1006,11 +1006,11 @@ describe('WebSocket API User', function () {
                     requestId: getRequestId(),
                     user: {login: 'not-authorized'}
                 })
-                    .expectError(status.NOT_AUTHORIZED)
+                    .expectError(status.FORBIDDEN)
                     .send(done);
             });
 
-            it('should fail with 401 when updating user with invalid jwt', function (done) {
+            it('should fail with 403 when updating user with invalid jwt', function (done) {
                 var requestId = getRequestId();
 
                 nonNetworkConn.params({
@@ -1019,11 +1019,11 @@ describe('WebSocket API User', function () {
                     userId: utils.NON_EXISTING_ID,
                     user: {login: 'not-authorized'}
                 })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
-            it('should fail with 401 when deleting user with invalid jwt', function (done) {
+            it('should fail with 403 when deleting user with invalid jwt', function (done) {
                 var requestId = getRequestId();
 
                 nonNetworkConn.params({
@@ -1031,7 +1031,7 @@ describe('WebSocket API User', function () {
                     requestId: requestId,
                     userId: utils.NON_EXISTING_ID
                 })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 

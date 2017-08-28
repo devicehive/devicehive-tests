@@ -274,7 +274,7 @@ describe('WebSocket API Command', function () {
                     deviceId: deviceId,
                     command: command
                 })
-                .expectError(401, 'Unauthorized')
+                .expectError(403, 'Access is denied')
                 .send(done);
         });
         
@@ -312,7 +312,7 @@ describe('WebSocket API Command', function () {
                 requestId: getRequestId(),
                 deviceId: deviceId
             })
-                .expectError(401, 'Unauthorized')
+                .expectError(403, 'Access is denied')
                 .send(done);
         });
 
@@ -369,7 +369,7 @@ describe('WebSocket API Command', function () {
                 deviceId: deviceId,
                 commandId: commandId1
             })
-                .expectError(401, 'Unauthorized')
+                .expectError(403, 'Access is denied')
                 .send(done);
         });
 

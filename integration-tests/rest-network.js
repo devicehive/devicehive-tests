@@ -235,24 +235,24 @@ describe('REST API Network', function () {
             ], done);
         });
 
-        it('should fail with 401 when getting with non-network user', function (done) {
+        it('should fail with 403 when getting with non-network user', function (done) {
             req.get(path.current)
                 .params({jwt: jwt1, id: networkId1})
-                .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                .expectError(status.FORBIDDEN, 'Access is denied')
                 .send(done);
         });
 
-        it('should fail with 401 #1', function (done) {
+        it('should fail with 403 #1', function (done) {
             req.get(path.current)
                 .params({jwt: jwt1, id: networkId1})
-                .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                .expectError(status.FORBIDDEN, 'Access is denied')
                 .send(done);
         });
 
-        it('should fail with 401 #2', function (done) {
+        it('should fail with 403 #2', function (done) {
             req.get(path.current)
                 .params({jwt: jwt2, id: networkId1})
-                .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                .expectError(status.FORBIDDEN, 'Access is denied')
                 .send(done);
         });
 
@@ -374,14 +374,14 @@ describe('REST API Network', function () {
         it('should return empty devices list result when using jwt1', function (done) {
             req.get(path.get(path.NETWORK, networkId1))
                 .params({jwt: jwt1})
-                .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                .expectError(status.FORBIDDEN, 'Access is denied')
                 .send(done);
         });
 
         it('should return empty devices list when using jwt2', function (done) {
             req.get(path.get(path.NETWORK, networkId1))
                 .params({jwt: jwt2})
-                .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                .expectError(status.FORBIDDEN, 'Access is denied')
                 .send(done);
         });
 
@@ -564,38 +564,38 @@ describe('REST API Network', function () {
                 })
             });
 
-            it('should fail with 401 when getting list using invalid access key', function (done) {
+            it('should fail with 403 when getting list using invalid access key', function (done) {
                 req.get(path.current)
                     .params({jwt: jwt})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
-            it('should fail with 401 when selecting network by id using invalid access key', function (done) {
+            it('should fail with 403 when selecting network by id using invalid access key', function (done) {
                 req.get(path.current)
                     .params({jwt: jwt, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
-            it('should fail with 401 when creating network using invalid access key', function (done) {
+            it('should fail with 403 when creating network using invalid access key', function (done) {
                 req.create(path.current)
                     .params({jwt: jwt, data: {name: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
-            it('should fail with 401 when updating network using invalid access key', function (done) {
+            it('should fail with 403 when updating network using invalid access key', function (done) {
                 req.update(path.current)
                     .params({jwt: jwt, id: utils.NON_EXISTING_ID, data: {name: 'not-authorized'}})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
-            it('should fail with 401 when deleting network with no auth parameters', function (done) {
+            it('should fail with 403 when deleting network with no auth parameters', function (done) {
                 req.delete(path.current)
                     .params({jwt: jwt, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
         });

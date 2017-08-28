@@ -276,7 +276,7 @@ describe('WebSocket API Notification', function () {
                     requestId: getRequestId(),
                     notification: notification
                 })
-                .expectError(401, 'Unauthorized')
+                .expectError(403, 'Access is denied')
                 .send(done);
         });
 
@@ -349,7 +349,7 @@ describe('WebSocket API Notification', function () {
                 requestId: getRequestId(),
                 deviceId: deviceId
             })
-                .expectError(401, 'Unauthorized')
+                .expectError(403, 'Access is denied')
                 .send(done);
         });
 
@@ -403,7 +403,7 @@ describe('WebSocket API Notification', function () {
                 deviceId: deviceId,
                 notificationId: notificationId1
             })
-                .expectError(401, 'Unauthorized')
+                .expectError(403, 'Access is denied')
                 .send(done);
         });
 

@@ -138,10 +138,10 @@ describe('REST API User Network', function () {
                 })
             });
 
-            it('should fail with 401 when selecting user network by id using invalid access key', function (done) {
+            it('should fail with 403 when selecting user network by id using invalid access key', function (done) {
                 req.get(path.current)
                     .params({jwt: jwt, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
@@ -153,17 +153,17 @@ describe('REST API User Network', function () {
             });
 
 
-            it('should fail with 401 when updating user network using invalid access key', function (done) {
+            it('should fail with 403 when updating user network using invalid access key', function (done) {
                 req.update(path.current)
                     .params({jwt: jwt, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
-            it('should fail with 401 when deleting user network with no auth parameters', function (done) {
+            it('should fail with 403 when deleting user network with no auth parameters', function (done) {
                 req.delete(path.current)
                     .params({jwt: jwt, id: utils.NON_EXISTING_ID})
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
+                    .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
         });
