@@ -228,7 +228,7 @@ describe('WebSocket API Network', function () {
                 .send(done);
         });
 
-        it('should get networks in correct order', function (done) {
+        it('should get networks in correct ASC order', function (done) {
             var requestId = getRequestId();
 
             var expectedNetwork1 = {
@@ -246,7 +246,7 @@ describe('WebSocket API Network', function () {
                 action: 'network/list',
                 requestId: requestId,
                 sortField: 'name',
-                sortOrderAsc: 'true'
+                sortOrder: 'ASC'
             })
                 .expect({
                     action: 'network/list',
@@ -256,6 +256,36 @@ describe('WebSocket API Network', function () {
                 })
                 .send(done);
         });
+
+        it('should get networks in correct DESC order', function (done) {
+            var requestId = getRequestId();
+
+            var expectedNetwork1 = {
+                name: NETWORK1,
+                id: networkId1,
+                description: null
+            };
+            var expectedNetwork2 = {
+                name: NETWORK2,
+                id: networkId2,
+                description: null
+            };
+
+            conn.params({
+                action: 'network/list',
+                requestId: requestId,
+                sortField: 'name',
+                sortOrder: 'DESC'
+            })
+                .expect({
+                    action: 'network/list',
+                    requestId: requestId,
+                    status: 'success',
+                    networks: [expectedNetwork2, expectedNetwork1]
+                })
+                .send(done);
+        });
+
 
         after(function (done) {
             conn.close();
