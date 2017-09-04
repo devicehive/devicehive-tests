@@ -25,7 +25,7 @@ describe('REST API Info', function () {
             }
 
             assert.strictEqual(utils.core.hasStringValue(result.serverTimestamp), true);
-            assert.strictEqual(utils.core.hasStringValue(result.ehcacheStats), true);
+            assert.strictEqual(utils.core.hasStringValue(result.cacheStats), true);
 
             done();
         })

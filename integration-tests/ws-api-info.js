@@ -64,7 +64,7 @@ describe('WebSocket API Server Info', function () {
                         requestId: requestId
                     })
                     .assert(function (result) {
-                        utils.hasPropsWithValues(result.cacheInfo, ['serverTimestamp', 'ehcacheStats']);
+                        utils.hasPropsWithValues(result.cacheInfo, ['serverTimestamp', 'cacheStats']);
                     })
                     .send(done);
             });
