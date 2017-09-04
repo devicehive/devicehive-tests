@@ -31,7 +31,7 @@ describe('REST API Configuration', function () {
     describe('#Update', function () {
 
         var propertyId = "test_property_create";
-        var propertyValue = {"value": "test_value_create"};
+        var propertyValue = "test_value_create";
 
         it('should create configuration', function (done) {
             req.update(path.current)
@@ -42,7 +42,7 @@ describe('REST API Configuration', function () {
                 })
                 .expect({
                     "name": "test_property_create",
-                    "value": "test_value_create"
+                    "value": "\"test_value_create\""
                 })
                 .send(done);
         });
@@ -58,7 +58,7 @@ describe('REST API Configuration', function () {
     });
 
     describe('#Delete', function () {
-        var propertyId = {"value": "test_property_delete"};
+        var propertyId = "test_property_delete";
 
         before(function (done) {
             utils.update(path.current, {
@@ -95,7 +95,7 @@ describe('REST API Configuration', function () {
     describe('#Unauthorized', function () {
         var propertyId = 'jwt.secret';
         var nonPropertyId = 'jwt.not-a-secret';
-        var propertyValue = {"value": "test_value_delete"};
+        var propertyValue = "test_value_delete";
 
         it('should fail with 401 if auth parameters omitted', function (done) {
             req.get(path.current)
