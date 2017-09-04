@@ -187,7 +187,7 @@ describe('WebSocket API Configuration', function () {
         before(function (done) {
             utils.update(path.current, {
                     id:  configurationName,
-                    data: configurationValue,
+                    data: {"value": configurationValue},
                     jwt: utils.jwt.admin
                 }, function (err, result) {
                 if (err) {
