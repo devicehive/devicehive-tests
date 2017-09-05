@@ -277,6 +277,18 @@ describe('WebSocket API Command', function () {
                 .expectError(401, 'Unauthorized')
                 .send(done);
         });
+
+        it('should fail when using wrong deviceId', function (done) {
+            var invalidDeviceId = 'invalid-device-id';
+            device.params({
+                    action: 'command/insert',
+                    requestId: getRequestId(),
+                    deviceId: invalidDeviceId,
+                    command: command
+                })
+                .expectError(404, 'Device with such deviceId = ' + invalidDeviceId + ' not found')
+                .send(done);
+        });
         
     });
 
@@ -819,6 +831,32 @@ describe('WebSocket API Command', function () {
         it('should update existing command, jwt auth', function (done) {
             runTest(clientToken, done);
         });
+
+        it('should fail when no deviceId is provided', function (done) {
+            clientToken.params({
+                action: 'command/update',
+                requestId: getRequestId(),
+                deviceId: null,
+                commandId: commandId1,
+                command: {command: COMMAND}
+            })
+                .expectError(400, 'Device id is wrong or empty')
+                .send(done);
+        });
+
+        it('should fail when using wrong deviceId', function (done) {
+            var invalidDeviceId = 'invalid-device-id';
+            device.params({
+                    action: 'command/update',
+                    requestId: getRequestId(),
+                    deviceId: invalidDeviceId,
+                    commandId: commandId1,
+                    command: { command: COMMAND }
+                })
+                .expectError(404, 'Device with such deviceId = ' + invalidDeviceId + ' not found')
+                .send(done);
+        });
+
     });
 
     describe('#srv: command/insert', function () {

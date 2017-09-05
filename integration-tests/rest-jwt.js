@@ -311,7 +311,7 @@ describe('REST API JSON Web Tokens', function () {
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, 'Invalid request parameters');
-                assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                 done();
             });
         });

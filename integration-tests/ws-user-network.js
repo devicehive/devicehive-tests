@@ -368,6 +368,8 @@ describe('Websocker API User Network', function () {
                 userId: userId,
                 networkId: utils.NON_EXISTING_ID
             })
+                .expectError(status.NOT_FOUND,
+                    format('Network with id = %s not found', utils.NON_EXISTING_ID))
                 .send(done);
         });
 
