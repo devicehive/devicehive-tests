@@ -676,11 +676,12 @@ describe('WebSocket API Command', function () {
                 })
                 .send(onSubscribed);
 
-            function onSubscribed(err) {
+            function onSubscribed(err, result) {
                 if (err) {
                     return done(err);
                 }
 
+                var subscriptionId = result.subscriptionId;
                 device.waitFor('command/insert', cleanUp)
                     .expect({
                         action: 'command/insert',
@@ -701,7 +702,8 @@ describe('WebSocket API Command', function () {
 
                     device.params({
                         action: 'command/unsubscribe',
-                        requestId: getRequestId()
+                        requestId: getRequestId(),
+                        subscriptionId: subscriptionId
                     })
                         .send(done);
                 }
@@ -732,11 +734,12 @@ describe('WebSocket API Command', function () {
                 })
                 .send(onSubscribed);
 
-            function onSubscribed(err) {
+            function onSubscribed(err, result) {
                 if (err) {
                     return done(err);
                 }
 
+                var subscriptionId = result.subscriptionId;
                 device.waitFor('command/update', cleanUp)
                     .expect({
                         action: 'command/update',
@@ -767,7 +770,8 @@ describe('WebSocket API Command', function () {
 
                     device.params({
                         action: 'command/unsubscribe',
-                        requestId: getRequestId()
+                        requestId: getRequestId(),
+                        subscriptionId: subscriptionId
                     })
                         .send(done);
                 }
@@ -790,11 +794,12 @@ describe('WebSocket API Command', function () {
                 })
                 .send(onSubscribed);
 
-            function onSubscribed(err) {
+            function onSubscribed(err, result) {
                 if (err) {
                     return done(err);
                 }
 
+                var subscriptionId = result.subscriptionId;
                 device.waitFor('command/update', cleanUp)
                     .expect({
                         action: 'command/update',
@@ -825,7 +830,8 @@ describe('WebSocket API Command', function () {
 
                     device.params({
                         action: 'command/unsubscribe',
-                        requestId: getRequestId()
+                        requestId: getRequestId(),
+                        subscriptionId: subscriptionId
                     })
                         .send(done);
                 }
@@ -848,11 +854,12 @@ describe('WebSocket API Command', function () {
                 })
                 .send(onSubscribed);
 
-            function onSubscribed(err) {
+            function onSubscribed(err, result) {
                 if (err) {
                     return done(err);
                 }
 
+                var subscriptionId = result.subscriptionId;
                 device.waitFor('command/update', cleanUp)
                     .expect({
                         action: 'command/update',
@@ -883,7 +890,8 @@ describe('WebSocket API Command', function () {
 
                     device.params({
                         action: 'command/unsubscribe',
-                        requestId: getRequestId()
+                        requestId: getRequestId(),
+                        subscriptionId: subscriptionId
                     })
                         .send(done);
                 }
