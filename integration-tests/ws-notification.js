@@ -13,16 +13,22 @@ describe('WebSocket API Notification', function () {
     var DEVICE = utils.getName('ws-notif-device');
     var NETWORK = utils.getName('ws-notif-network');
     var NETWORK_KEY = utils.getName('ws-notif-network-key');
+    var DEVICE_1 = utils.getName('ws-cmd-device-1');
+    var NETWORK_1 = utils.getName('ws-cmd-network-1');
+    var NETWORK_KEY_1 = utils.getName('ws-cmd-network-key-1');
 
     var NOTIFICATION = utils.getName('ws-notification');
     var NOTIFICATION1 = utils.getName('ws-notification-1');
     var NOTIFICATION2 = utils.getName('ws-notification-2');
 
     var deviceId = utils.getName('ws-notif-device-id');
+    var deviceId1 = utils.getName('ws-notif-device-id-1');
     var user = null;
     var token = null;
     var invalidToken = null;
     var device = null;
+    var networkId = null;
+    var networkId1 = null;
     var notificationId1 = null;
     var notificationId2 = null;
 
@@ -31,8 +37,6 @@ describe('WebSocket API Notification', function () {
     var clientInvalidToken = null;
 
     before(function (done) {
-        var networkId = null;
-
         function getWsUrl(callback) {
 
             req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
@@ -60,8 +64,24 @@ describe('WebSocket API Notification', function () {
             });
         }
 
+        function createNetwork1(callback) {
+            var params = {
+                jwt: utils.jwt.admin,
+                data: { name: NETWORK_1, key: NETWORK_KEY_1 }
+            };
+
+            utils.create(path.NETWORK, params, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                networkId1 = result.id;
+                callback();
+            });
+        }
+
         function createUser(callback) {
-            utils.createUser2(1, networkId, function (err, result) {
+            utils.createUser2(1, [networkId, networkId1], function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -75,6 +95,13 @@ describe('WebSocket API Notification', function () {
             req.update(path.get(path.DEVICE, deviceId))
                 .params(utils.device.getParamsObj(DEVICE, utils.jwt.admin,
                     networkId, {name: DEVICE, version: '1'}))
+                .send(callback);
+        }
+
+        function createDevice1(callback) {
+            req.update(path.get(path.DEVICE, deviceId1))
+                .params(utils.device.getParamsObj(DEVICE_1, utils.jwt.admin,
+                    networkId1, {name: DEVICE_1, version: '1'}))
                 .send(callback);
         }
 
@@ -122,8 +149,8 @@ describe('WebSocket API Notification', function () {
                     'GetDeviceNotification',
                     'CreateDeviceNotification'
                 ],
-                deviceIds: deviceId,
-                networkIds: networkId
+                deviceIds: [deviceId, deviceId1],
+                networkIds: [networkId, networkId1]
             };
             utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceIds , function (err, result) {
                 if (err) {
@@ -137,8 +164,8 @@ describe('WebSocket API Notification', function () {
         function createInvalidToken(callback) {
             var args = {
                 actions: [ 'GetNetwork' ],
-                deviceIds: deviceId,
-                networkIds: networkId
+                deviceIds: [deviceId, deviceId1],
+                networkIds: [networkId, networkId1]
             };
             utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceIds, function (err, result) {
                 if (err) {
@@ -199,8 +226,10 @@ describe('WebSocket API Notification', function () {
         async.series([
             getWsUrl,
             createNetwork,
+            createNetwork1,
             createUser,
             createDevice,
+            createDevice1,
             insertNotification1,
             insertNotification2,
             createToken,
@@ -483,7 +512,7 @@ describe('WebSocket API Notification', function () {
                     status: 'success'
                 })
                 .expectTrue(function (result) {
-                    return utils.core.hasStringValue(result.subscriptionId);
+                    return utils.core.hasNumericValue(result.subscriptionId);
                 })
                 .send(onSubscribed);
 
@@ -617,6 +646,162 @@ describe('WebSocket API Notification', function () {
                         .send(done);
                 }
             }
+        });
+
+        it('should subscribe to device notifications for multiple devices', function (done) {
+            var requestId = getRequestId();
+
+            device.params({
+                action: 'notification/subscribe',
+                deviceIds: [deviceId, deviceId1],
+                requestId: requestId
+            })
+                .expect({
+                    action: 'notification/subscribe',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .send(onSubscribed);
+
+            function onSubscribed(err) {
+                if (err) {
+                    return done(err);
+                }
+
+                device.waitFor('notification/insert', cleanUp)
+                    .expect({
+                        action: 'notification/insert',
+                        notification: { notification: NOTIFICATION }
+                    });
+
+                req.create(path.NOTIFICATION.get(deviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {notification: NOTIFICATION}
+                    })
+                    .send();
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    device.params({
+                        action: 'notification/unsubscribe',
+                        requestId: getRequestId()
+                    })
+                        .send(done);
+                }
+            }
+        });
+
+        it('should subscribe to device notifications for single network, returnUpdated = true', function (done) {
+            var requestId = getRequestId();
+
+            device.params({
+                action: 'notification/subscribe',
+                networkIds: [networkId],
+                returnUpdatedCommands: true,
+                requestId: requestId
+            })
+                .expect({
+                    action: 'notification/subscribe',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .send(onSubscribed);
+
+            function onSubscribed(err) {
+                if (err) {
+                    return done(err);
+                }
+
+                device.waitFor('notification/insert', cleanUp)
+                    .expect({
+                        action: 'notification/insert',
+                        notification: { notification: NOTIFICATION }
+                    });
+
+                req.create(path.NOTIFICATION.get(deviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {notification: NOTIFICATION}
+                    })
+                    .send();
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    device.params({
+                        action: 'notification/unsubscribe',
+                        requestId: getRequestId()
+                    })
+                        .send(done);
+                }
+            }
+        });
+
+        it('should subscribe to device notifications for multiple networks, returnUpdated = true', function (done) {
+            var requestId = getRequestId();
+
+            device.params({
+                action: 'notification/subscribe',
+                networkIds: [networkId, networkId1],
+                returnUpdatedCommands: true,
+                requestId: requestId
+            })
+                .expect({
+                    action: 'notification/subscribe',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .send(onSubscribed);
+
+            function onSubscribed(err) {
+                if (err) {
+                    return done(err);
+                }
+
+                device.waitFor('notification/insert', cleanUp)
+                    .expect({
+                        action: 'notification/insert',
+                        notification: { notification: NOTIFICATION }
+                    });
+
+                req.create(path.NOTIFICATION.get(deviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {notification: NOTIFICATION}
+                    })
+                    .send();
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    device.params({
+                        action: 'notification/unsubscribe',
+                        requestId: getRequestId()
+                    })
+                        .send(done);
+                }
+            }
+        });
+
+        it('should reject subscribe to device notifications for non existing network, returnUpdated = true', function (done) {
+            var requestId = getRequestId();
+
+            device.params({
+                action: 'notification/subscribe',
+                networkIds: [utils.NON_EXISTING_ID],
+                returnUpdatedCommands: true,
+                requestId: requestId
+            })
+                .expectError(403, "Networks with such networkIds wasn't found: {[" + utils.NON_EXISTING_ID + "]}")
+                .send(done);
         });
     });
 
