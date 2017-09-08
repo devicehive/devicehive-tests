@@ -23,6 +23,7 @@ describe('WebSocket API Notification', function () {
 
     var deviceId = utils.getName('ws-notif-device-id');
     var deviceId1 = utils.getName('ws-notif-device-id-1');
+    var newDeviceId = utils.getName('ws-cmd-device-id-new');
     var user = null;
     var token = null;
     var invalidToken = null;
@@ -146,11 +147,12 @@ describe('WebSocket API Notification', function () {
         function createToken(callback) {
             var args = {
                 actions: [
+                    'RegisterDevice',
                     'GetDeviceNotification',
                     'CreateDeviceNotification'
                 ],
-                deviceIds: [deviceId, deviceId1],
-                networkIds: [networkId, networkId1]
+                deviceIds: ['*'],
+                networkIds: ['*']
             };
             utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceIds , function (err, result) {
                 if (err) {
@@ -557,6 +559,7 @@ describe('WebSocket API Notification', function () {
 
         it('should subscribe to all device notifications, device auth', function (done) {
             var requestId = getRequestId();
+            var subscriptionId = null;
 
             device.params({
                 action: 'notification/subscribe',
@@ -569,10 +572,11 @@ describe('WebSocket API Notification', function () {
                 })
                 .send(onSubscribed);
 
-            function onSubscribed(err) {
+            function onSubscribed(err, result) {
                 if (err) {
                     return done(err);
                 }
+                subscriptionId = result.subscriptionId;
 
                 device.waitFor('notification/insert', cleanUp)
                     .expect({
@@ -594,7 +598,8 @@ describe('WebSocket API Notification', function () {
 
                     device.params({
                         action: 'notification/unsubscribe',
-                        requestId: getRequestId()
+                        requestId: getRequestId(),
+                        subscriptionId: subscriptionId
                     })
                         .send(done);
                 }
@@ -603,6 +608,7 @@ describe('WebSocket API Notification', function () {
 
         it('should subscribe to device notifications for single device', function (done) {
             var requestId = getRequestId();
+            var subscriptionId = null;
 
             device.params({
                 action: 'notification/subscribe',
@@ -616,10 +622,11 @@ describe('WebSocket API Notification', function () {
                 })
                 .send(onSubscribed);
 
-            function onSubscribed(err) {
+            function onSubscribed(err, result) {
                 if (err) {
                     return done(err);
                 }
+                subscriptionId = result.subscriptionId;
 
                 device.waitFor('notification/insert', cleanUp)
                     .expect({
@@ -641,7 +648,8 @@ describe('WebSocket API Notification', function () {
 
                     device.params({
                         action: 'notification/unsubscribe',
-                        requestId: getRequestId()
+                        requestId: getRequestId(),
+                        subscriptionId: subscriptionId
                     })
                         .send(done);
                 }
@@ -650,6 +658,7 @@ describe('WebSocket API Notification', function () {
 
         it('should subscribe to device notifications for multiple devices', function (done) {
             var requestId = getRequestId();
+            var subscriptionId = null;
 
             device.params({
                 action: 'notification/subscribe',
@@ -663,10 +672,11 @@ describe('WebSocket API Notification', function () {
                 })
                 .send(onSubscribed);
 
-            function onSubscribed(err) {
+            function onSubscribed(err, result) {
                 if (err) {
                     return done(err);
                 }
+                subscriptionId = result.subscriptionId;
 
                 device.waitFor('notification/insert', cleanUp)
                     .expect({
@@ -688,7 +698,8 @@ describe('WebSocket API Notification', function () {
 
                     device.params({
                         action: 'notification/unsubscribe',
-                        requestId: getRequestId()
+                        requestId: getRequestId(),
+                        subscriptionId: subscriptionId
                     })
                         .send(done);
                 }
@@ -697,6 +708,7 @@ describe('WebSocket API Notification', function () {
 
         it('should subscribe to device notifications for single network, returnUpdated = true', function (done) {
             var requestId = getRequestId();
+            var subscriptionId = null;
 
             device.params({
                 action: 'notification/subscribe',
@@ -711,10 +723,11 @@ describe('WebSocket API Notification', function () {
                 })
                 .send(onSubscribed);
 
-            function onSubscribed(err) {
+            function onSubscribed(err, result) {
                 if (err) {
                     return done(err);
                 }
+                subscriptionId = result.subscriptionId;
 
                 device.waitFor('notification/insert', cleanUp)
                     .expect({
@@ -736,7 +749,8 @@ describe('WebSocket API Notification', function () {
 
                     device.params({
                         action: 'notification/unsubscribe',
-                        requestId: getRequestId()
+                        requestId: getRequestId(),
+                        subscriptionId: subscriptionId
                     })
                         .send(done);
                 }
@@ -745,6 +759,7 @@ describe('WebSocket API Notification', function () {
 
         it('should subscribe to device notifications for multiple networks, returnUpdated = true', function (done) {
             var requestId = getRequestId();
+            var subscriptionId = null;
 
             device.params({
                 action: 'notification/subscribe',
@@ -759,10 +774,11 @@ describe('WebSocket API Notification', function () {
                 })
                 .send(onSubscribed);
 
-            function onSubscribed(err) {
+            function onSubscribed(err, result) {
                 if (err) {
                     return done(err);
                 }
+                subscriptionId = result.subscriptionId;
 
                 device.waitFor('notification/insert', cleanUp)
                     .expect({
@@ -784,20 +800,275 @@ describe('WebSocket API Notification', function () {
 
                     device.params({
                         action: 'notification/unsubscribe',
-                        requestId: getRequestId()
+                        requestId: getRequestId(),
+                        subscriptionId: subscriptionId
                     })
                         .send(done);
                 }
             }
         });
 
-        it('should reject subscribe to device notifications for non existing network, returnUpdated = true', function (done) {
+        it('should subscribe to recently created device notifications for multiple networks', function (done) {
+            var requestId = getRequestId();
+            var subscriptionId = null;
+
+            device.params({
+                action: 'notification/subscribe',
+                networkIds: [networkId, networkId1],
+                requestId: requestId
+            })
+                .expect({
+                    action: 'notification/subscribe',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .send(deviceCreate);
+
+            function deviceCreate(err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                subscriptionId = result.subscriptionId;
+
+                device.params({
+                    action: 'device/save',
+                    requestId: requestId,
+                    device: {
+                        id: newDeviceId,
+                        name: newDeviceId,
+                        networkId: networkId
+                    }
+                })
+                    .expect({
+                        action: 'device/save',
+                        requestId: requestId,
+                        status: 'success'
+                    })
+                    .send(onSubscribed);
+            }
+
+            function onSubscribed(err) {
+                if (err) {
+                    return done(err);
+                }
+
+                device.waitFor('notification/insert', cleanUp)
+                    .expect({
+                        action: 'notification/insert',
+                        notification: { notification: NOTIFICATION },
+                        subscriptionId: subscriptionId
+                    });
+
+                req.create(path.NOTIFICATION.get(newDeviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {notification: NOTIFICATION}
+                    })
+                    .send();
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    device.params({
+                        action: 'device/delete',
+                        requestId: requestId,
+                        deviceId: newDeviceId
+                    })
+                        .expect({
+                            action: 'device/delete',
+                            requestId: requestId,
+                            status: 'success'
+                        })
+                        .send(function (err) {
+                            device.params({
+                                action: 'notification/unsubscribe',
+                                requestId: getRequestId(),
+                                subscriptionId: subscriptionId
+                            })
+                                .send(done);
+                        });
+                }
+            }
+        });
+
+        it('should subscribe to recently created device notifications for global subscription', function (done) {
+            var requestId = getRequestId();
+            var subscriptionId = null;
+
+            device.params({
+                action: 'notification/subscribe',
+                requestId: requestId
+            })
+                .expect({
+                    action: 'notification/subscribe',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .send(deviceCreate);
+
+            function deviceCreate(err, result) {
+                if (err) {
+                    return done(err);
+                }
+                subscriptionId = result.subscriptionId;
+
+                device.params({
+                    action: 'device/save',
+                    requestId: requestId,
+                    device: {
+                        id: newDeviceId,
+                        name: newDeviceId,
+                        networkId: networkId
+                    }
+                })
+                    .expect({
+                        action: 'device/save',
+                        requestId: requestId,
+                        status: 'success'
+                    })
+                    .send(onSubscribed);
+            }
+
+            function onSubscribed(err) {
+                if (err) {
+                    return done(err);
+                }
+
+
+                device.waitFor('notification/insert', cleanUp)
+                    .expect({
+                        action: 'notification/insert',
+                        notification: { notification: NOTIFICATION },
+                        subscriptionId: subscriptionId
+                    });
+
+                req.create(path.NOTIFICATION.get(newDeviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {notification: NOTIFICATION}
+                    })
+                    .send();
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    device.params({
+                        action: 'device/delete',
+                        requestId: requestId,
+                        deviceId: newDeviceId
+                    })
+                        .expect({
+                            action: 'device/delete',
+                            requestId: requestId,
+                            status: 'success'
+                        })
+                        .send(function (err) {
+                            device.params({
+                                action: 'notification/unsubscribe',
+                                requestId: getRequestId(),
+                                subscriptionId: subscriptionId
+                            })
+                                .send(done);
+                        });
+                }
+            }
+        });
+
+        it('should not subscribe to recently created device in different network for network subscription', function (done) {
+            var requestId = getRequestId();
+
+            device.params({
+                action: 'notification/subscribe',
+                networkIds: [networkId1],
+                requestId: requestId
+            })
+                .expect({
+                    action: 'notification/subscribe',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .send(deviceCreate);
+
+            function deviceCreate(err) {
+                if (err) {
+                    return done(err);
+                }
+
+                device.params({
+                    action: 'device/save',
+                    requestId: requestId,
+                    device: {
+                        id: newDeviceId,
+                        name: newDeviceId,
+                        networkId: networkId
+                    }
+                })
+                    .expect({
+                        action: 'device/save',
+                        requestId: requestId,
+                        status: 'success'
+                    })
+                    .send(onSubscribed);
+            }
+
+            function onSubscribed(err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                var subscriptionId = result.subscriptionId;
+
+                device.waitFor('notification/insert', function (err) {
+                    assert.strictEqual(!(!err), true, 'Notifications should not arrive');
+                    utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'notification/insert\' for 2000ms'});
+                    cleanUp();
+                });
+
+                req.create(path.NOTIFICATION.get(newDeviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {notification: NOTIFICATION}
+                    })
+                    .send(cleanUp);
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    device.params({
+                        action: 'device/delete',
+                        requestId: requestId,
+                        deviceId: newDeviceId
+                    })
+                        .expect({
+                            action: 'device/delete',
+                            requestId: requestId,
+                            status: 'success'
+                        })
+                        .send(function (err) {
+                            device.params({
+                                action: 'notification/unsubscribe',
+                                requestId: getRequestId(),
+                                subscriptionId: subscriptionId
+                            })
+                                .send(done);
+                        });
+                }
+            }
+        });
+
+        it('should reject subscribe to device notifications for non existing network', function (done) {
             var requestId = getRequestId();
 
             device.params({
                 action: 'notification/subscribe',
                 networkIds: [utils.NON_EXISTING_ID],
-                returnUpdatedCommands: true,
                 requestId: requestId
             })
                 .expectError(403, "Networks with such networkIds wasn't found: {[" + utils.NON_EXISTING_ID + "]}")
