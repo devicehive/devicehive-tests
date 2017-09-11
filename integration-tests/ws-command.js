@@ -23,6 +23,7 @@ describe('WebSocket API Command', function () {
 
     var deviceId = utils.getName('ws-cmd-device-id');
     var deviceId1 = utils.getName('ws-cmd-device-id-1');
+    var newDeviceId = utils.getName('ws-cmd-device-id-new');
     var user = null;
     var token = null;
     var invalidToken = null;
@@ -146,12 +147,13 @@ describe('WebSocket API Command', function () {
         function createToken(callback) {
             var args = {
                 actions: [
+                    'RegisterDevice',
                     'GetDeviceCommand',
                     'CreateDeviceCommand',
                     'UpdateDeviceCommand'
                 ],
-                deviceIds: [deviceId, deviceId1],
-                networkIds: [networkId, networkId1]
+                deviceIds: ['*'],
+                networkIds: ['*']
             };
             utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceIds, function (err, result) {
                 if (err) {
@@ -910,6 +912,357 @@ describe('WebSocket API Command', function () {
             }
         });
 
+        it('should subscribe to recently created device commands for multiple networks', function (done) {
+            var requestId = getRequestId();
+            var subscriptionId = null;
+
+            device.params({
+                action: 'command/subscribe',
+                networkIds: [networkId, networkId1],
+                requestId: requestId
+            })
+                .expect({
+                    action: 'command/subscribe',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .send(deviceCreate);
+
+            function deviceCreate(err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                subscriptionId = result.subscriptionId;
+
+                device.params({
+                    action: 'device/save',
+                    requestId: requestId,
+                    device: {
+                        id: newDeviceId,
+                        name: newDeviceId,
+                        networkId: networkId
+                    }
+                })
+                    .expect({
+                        action: 'device/save',
+                        requestId: requestId,
+                        status: 'success'
+                    })
+                    .send(onSubscribed);
+            }
+
+            function onSubscribed(err) {
+                if (err) {
+                    return done(err);
+                }
+
+                device.waitFor('command/insert', cleanUp)
+                    .expect({
+                        action: 'command/insert',
+                        command: { command: COMMAND },
+                        subscriptionId: subscriptionId
+                    });
+
+                req.create(path.COMMAND.get(newDeviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {command: COMMAND}
+                    })
+                    .send();
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    device.params({
+                        action: 'device/delete',
+                        requestId: requestId,
+                        deviceId: newDeviceId
+                    })
+                        .expect({
+                            action: 'device/delete',
+                            requestId: requestId,
+                            status: 'success'
+                        })
+                        .send();
+
+                    device.params({
+                        action: 'command/unsubscribe',
+                        requestId: getRequestId(),
+                        subscriptionId: subscriptionId
+                    })
+                        .send(done);
+                }
+            }
+        });
+
+        it('should subscribe to recently created device commands for global subscription', function (done) {
+            var requestId = getRequestId();
+            var subscriptionId = null;
+
+                device.params({
+                action: 'command/subscribe',
+                requestId: requestId
+            })
+                .expect({
+                    action: 'command/subscribe',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .send(deviceCreate);
+
+            function deviceCreate(err, result) {
+                if (err) {
+                    return done(err);
+                }
+                subscriptionId = result.subscriptionId;
+
+                device.params({
+                    action: 'device/save',
+                    requestId: requestId,
+                    device: {
+                        id: newDeviceId,
+                        name: newDeviceId,
+                        networkId: networkId
+                    }
+                })
+                    .expect({
+                        action: 'device/save',
+                        requestId: requestId,
+                        status: 'success'
+                    })
+                    .send(onSubscribed);
+            }
+
+            function onSubscribed(err) {
+                if (err) {
+                    return done(err);
+                }
+
+
+                device.waitFor('command/insert', cleanUp)
+                    .expect({
+                        action: 'command/insert',
+                        command: { command: COMMAND },
+                        subscriptionId: subscriptionId
+                    });
+
+                req.create(path.COMMAND.get(newDeviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {command: COMMAND}
+                    })
+                    .send();
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    device.params({
+                        action: 'device/delete',
+                        requestId: requestId,
+                        deviceId: newDeviceId
+                    })
+                        .expect({
+                            action: 'device/delete',
+                            requestId: requestId,
+                            status: 'success'
+                        })
+                        .send();
+
+                    device.params({
+                        action: 'command/unsubscribe',
+                        requestId: getRequestId(),
+                        subscriptionId: subscriptionId
+                    })
+                        .send(done);
+                }
+            }
+        });
+
+        it('should subscribe to recently created device commands for global subscription, returnUpdated = true', function (done) {
+            var requestId = getRequestId();
+            var subscriptionId = null;
+
+            device.params({
+                action: 'command/subscribe',
+                returnUpdatedCommands: true,
+                requestId: requestId
+            })
+                .expect({
+                    action: 'command/subscribe',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .send(deviceCreate);
+
+            function deviceCreate(err, result) {
+                if (err) {
+                    return done(err);
+                }
+                subscriptionId = result.subscriptionId;
+
+                device.params({
+                    action: 'device/save',
+                    requestId: requestId,
+                    device: {
+                        id: newDeviceId,
+                        name: newDeviceId,
+                        networkId: networkId
+                    }
+                })
+                    .expect({
+                        action: 'device/save',
+                        requestId: requestId,
+                        status: 'success'
+                    })
+                    .send(onSubscribed);
+            }
+
+            function onSubscribed(err) {
+                if (err) {
+                    return done(err);
+                }
+
+
+                device.waitFor('command/update', cleanUp)
+                    .expect({
+                        action: 'command/update',
+                        command: { command: COMMAND },
+                        subscriptionId: subscriptionId
+                    });
+
+                req.create(path.COMMAND.get(deviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {command: COMMAND}
+                    })
+                    .send(function(err, result) {
+                        if (err) {
+                            return done(err);
+                        }
+
+                        req.update(path.combine(path.COMMAND.get(deviceId), result.id))
+                            .params({
+                                jwt: token,
+                                data: {command: COMMAND}
+                            }).send();
+                    });
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    device.params({
+                        action: 'device/delete',
+                        requestId: requestId,
+                        deviceId: newDeviceId
+                    })
+                        .expect({
+                            action: 'device/delete',
+                            requestId: requestId,
+                            status: 'success'
+                        })
+                        .send();
+
+                    device.params({
+                        action: 'command/unsubscribe',
+                        requestId: getRequestId(),
+                        subscriptionId: subscriptionId
+                    })
+                        .send(done);
+                }
+            }
+        });
+
+        it('should not subscribe to recently created device in different network for network subscription', function (done) {
+            var requestId = getRequestId();
+
+            device.params({
+                action: 'command/subscribe',
+                networkIds: [networkId1],
+                requestId: requestId
+            })
+                .expect({
+                    action: 'command/subscribe',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .send(deviceCreate);
+
+            function deviceCreate(err) {
+                if (err) {
+                    return done(err);
+                }
+
+                device.params({
+                    action: 'device/save',
+                    requestId: requestId,
+                    device: {
+                        id: newDeviceId,
+                        name: newDeviceId,
+                        networkId: networkId
+                    }
+                })
+                    .expect({
+                        action: 'device/save',
+                        requestId: requestId,
+                        status: 'success'
+                    })
+                    .send(onSubscribed);
+            }
+
+            function onSubscribed(err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                var subscriptionId = result.subscriptionId;
+
+                device.waitFor('command/insert', function (err) {
+                    assert.strictEqual(!(!err), true, 'Commands should not arrive');
+                    utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\' for 2000ms'});
+                    cleanUp();
+                });
+
+                req.create(path.COMMAND.get(newDeviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {command: COMMAND}
+                    })
+                    .send(cleanUp);
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    device.params({
+                        action: 'device/delete',
+                        requestId: requestId,
+                        deviceId: newDeviceId
+                    })
+                        .expect({
+                            action: 'device/delete',
+                            requestId: requestId,
+                            status: 'success'
+                        })
+                        .send();
+
+                    device.params({
+                        action: 'command/unsubscribe',
+                        requestId: getRequestId(),
+                        subscriptionId: subscriptionId
+                    })
+                        .send(done);
+                }
+            }
+        });
+
         it('should reject subscribe to device commands for non existing network, returnUpdated = true', function (done) {
             var requestId = getRequestId();
 
@@ -1161,6 +1514,16 @@ describe('WebSocket API Command', function () {
         it('should not notify when command was inserted without prior subscription, jwt auth', function (done) {
             runTestNoSubscr(clientToken, done);
         });
+
+        it('should notify when command was inserted, device auth', function (done) {
+            setTimeout(function () {
+                runTest(device, done);
+            }, 500);
+        });
+
+        it('should not notify when command was inserted without prior subscription, device auth', function (done) {
+            runTestNoSubscr(clientToken, done);
+        });
     });
 
     describe('#srv: command/update', function () {
@@ -1213,79 +1576,6 @@ describe('WebSocket API Command', function () {
 
         it('should notify when command was updated, jwt auth', function (done) {
             runTest(clientToken, done);
-        });
-    });
-
-    describe('#srv: command/insert', function () {
-
-        it('should notify when command was inserted, device auth', function (done) {
-            var command = {
-                command: COMMAND,
-                parameters: {a: '1', b: '2'},
-                lifetime: 100500,
-                status: 'Inserted',
-                result: {done: 'yes'}
-            };
-
-            device.params({
-                action: 'command/subscribe',
-                requestId: getRequestId()
-            })
-                .send(onSubscribed);
-
-            function onSubscribed(err) {
-                if (err) {
-                    return done(err);
-                }
-
-                device.waitFor('command/insert', cleanUp)
-                    .expect({
-                        action: 'command/insert',
-                        command: command
-                    });
-
-                req.create(path.COMMAND.get(deviceId))
-                    .params({
-                        jwt: utils.jwt.admin,
-                        data: command
-                    })
-                    .send();
-
-                function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
-
-                    device.params({
-                        action: 'command/unsubscribe',
-                        requestId: getRequestId()
-                    })
-                        .send(done);
-                }
-            }
-        });
-
-        it('should not notify when command was inserted without prior subscription, device auth', function (done) {
-            var command = {
-                command: COMMAND,
-                parameters: {a: '3', b: '4'},
-                lifetime: 500100,
-                status: 'Inserted',
-                result: {done: 'yes'}
-            };
-
-            device.waitFor('command/insert', function (err) {
-                assert.strictEqual(!(!err), true, 'Commands should not arrive');
-                utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\' for 2000ms'});
-                done();
-            });
-
-            req.create(path.COMMAND.get(deviceId))
-                .params({
-                    jwt: utils.jwt.admin,
-                    data: command
-                })
-                .send();
         });
     });
 
