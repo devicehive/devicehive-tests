@@ -125,7 +125,7 @@ describe('REST API JSON Web Tokens', function () {
                 password: 1111
             }
             }, function (err) {
-                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.error, 'Invalid credentials');
                 assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                 done();
             });
@@ -294,8 +294,8 @@ describe('REST API JSON Web Tokens', function () {
                 }
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'Unauthorized');
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                assert.strictEqual(err.error, 'Access is denied');
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
                 done();
             });
         });
@@ -311,7 +311,7 @@ describe('REST API JSON Web Tokens', function () {
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, 'Invalid request parameters');
-                assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                 done();
             });
         });

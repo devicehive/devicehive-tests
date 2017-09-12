@@ -18,6 +18,19 @@ describe('REST API Info', function () {
         })
     });
 
+    it('should return cache info', function (done) {
+        utils.get(path.INFO_CACHE, {}, function (err, result) {
+            if (err) {
+                done(err);
+            }
+
+            assert.strictEqual(utils.core.hasStringValue(result.serverTimestamp), true);
+            assert.strictEqual(utils.core.hasStringValue(result.cacheStats), true);
+
+            done();
+        })
+    });
+
     after(function (done) {
         utils.clearDataJWT(done);
     });

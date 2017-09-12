@@ -60,6 +60,11 @@ module.exports = {
             (value.length > 0);
     },
 
+    hasNumericValue: function (value) {
+        return !(!value) &&
+            (typeof(value) === 'number');
+    },
+
     isArrayNonEmpty: function (obj) {
 
         if (!Array.isArray(obj)) {

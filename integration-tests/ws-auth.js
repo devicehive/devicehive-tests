@@ -238,7 +238,7 @@ describe('WebSocket API Authentication', function () {
                     login: user.login,
                     password: "123"
                 })
-                    .expectError(401, 'Unauthorized')
+                    .expectError(401, 'Invalid credentials')
                     .send(callback);
             }
 
@@ -270,7 +270,7 @@ describe('WebSocket API Authentication', function () {
                     login: 'invalid-login',
                     password: 'invalid-password'
                 })
-                    .expectError(401, 'Unauthorized')
+                    .expectError(401, 'User with login = invalid-login not found or bad password')
                     .send(callback);
             }
 
@@ -357,7 +357,7 @@ describe('WebSocket API Authentication', function () {
                     requestId: requestId,
                     payload: {userId: user.id}
                 })
-                    .expectError(401, 'Unauthorized')
+                    .expectError(403, 'Access is denied')
                     .send(callback);
             }
 

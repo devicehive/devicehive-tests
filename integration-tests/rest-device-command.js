@@ -244,34 +244,34 @@ describe('REST API Device Command', function () {
             })
         });
 
-        it('should fail with 404 #1', function (done) {
+        it('should fail with 403 #1', function (done) {
             var params = {jwt: invalidJWT1};
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'Unauthorized');
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                assert.strictEqual(err.error, 'Access is denied');
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
 
                 done();
             });
         });
 
-        it('should fail with 404 #2', function (done) {
+        it('should fail with 403 #2', function (done) {
             var params = {jwt: invalidJWT2};
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'Unauthorized');
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                assert.strictEqual(err.error, 'Access is denied');
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
 
                 done();
             });
         });
 
-        it('should fail with 404 #3', function (done) {
+        it('should fail with 403 #3', function (done) {
             var params = {jwt: invalidJWT3};
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'Unauthorized');
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                assert.strictEqual(err.error, 'Access is denied');
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
 
                 done();
             });
@@ -666,37 +666,37 @@ describe('REST API Device Command', function () {
             })
         });
 
-        it('should fail with 404 #1', function (done) {
+        it('should fail with 403 #1', function (done) {
             var params = helper.getParamsObj(COMMAND);
             params.jwt = invalidJWT1;
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'Unauthorized');
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                assert.strictEqual(err.error, 'Access is denied');
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
 
                 done();
             });
         });
 
-        it('should fail with 404 #2', function (done) {
+        it('should fail with 403 #2', function (done) {
             var params = helper.getParamsObj(COMMAND);
             params.jwt = invalidJWT2;
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'Unauthorized');
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                assert.strictEqual(err.error, 'Access is denied');
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
 
                 done();
             });
         });
 
-        it('should fail with 404 #3', function (done) {
+        it('should fail with 403 #3', function (done) {
             var params = helper.getParamsObj(COMMAND);
             params.jwt = invalidJWT3;
             utils.create(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'Unauthorized');
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                assert.strictEqual(err.error, 'Access is denied');
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
 
                 done();
             });
@@ -781,40 +781,40 @@ describe('REST API Device Command', function () {
             })
         });
 
-        it('should fail with 404 #1', function (done) {
+        it('should fail with 403 #1', function (done) {
             var params = helper.getParamsObj(COMMAND);
             params.jwt = invalidJWT1;
             params.id = commandId;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'Unauthorized');
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                assert.strictEqual(err.error, 'Access is denied');
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
 
                 done();
             });
         });
 
-        it('should fail with 404 #2', function (done) {
+        it('should fail with 403 #2', function (done) {
             var params = helper.getParamsObj(COMMAND);
             params.jwt = invalidJWT2;
             params.id = commandId;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'Unauthorized');
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                assert.strictEqual(err.error, 'Access is denied');
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
 
                 done();
             });
         });
 
-        it('should fail with 404 #3', function (done) {
+        it('should fail with 403 #3', function (done) {
             var params = helper.getParamsObj(COMMAND);
             params.jwt = invalidJWT3;
             params.id = commandId;
             utils.update(path.current, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'Unauthorized');
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                assert.strictEqual(err.error, 'Access is denied');
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
 
                 done();
             });
