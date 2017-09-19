@@ -36,11 +36,11 @@ var utils = {
     loggingOff: false,
 
     jwt: {
-        admin: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTU5MzQ3MjAwMDAwLCJ0b2tlblR5cGUiOiJBQ0NFU1MifX0.0WFWniapCEMcUriveLfvRG3wNQvC4IcEMcYYacrFXlU',
-        admin_refresh: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTU5MzQ3MjAwMDAwLCJ0b2tlblR5cGUiOiJSRUZSRVNIIn19.kCFPLoGGoCyaHqS3Vv5tjK_d2xQcPKTsM2z4PjPP64Q',
-        admin_refresh_exp: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNDY0NzkzMjkwNTY0LCJ0b2tlblR5cGUiOiJSRUZSRVNIIn19.x_qb6Dy5zKmaD8IZ2E9fXCM894gcZ-Qj2L8CcCxruD8',
-        admin_refresh_invalid: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTE0NzY0ODAwMDAwLCJ0b2tlblR5cGUiOiJBQ0NFU1MifX0.OhEltY7vNKZMo-JLPb9MxB3LUwbXrP_Arhajp_pYSc0',
-        admin_refresh_invalid_signature: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTU5MzQ3MjAwMDAwLCJ0b2tlblR5cGUiOiJSRUZSRVNIIn19.kCFPLoGGoCyaHqS3Vv5tjK_d2xQcPKTsM2z4PhKP64Q',
+        admin: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTU5MzQ3MjAwMDAwLCJ0IjoxfX0.pBjhmAQ31t5Y1AogEau8m8nCDjRCCndBLtQ3f6R-IBw',
+        admin_refresh: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTU5MzQ3MjAwMDAwLCJ0IjowfX0.ocTz-0FY_I0QY3TqIqyCBKBNX4xN-N7IdHWqUY865Hw',
+        admin_refresh_exp: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNDY0NzkzMjkwNTY0LCJ0IjowfX0.njLWzNksQ29hwT0hvxZVxQY0MQA5JHrZHPv6x6YEaqI',
+        admin_refresh_invalid: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTE0NzY0ODAwMDAwLCJ0IjoxfX0.dkA2H1MGmJHdAT382tqt-xhcmwwlTimGwnabS5HdfJc',
+        admin_refresh_invalid_signature: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTU5MzQ3MjAwMDAwLCJ0IjowfX0.lo2T-wbXe1J9DvVyxJtFkNlo76uH_kSVwVY-FxLZRkk',
         createMany: function (params, done) {
             var paramsCopy = params.slice(0);
             function createJWT(callback) {
@@ -105,121 +105,24 @@ var utils = {
             utils.create(path.JWT + '/create', {jwt: utils.jwt.admin, data: {userId: userId, actions: actions, networkIds: networkIds, deviceIds: deviceIds, expiration: expDate }}, callback);
         }
     },
-
-    accessKey: {
-
-        admin: "1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=",
-
-        createMany: function (params, done) {
-            var paramsCopy = params.slice(0);
-
-            function createAccessKey(callback) {
-                var p = paramsCopy.shift();
-                setTimeout(function () {
-                    utils.accessKey.create(p.user, p.label, p.actions, p.deviceIds, p.networkIds,
-                        function (err, result) {
-                            if (err) {
-                                callback(err);
-                            }
-
-                            callback(null, result.key);
-                        })
-                }, 10);
-            }
-
-            var callbacks = [];
-            for (var i = 0; i < params.length; i++) {
-                callbacks.push(
-                    createAccessKey
-                );
-            }
-
-            async.series(callbacks, done);
-        },
-
-        create: function (user, label, actions, deviceIds, networkIds, callback) {
-
-            label || (label = utils.getName('access-key'));
-
-            if (actions && !Array.isArray(actions)) {
-                actions = [actions];
-            }
-
-            if (deviceIds && !Array.isArray(deviceIds)) {
-                deviceIds = [deviceIds];
-            }
-
-            if (networkIds && !Array.isArray(networkIds)) {
-                networkIds = [networkIds];
-            }
-
-            var expDate = new Date();
-            expDate.setFullYear(expDate.getFullYear() + 10);
-
-            var params = this.getParamsObj(label, user, expDate, void 0, networkIds, actions, deviceIds, void 0);
-            utils.create(path.CURRENT_ACCESS_KEY, params, callback);
-        },
-
-        getParams: function (label, user, expDate, domains, networkIds, actions, deviceIds, subnets) {
-
-            expDate || (expDate = new Date());
-            expDate.setFullYear(expDate.getFullYear() + 10);
-
-            return this.getParamsObj(label, user, expDate,
-                domains || ['www.example.com'],
-                networkIds || [1, 2],
-                actions || ['GetNetwork', 'GetDevice'],
-                deviceIds || ['11111111-2222-3333-4444-555555555555'],
-                subnets || ['127.0.0.1']);
-        },
-
-        getParamsObj: function (label, user, expDate, domains, networkIds, actions, deviceIds, subnets) {
-
-            var permission = {};
-
-            if (domains) {
-                permission.domains = domains;
-            }
-
-            if (networkIds) {
-                permission.networkIds = networkIds;
-            }
-
-            if (actions) {
-                permission.actions = actions;
-            }
-
-            if (deviceIds) {
-                permission.deviceIds = deviceIds;
-            }
-
-            if (subnets) {
-                permission.subnets = subnets;
-            }
-
-            var params = {
-                data: {
-                    label: label,
-                    permissions: [permission]
-                }
-            };
-
-            if (user) {
-                params.user = user;
-            }
-
-            if (expDate) {
-                params.data.expirationDate = expDate.toISOString();
-            }
-
-            return params;
-        },
-
-        expectAccessKey: function (actual, expected) {
-            assert.strictEqual(+new Date(actual.expirationDate), +new Date(expected.expirationDate));
-            assert.strictEqual(actual.label, expected.label);
-            assert.deepEqual(actual.permissions, expected.permissions);
-        }
+    
+    action: {
+        Any: 0,
+        None: 1,
+        GetNetwork: 2,
+        GetDevice: 3,
+        GetDeviceNotification: 4,
+        GetDeviceCommand: 5,
+        RegisterDevice: 6,
+        CreateDeviceCommand: 7,
+        UpdateDeviceCommand: 8,
+        CreateDeviceNotification: 9,
+        GetCurrentUser: 10,
+        UpdateCurrentUser: 11,
+        ManageUser: 12,
+        ManageConfiguration: 13,
+        ManageNetwork: 14,
+        ManageToken: 15
     },
 
     device: {
