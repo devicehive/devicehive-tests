@@ -90,9 +90,9 @@ describe('REST API JSON Web Tokens', function () {
                 assert(result.accessToken != null);
                 var jwtTokenVO = utils.parseJwt(result.accessToken);
                 
-                jwtTokenVO.payload.actions.should.containEql('*');
-                jwtTokenVO.payload.networkIds.should.containEql('*');
-                jwtTokenVO.payload.deviceIds.should.containEql('*');
+                jwtTokenVO.payload.a.should.containEql(0);
+                jwtTokenVO.payload.n.should.containEql('*');
+                jwtTokenVO.payload.d.should.containEql('*');
 
                 done();
             });
@@ -111,8 +111,8 @@ describe('REST API JSON Web Tokens', function () {
                 assert(result.accessToken != null);
                 var jwtTokenVO = utils.parseJwt(result.accessToken);
                 
-                if (jwtTokenVO.payload.networkIds.length > 0) {
-                	jwtTokenVO.payload.deviceIds.should.containEql('*');
+                if (jwtTokenVO.payload.n.length > 0) {
+                	jwtTokenVO.payload.d.should.containEql('*');
                 }
 
                 done();
@@ -191,9 +191,9 @@ describe('REST API JSON Web Tokens', function () {
                     return done(err);
                 }
 
-                assert.strictEqual(result.accessToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTE0NzY0ODAwMDAwLCJ0b2tlblR5cGUiOiJBQ0NFU1MifX0'),
+                assert.strictEqual(result.accessToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTE0NzY0ODAwMDAwLCJ0IjoxfX0.dkA2H1MGmJHdAT382tqt-xhcmwwlTimGwnabS5HdfJc'),
                     true);
-                assert.strictEqual(result.refreshToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTE0NzY0ODAwMDAwLCJ0b2tlblR5cGUiOiJSRUZSRVNIIn19'),
+                assert.strictEqual(result.refreshToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTE0NzY0ODAwMDAwLCJ0IjowfX0.XBkLSomCiFtGvaZeNe1e-uMKUQB_PIH87Zz0FmZyyxs'),
                     true);
 
                 done();
@@ -221,8 +221,8 @@ describe('REST API JSON Web Tokens', function () {
                 var expAccessTime = new Date().getTime() + defaultAccessTokenLifeTime;
                 var expRefreshTime = new Date().getTime() + defaultRefreshTokenLifeTime;
 
-                assert(accessTokenVO.payload.expiration - expAccessTime < 1000);
-                assert(refreshTokenVO.payload.expiration - expRefreshTime < 1000);
+                assert(accessTokenVO.payload.e - expAccessTime < 1000);
+                assert(refreshTokenVO.payload.e - expRefreshTime < 1000);
 
                 done();
             });
@@ -243,7 +243,7 @@ describe('REST API JSON Web Tokens', function () {
                 var accessTokenVO = utils.parseJwt(result.accessToken);
                 var expTime = new Date().getTime() + defaultAccessTokenLifeTime;
 
-                assert(accessTokenVO.payload.expiration - expTime < 1000);
+                assert(accessTokenVO.payload.e - expTime < 1000);
 
                 done();
             });
@@ -292,7 +292,7 @@ describe('REST API JSON Web Tokens', function () {
                     networkIds: ['*'],
                     deviceIds: ['*']
                 }
-            }, function (err) {
+            }, function (err, result) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, 'Access is denied');
                 assert.strictEqual(err.httpStatus, status.FORBIDDEN);

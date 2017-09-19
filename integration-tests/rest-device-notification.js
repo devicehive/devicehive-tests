@@ -86,13 +86,13 @@ describe('REST API Device Notification', function () {
             var params = [
                 {
                     user: user,
-                    actions: ['GetDeviceNotification','CreateDeviceNotification'],
+                    actions: ['GetDeviceNotification', 'CreateDeviceNotification'],
                     networkIds: networkId,
                     deviceIds: DEVICE_ID
                 },
                 {
                     user: nonNetworkUser,
-                    actions: ['GetDeviceNotification','CreateDeviceNotification'],
+                    actions: ['GetDeviceNotification', 'CreateDeviceNotification'],
                     networkIds: void 0,
                     deviceIds: DEVICE_ID
                 }
