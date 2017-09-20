@@ -102,7 +102,7 @@ describe('REST API Device Command', function () {
                 utils.create(path.current, params, function (err) {
                     setTimeout(function () {
                         callback(err);
-                    }, 20000);
+                    }, 2000);
                 })
             })
         }
