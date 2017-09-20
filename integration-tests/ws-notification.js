@@ -27,13 +27,13 @@ describe('WebSocket API Notification', function () {
     var user = null;
     var token = null;
     var invalidToken = null;
-    var device = null;
     var networkId = null;
     var networkId1 = null;
     var notificationId1 = null;
     var notificationId2 = null;
 
-    var clientToken = null;
+    var conn = null;
+    var adminConn = null;
     var refreshToken = null;
     var clientInvalidToken = null;
 
@@ -152,7 +152,7 @@ describe('WebSocket API Notification', function () {
                     'CreateDeviceNotification'
                 ],
                 deviceIds: ['*'],
-                networkIds: ['*']
+                networkIds: [networkId]
             };
             utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceIds , function (err, result) {
                 if (err) {
@@ -179,13 +179,13 @@ describe('WebSocket API Notification', function () {
         }
 
         function createConn(callback) {
-            device = new Websocket(url);
-            device.connect(callback);
+            conn = new Websocket(url);
+            conn.connect(callback);
         }
 
-        function createConnTokenAuth(callback) {
-            clientToken = new Websocket(url);
-            clientToken.connect(callback);
+        function createAdminConn(callback) {
+            adminConn = new Websocket(url);
+            adminConn.connect(callback);
         }
 
         function createConnInvalidTokenAuth(callback) {
@@ -198,12 +198,21 @@ describe('WebSocket API Notification', function () {
             refreshToken.connect(callback);
         }
 
-        function authenticateWithToken(callback) {
-            clientToken.params({
-                    action: 'authenticate',
-                    requestId: getRequestId(),
-                    token: token
-                })
+        function authenticateConn(callback) {
+            conn.params({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: token
+            })
+                .send(callback);
+        }
+
+        function authenticateAdminConn(callback) {
+            adminConn.params({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: utils.jwt.admin
+            })
                 .send(callback);
         }
 
@@ -213,15 +222,6 @@ describe('WebSocket API Notification', function () {
                     requestId: getRequestId(),
                     token: invalidToken
                 })
-                .send(callback);
-        }
-
-        function authenticateConn(callback) {
-            device.params({
-                action: 'authenticate',
-                requestId: getRequestId(),
-                token: token
-            })
                 .send(callback);
         }
 
@@ -237,12 +237,12 @@ describe('WebSocket API Notification', function () {
             createToken,
             createInvalidToken,
             createConn,
-            createConnTokenAuth,
+            createAdminConn,
             createConnInvalidTokenAuth,
             createConnRefreshTokenAuth,
-            authenticateWithToken,
-            authenticateWithInvalidToken,
-            authenticateConn
+            authenticateConn,
+            authenticateAdminConn,
+            authenticateWithInvalidToken
         ], done);
     });
 
@@ -298,7 +298,7 @@ describe('WebSocket API Notification', function () {
         }
 
         it('should add new notification, jwt auth', function (done) {
-            runTest(clientToken, done);
+            runTest(conn, done);
         });
 
         it('should fail when using wrong jwt', function (done) {
@@ -312,7 +312,7 @@ describe('WebSocket API Notification', function () {
         });
 
         it('should authenticate fail when using refresh token', function (done) {
-            device.params({
+            conn.params({
                 action: 'authenticate',
                 requestId: getRequestId(),
                 token: utils.jwt.admin_refresh
@@ -321,9 +321,21 @@ describe('WebSocket API Notification', function () {
                 .send(done);
         });
 
-        it('should fail when using wrong deviceId', function (done) {
+        it('should fail with 403 when using wrong deviceId with client token', function (done) {
             var invalidDeviceId = 'invalid-device-id';  
-            device.params({
+            conn.params({
+                action: 'notification/insert',
+                requestId: getRequestId(),
+                deviceId: invalidDeviceId,
+                notification: notification
+            })
+                .expectError(403, 'Access is denied')
+                .send(done);
+        });
+
+        it('should fail with 404 when using wrong deviceId with admin token', function (done) {
+            var invalidDeviceId = 'invalid-device-id';
+            adminConn.params({
                 action: 'notification/insert',
                 requestId: getRequestId(),
                 deviceId: invalidDeviceId,
@@ -334,7 +346,7 @@ describe('WebSocket API Notification', function () {
         });
 
         it('should fail when no deviceId is provided', function (done) {
-            clientToken.params({
+            conn.params({
                 action: 'notification/insert',
                 requestId: getRequestId(),
                 notification: notification
@@ -371,7 +383,7 @@ describe('WebSocket API Notification', function () {
         }
 
         it('should check if inserted notifications are in results', function (done) {
-            runTest(clientToken, done);
+            runTest(conn, done);
         });
 
         it('should fail when using wrong jwt', function (done) {
@@ -386,7 +398,7 @@ describe('WebSocket API Notification', function () {
 
         it('should fail when using wrong deviceId', function (done) {
             var invalidDeviceId = 'invalid-device-id';
-            device.params({
+            conn.params({
                 action: 'notification/list',
                 requestId: getRequestId(),
                 deviceId: invalidDeviceId
@@ -396,7 +408,7 @@ describe('WebSocket API Notification', function () {
         });
 
         it('should fail when no deviceId is provided', function (done) {
-            clientToken.params({
+            conn.params({
                 action: 'notification/list',
                 requestId: getRequestId()
             })
@@ -424,7 +436,7 @@ describe('WebSocket API Notification', function () {
         }
 
         it('should check if inserted commands are in results', function (done) {
-            runTest(clientToken, done);
+            runTest(conn, done);
         });
 
         it('should fail when using wrong jwt', function (done) {
@@ -440,7 +452,7 @@ describe('WebSocket API Notification', function () {
 
         it('should fail when using wrong deviceId', function (done) {
             var invalidDeviceId = 'invalid-device-id';
-            device.params({
+            conn.params({
                 action: 'notification/get',
                 requestId: getRequestId(),
                 deviceId: invalidDeviceId,
@@ -451,7 +463,7 @@ describe('WebSocket API Notification', function () {
         });
 
         it('should fail when no deviceId is provided', function (done) {
-            clientToken.params({
+            conn.params({
                 action: 'notification/get',
                 requestId: getRequestId(),
                 notificationId: notificationId1
@@ -461,7 +473,7 @@ describe('WebSocket API Notification', function () {
         });
 
         it('should fail when no notificationId is provided', function (done) {
-            clientToken.params({
+            conn.params({
                 action: 'notification/get',
                 requestId: getRequestId(),
                 deviceId: deviceId
@@ -473,7 +485,7 @@ describe('WebSocket API Notification', function () {
         it('should fail when not integer notificationId is provided', function (done) {
             var invalidNotificationId = 'invalid-notification-id';
             
-            clientToken.params({
+            conn.params({
                 action: 'notification/get',
                 requestId: getRequestId(),
                 deviceId: deviceId,
@@ -486,7 +498,7 @@ describe('WebSocket API Notification', function () {
         it('should fail when not existing notificationId is provided', function (done) {
             var invalidNotificationId = 123454321;
 
-            clientToken.params({
+            conn.params({
                 action: 'notification/get',
                 requestId: getRequestId(),
                 deviceId: deviceId,
@@ -531,12 +543,14 @@ describe('WebSocket API Notification', function () {
                         subscriptionId: subscriptionId
                     });
 
-                req.create(path.NOTIFICATION.get(deviceId))
-                    .params({
-                        jwt: token,
-                        data: {notification: NOTIFICATION}
-                    })
-                    .send();
+                setTimeout(function() {
+                    req.create(path.NOTIFICATION.get(deviceId))
+                        .params({
+                            jwt: token,
+                            data: {notification: NOTIFICATION}
+                        })
+                        .send();
+                }, 1000);
 
                 function cleanUp(err) {
                     if (err) {
@@ -554,14 +568,14 @@ describe('WebSocket API Notification', function () {
         }
 
         it('should subscribe to device notifications, jwt authorization', function (done) {
-            runTest(clientToken, done);
+            runTest(conn, done);
         });
 
         it('should subscribe to all device notifications, device auth', function (done) {
             var requestId = getRequestId();
             var subscriptionId = null;
 
-            device.params({
+            conn.params({
                 action: 'notification/subscribe',
                 requestId: requestId
             })
@@ -578,7 +592,7 @@ describe('WebSocket API Notification', function () {
                 }
                 subscriptionId = result.subscriptionId;
 
-                device.waitFor('notification/insert', cleanUp)
+                conn.waitFor('notification/insert', cleanUp)
                     .expect({
                         action: 'notification/insert',
                         notification: { notification: NOTIFICATION }
@@ -596,7 +610,7 @@ describe('WebSocket API Notification', function () {
                         return done(err);
                     }
 
-                    device.params({
+                    conn.params({
                         action: 'notification/unsubscribe',
                         requestId: getRequestId(),
                         subscriptionId: subscriptionId
@@ -610,7 +624,7 @@ describe('WebSocket API Notification', function () {
             var requestId = getRequestId();
             var subscriptionId = null;
 
-            device.params({
+            conn.params({
                 action: 'notification/subscribe',
                 deviceId: deviceId,
                 requestId: requestId
@@ -628,7 +642,7 @@ describe('WebSocket API Notification', function () {
                 }
                 subscriptionId = result.subscriptionId;
 
-                device.waitFor('notification/insert', cleanUp)
+                conn.waitFor('notification/insert', cleanUp)
                     .expect({
                         action: 'notification/insert',
                         notification: { notification: NOTIFICATION }
@@ -646,7 +660,7 @@ describe('WebSocket API Notification', function () {
                         return done(err);
                     }
 
-                    device.params({
+                    conn.params({
                         action: 'notification/unsubscribe',
                         requestId: getRequestId(),
                         subscriptionId: subscriptionId
@@ -660,7 +674,7 @@ describe('WebSocket API Notification', function () {
             var requestId = getRequestId();
             var subscriptionId = null;
 
-            device.params({
+            adminConn.params({
                 action: 'notification/subscribe',
                 deviceIds: [deviceId, deviceId1],
                 requestId: requestId
@@ -678,7 +692,7 @@ describe('WebSocket API Notification', function () {
                 }
                 subscriptionId = result.subscriptionId;
 
-                device.waitFor('notification/insert', cleanUp)
+                adminConn.waitFor('notification/insert', cleanUp)
                     .expect({
                         action: 'notification/insert',
                         notification: { notification: NOTIFICATION }
@@ -696,7 +710,7 @@ describe('WebSocket API Notification', function () {
                         return done(err);
                     }
 
-                    device.params({
+                    adminConn.params({
                         action: 'notification/unsubscribe',
                         requestId: getRequestId(),
                         subscriptionId: subscriptionId
@@ -710,7 +724,7 @@ describe('WebSocket API Notification', function () {
             var requestId = getRequestId();
             var subscriptionId = null;
 
-            device.params({
+            conn.params({
                 action: 'notification/subscribe',
                 networkIds: [networkId],
                 returnUpdatedCommands: true,
@@ -729,7 +743,7 @@ describe('WebSocket API Notification', function () {
                 }
                 subscriptionId = result.subscriptionId;
 
-                device.waitFor('notification/insert', cleanUp)
+                conn.waitFor('notification/insert', cleanUp)
                     .expect({
                         action: 'notification/insert',
                         notification: { notification: NOTIFICATION }
@@ -747,7 +761,7 @@ describe('WebSocket API Notification', function () {
                         return done(err);
                     }
 
-                    device.params({
+                    conn.params({
                         action: 'notification/unsubscribe',
                         requestId: getRequestId(),
                         subscriptionId: subscriptionId
@@ -761,7 +775,7 @@ describe('WebSocket API Notification', function () {
             var requestId = getRequestId();
             var subscriptionId = null;
 
-            device.params({
+            adminConn.params({
                 action: 'notification/subscribe',
                 networkIds: [networkId, networkId1],
                 returnUpdatedCommands: true,
@@ -780,7 +794,7 @@ describe('WebSocket API Notification', function () {
                 }
                 subscriptionId = result.subscriptionId;
 
-                device.waitFor('notification/insert', cleanUp)
+                adminConn.waitFor('notification/insert', cleanUp)
                     .expect({
                         action: 'notification/insert',
                         notification: { notification: NOTIFICATION }
@@ -798,7 +812,7 @@ describe('WebSocket API Notification', function () {
                         return done(err);
                     }
 
-                    device.params({
+                    adminConn.params({
                         action: 'notification/unsubscribe',
                         requestId: getRequestId(),
                         subscriptionId: subscriptionId
@@ -812,7 +826,7 @@ describe('WebSocket API Notification', function () {
             var requestId = getRequestId();
             var subscriptionId = null;
 
-            device.params({
+            adminConn.params({
                 action: 'notification/subscribe',
                 networkIds: [networkId, networkId1],
                 requestId: requestId
@@ -822,16 +836,16 @@ describe('WebSocket API Notification', function () {
                     requestId: requestId,
                     status: 'success'
                 })
-                .send(deviceCreate);
+                .send(connCreate);
 
-            function deviceCreate(err, result) {
+            function connCreate(err, result) {
                 if (err) {
                     return done(err);
                 }
 
                 subscriptionId = result.subscriptionId;
 
-                device.params({
+                adminConn.params({
                     action: 'device/save',
                     requestId: requestId,
                     device: {
@@ -853,7 +867,7 @@ describe('WebSocket API Notification', function () {
                     return done(err);
                 }
 
-                device.waitFor('notification/insert', cleanUp)
+                adminConn.waitFor('notification/insert', cleanUp)
                     .expect({
                         action: 'notification/insert',
                         notification: { notification: NOTIFICATION },
@@ -872,7 +886,7 @@ describe('WebSocket API Notification', function () {
                         return done(err);
                     }
 
-                    device.params({
+                    adminConn.params({
                         action: 'device/delete',
                         requestId: requestId,
                         deviceId: newDeviceId
@@ -883,7 +897,7 @@ describe('WebSocket API Notification', function () {
                             status: 'success'
                         })
                         .send(function (err) {
-                            device.params({
+                            adminConn.params({
                                 action: 'notification/unsubscribe',
                                 requestId: getRequestId(),
                                 subscriptionId: subscriptionId
@@ -898,7 +912,7 @@ describe('WebSocket API Notification', function () {
             var requestId = getRequestId();
             var subscriptionId = null;
 
-            device.params({
+            conn.params({
                 action: 'notification/subscribe',
                 requestId: requestId
             })
@@ -915,7 +929,7 @@ describe('WebSocket API Notification', function () {
                 }
                 subscriptionId = result.subscriptionId;
 
-                device.params({
+                conn.params({
                     action: 'device/save',
                     requestId: requestId,
                     device: {
@@ -938,7 +952,7 @@ describe('WebSocket API Notification', function () {
                 }
 
 
-                device.waitFor('notification/insert', cleanUp)
+                conn.waitFor('notification/insert', cleanUp)
                     .expect({
                         action: 'notification/insert',
                         notification: { notification: NOTIFICATION },
@@ -957,7 +971,7 @@ describe('WebSocket API Notification', function () {
                         return done(err);
                     }
 
-                    device.params({
+                    conn.params({
                         action: 'device/delete',
                         requestId: requestId,
                         deviceId: newDeviceId
@@ -968,7 +982,7 @@ describe('WebSocket API Notification', function () {
                             status: 'success'
                         })
                         .send(function (err) {
-                            device.params({
+                            conn.params({
                                 action: 'notification/unsubscribe',
                                 requestId: getRequestId(),
                                 subscriptionId: subscriptionId
@@ -982,7 +996,7 @@ describe('WebSocket API Notification', function () {
         it('should not subscribe to recently created device in different network for network subscription', function (done) {
             var requestId = getRequestId();
 
-            device.params({
+            adminConn.params({
                 action: 'notification/subscribe',
                 networkIds: [networkId1],
                 requestId: requestId
@@ -999,7 +1013,7 @@ describe('WebSocket API Notification', function () {
                     return done(err);
                 }
 
-                device.params({
+                adminConn.params({
                     action: 'device/save',
                     requestId: requestId,
                     device: {
@@ -1023,25 +1037,27 @@ describe('WebSocket API Notification', function () {
 
                 var subscriptionId = result.subscriptionId;
 
-                device.waitFor('notification/insert', function (err) {
+                adminConn.waitFor('notification/insert', function (err) {
                     assert.strictEqual(!(!err), true, 'Notifications should not arrive');
                     utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'notification/insert\' for 2000ms'});
                     cleanUp();
                 });
 
-                req.create(path.NOTIFICATION.get(newDeviceId))
-                    .params({
-                        jwt: utils.jwt.admin,
-                        data: {notification: NOTIFICATION}
-                    })
-                    .send(cleanUp);
+                setTimeout(function () {
+                    req.create(path.NOTIFICATION.get(newDeviceId))
+                        .params({
+                            jwt: utils.jwt.admin,
+                            data: {notification: NOTIFICATION}
+                        })
+                        .send();    
+                }, 1000);
 
                 function cleanUp(err) {
                     if (err) {
                         return done(err);
                     }
 
-                    device.params({
+                    adminConn.params({
                         action: 'device/delete',
                         requestId: requestId,
                         deviceId: newDeviceId
@@ -1052,7 +1068,7 @@ describe('WebSocket API Notification', function () {
                             status: 'success'
                         })
                         .send(function (err) {
-                            device.params({
+                            adminConn.params({
                                 action: 'notification/unsubscribe',
                                 requestId: getRequestId(),
                                 subscriptionId: subscriptionId
@@ -1066,7 +1082,7 @@ describe('WebSocket API Notification', function () {
         it('should reject subscribe to device notifications for non existing network', function (done) {
             var requestId = getRequestId();
 
-            device.params({
+            conn.params({
                 action: 'notification/subscribe',
                 networkIds: [utils.NON_EXISTING_ID],
                 requestId: requestId
@@ -1080,6 +1096,7 @@ describe('WebSocket API Notification', function () {
 
         function runTest(client, done) {
             var subscriptionId = null;
+            
             client.params({
                     action: 'notification/subscribe',
                     requestId: getRequestId(),
@@ -1118,18 +1135,22 @@ describe('WebSocket API Notification', function () {
                     utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'notification/insert\' for 2000ms'});
                     done();
                 });
+                
+                setTimeout(function () {
+                    req.create(path.NOTIFICATION.get(deviceId))
+                        .params({
+                            jwt: utils.jwt.admin,
+                            data: {notification: NOTIFICATION}
+                        })
+                        .send();    
+                }, 1000);
 
-                req.create(path.NOTIFICATION.get(deviceId))
-                    .params({
-                        jwt: utils.jwt.admin,
-                        data: {notification: NOTIFICATION}
-                    })
-                    .send();
+                
             }
         }
 
         it('should subscribe to device notifications, jwt authorization', function (done) {
-            runTest(clientToken, done);
+            runTest(conn, done);
         });
     });
 
@@ -1187,7 +1208,7 @@ describe('WebSocket API Notification', function () {
         }
 
         it('should notify when notification was inserted, jwt auth', function (done) {
-            runTest(clientToken, done);
+            runTest(conn, done);
         });
 
         function runTestNoSubscr(client, done) {
@@ -1212,12 +1233,12 @@ describe('WebSocket API Notification', function () {
         }
 
         it('should not notify when notification was inserted without prior subscription, jwt auth', function (done) {
-            runTestNoSubscr(clientToken, done);
+            runTestNoSubscr(conn, done);
         });
     });
 
     after(function (done) {
-        clientToken.close();
+        conn.close();
         utils.clearDataJWT(done);
     });
 });
