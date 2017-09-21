@@ -299,6 +299,9 @@ describe('WebSocket API Device', function () {
 
         var conn = null;
         var networkId = null;
+        var deviceWithCommasInId = JSON.parse(JSON.stringify(device));
+        deviceWithCommasInId.id = 'comma,test';
+        deviceWithCommasInId.name = 'comma_test';
 
         before(function (done) {
         	function createNetwork(callback) {
@@ -410,6 +413,17 @@ describe('WebSocket API Device', function () {
                 saveDevice,
                 checkDevice
             ], done);
+        });
+
+        it('should return error for device id with commas', function(done) {
+            var requestId = getRequestId();
+            conn.params({
+                action: 'device/save',
+                requestId: requestId,
+                device: deviceWithCommasInId
+            })
+                .expectError(400, 'Device Id cannot contain commas')
+                .send(done);
         });
 
         after(function (done) {

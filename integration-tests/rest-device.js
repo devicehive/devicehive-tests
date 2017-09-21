@@ -972,6 +972,7 @@ describe('REST API Device Unit', function () {
     describe('#Bad Request', function () {
 
         var NEW_DEVICE_ID = utils.getName('guid-1111');
+        var DEVICE_ID_WITH_COMMA = "comma,test";
 
         it('should fail with 400 when trying to create device with badly formed request #1', function (done) {
             var params = {jwt: utils.jwt.admin};
@@ -1006,6 +1007,18 @@ describe('REST API Device Unit', function () {
                 done();
             });
         });
+
+        it('should fail with 400 when trying to create device with badly formed request #4', function (done) {
+            var params = {jwt: utils.jwt.admin};
+            params.id = DEVICE_ID_WITH_COMMA;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
+
+                done();
+            });
+        });
+
     });
 
     describe('#Unauthorized', function () {
