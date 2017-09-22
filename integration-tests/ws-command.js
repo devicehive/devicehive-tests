@@ -3,6 +3,8 @@ var assert = require('assert');
 var utils = require('./common/utils');
 var path = require('./common/path');
 var req = require('./common/request');
+var status = require('./common/http').status;
+var format = require('util').format;
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
@@ -635,6 +637,31 @@ describe('WebSocket API Command', function () {
 
         it('should subscribe to device commands, no returnUpdated, jwt authorization', function (done) {
             runTest(conn, null, done);
+        });
+
+        it('should subscribe to non existing device commands, no returnUpdated, client jwt authorization', function (done) {
+            var requestId = getRequestId();
+            conn.params({
+                action: 'command/subscribe',
+                requestId: requestId,
+                deviceId: utils.NON_EXISTING_ID,
+                names: [COMMAND]
+            })
+                .expectError(status.FORBIDDEN, 'Access is denied')
+                .send(done);
+        });
+
+        it('should subscribe to non existing device commands, no returnUpdated, admin jwt authorization', function (done) {
+            var requestId = getRequestId();
+            adminConn.params({
+                action: 'command/subscribe',
+                requestId: requestId,
+                deviceId: utils.NON_EXISTING_ID,
+                names: [COMMAND]
+            })
+                .expectError(status.NOT_FOUND, 
+                    format('Devices with such deviceIds wasn\'t found: {[%d]}', utils.NON_EXISTING_ID))
+                .send(done);
         });
         
         it('should subscribe to device commands with timestamp, no returnUpdated, jwt authorization', function (done) {
