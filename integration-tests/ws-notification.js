@@ -3,6 +3,8 @@ var assert = require('assert');
 var utils = require('./common/utils');
 var path = require('./common/path');
 var req = require('./common/request');
+var status = require('./common/http').status;
+var format = require('util').format;
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
@@ -569,6 +571,31 @@ describe('WebSocket API Notification', function () {
 
         it('should subscribe to device notifications, jwt authorization', function (done) {
             runTest(conn, done);
+        });
+
+        it('should subscribe to non existing device notifications, client jwt authorization', function (done) {
+            var requestId = getRequestId();
+            conn.params({
+                action: 'notification/subscribe',
+                requestId: requestId,
+                deviceId: utils.NON_EXISTING_ID,
+                names: [NOTIFICATION]
+            })
+                .expectError(status.FORBIDDEN, 'Access is denied')
+                .send(done);
+        });
+
+        it('should subscribe to non existing device notifications, admin jwt authorization', function (done) {
+            var requestId = getRequestId();
+            adminConn.params({
+                action: 'notification/subscribe',
+                requestId: requestId,
+                deviceId: utils.NON_EXISTING_ID,
+                names: [NOTIFICATION]
+            })
+                .expectError(status.NOT_FOUND,
+                    format('Devices with such deviceIds wasn\'t found: {[%d]}', utils.NON_EXISTING_ID))
+                .send(done);
         });
 
         it('should subscribe to all device notifications, device auth', function (done) {
