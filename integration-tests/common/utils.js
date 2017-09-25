@@ -27,6 +27,8 @@ var utils = {
 
     url:  getParam("restUrl") ,
 
+    authUrl:  getParam("authRestUrl") ,
+
     admin: {
         login: 'dhadmin',
         password: 'dhadmin_#911',
@@ -102,7 +104,7 @@ var utils = {
             var expDate = new Date();
             expDate.setFullYear(expDate.getFullYear() + 10);
 
-            utils.create(path.JWT + '/create', {jwt: utils.jwt.admin, data: {userId: userId, actions: actions, networkIds: networkIds, deviceIds: deviceIds, expiration: expDate }}, callback);
+            utils.createAuth(path.JWT + '/create', {jwt: utils.jwt.admin, data: {userId: userId, actions: actions, networkIds: networkIds, deviceIds: deviceIds, expiration: expDate }}, callback);
         }
     },
     
@@ -202,9 +204,39 @@ var utils = {
             });
     },
 
+    createAuth: function ($path, params, cb) {
+        new Http(this.authUrl, $path, this.loggingOff)
+            .post(params, function (err, result, xhr) {
+                if (err) {
+                    err.httpStatus = xhr.status;
+                    return cb(err);
+                }
+
+                var resource = path.get($path, result.id);
+                assert.strictEqual(xhr.status, status.EXPECTED_CREATED);
+
+                cb(null, result, resource);
+            });
+    },
+
     get: function ($path, params, cb, responseStatus) {
         if(!responseStatus){responseStatus = status.EXPECTED_READ}
         new Http(this.url, path.get($path, params.id, params.query), this.loggingOff)
+            .get(params, function (err, result, xhr) {
+                if (err) {
+                    err.httpStatus = xhr.status;
+                    return cb(err);
+                }
+
+                assert.strictEqual(xhr.status, responseStatus);
+
+                cb(null, result);
+            });
+    },
+
+    getAuth: function ($path, params, cb, responseStatus) {
+        if(!responseStatus){responseStatus = status.EXPECTED_READ}
+        new Http(getParam("authRestUrl"), path.get($path, params.id, params.query), this.loggingOff)
             .get(params, function (err, result, xhr) {
                 if (err) {
                     err.httpStatus = xhr.status;

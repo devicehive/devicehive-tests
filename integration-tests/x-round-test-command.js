@@ -10,7 +10,7 @@ describe('Round tests for command', function () {
     this.timeout(60000);
     var url = null;
 
-    var INTERVAL = 100;
+    var INTERVAL = 1000;
     var TOTAL_COMMANDS = 10;
 
     var COMMAND = utils.getName('round-command');
@@ -205,13 +205,15 @@ describe('Round tests for command', function () {
                         command: command
                     });
 
-                clientConn.params({
+                setTimeout(function () {
+                    clientConn.params({
                         action: 'command/insert',
                         requestId: getRequestId(),
                         deviceId: deviceId,
                         command: command
                     })
-                    .send();
+                        .send();    
+                }, 1000);
             }
 
             function sendReply(cmnd, callback) {
@@ -229,14 +231,16 @@ describe('Round tests for command', function () {
                         command: update
                     });
 
-                deviceConn.params({
+                setTimeout(function () {
+                    deviceConn.params({
                         action: 'command/update',
                         requestId: getRequestId(),
                         deviceId: deviceId,
                         commandId: cmnd.command.id,
                         command: update
                     })
-                    .send();
+                        .send();
+                }, 1000);
             }
 
             async.waterfall([
@@ -323,7 +327,7 @@ describe('Round tests for command', function () {
                             command: update
                         })
                         .send();
-                }, 500);
+                }, 1000);
             }
 
             async.waterfall([
