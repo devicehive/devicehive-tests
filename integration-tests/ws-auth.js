@@ -22,7 +22,7 @@ describe('WebSocket API Authentication', function () {
 
         function getWsUrl(callback) {
 
-            req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
+            utils.get(path.INFO, {jwt: utils.jwt.admin} ,function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -30,7 +30,7 @@ describe('WebSocket API Authentication', function () {
                 callback();
             });
         }
-
+        
         function createNetwork(callback) {
             var params = {
                 jwt: utils.jwt.admin,
@@ -495,9 +495,9 @@ describe('WebSocket API Authentication', function () {
                 client.params({
                     action: 'token/refresh',
                     requestId: getRequestId(),
-                    token:  utils.jwt.admin_refresh_invalid
+                    refreshToken:  utils.jwt.admin_refresh_invalid
                 })
-                    .expectError(401, 'Invalid credentials')
+                    .expectError(400, 'Token is not valid')
                     .send(callback);
             }
 
@@ -525,9 +525,9 @@ describe('WebSocket API Authentication', function () {
                 client.params({
                     action: 'token/refresh',
                     requestId: getRequestId(),
-                    token:  utils.jwt.admin_refresh_exp
+                    refreshToken:  utils.jwt.admin_refresh_exp
                 })
-                    .expectError(401, 'Invalid credentials')
+                    .expectError(400, 'Token has expired')
                     .send(callback);
             }
 
