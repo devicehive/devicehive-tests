@@ -381,9 +381,8 @@ describe('REST API Device Command', function () {
             params.query = path.query('waitTimeout', 3);
             utils.get($path, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Device with such deviceId = %d not found',
-                    utils.NON_EXISTING_ID));
-                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                assert.strictEqual(err.error, 'Access is denied');
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
                 done();
             });
         });
