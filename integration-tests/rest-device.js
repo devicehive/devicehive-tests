@@ -972,6 +972,9 @@ describe('REST API Device Unit', function () {
     describe('#Bad Request', function () {
 
         var NEW_DEVICE_ID = utils.getName('guid-1111');
+        var ILLEGAL_DEVICE_ID_1 = 'comma,test';
+        var ILLEGAL_DEVICE_ID_2 = '$pecial_symbol&test';
+        var ILLEGAL_DEVICE_ID_3 = 'm*!t1s1#bo!_test';
 
         it('should fail with 400 when trying to create device with badly formed request #1', function (done) {
             var params = {jwt: utils.jwt.admin};
@@ -1006,6 +1009,40 @@ describe('REST API Device Unit', function () {
                 done();
             });
         });
+
+        it('should fail with 400 when trying to create device with badly formed request #4', function (done) {
+            var params = {jwt: utils.jwt.admin};
+            params.id = ILLEGAL_DEVICE_ID_1;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
+
+                done();
+            });
+        });
+
+        it('should fail with 400 when trying to create device with badly formed request #5', function (done) {
+            var params = {jwt: utils.jwt.admin};
+            params.id = ILLEGAL_DEVICE_ID_2;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
+
+                done();
+            });
+        });
+
+        it('should fail with 400 when trying to create device with badly formed request #6', function (done) {
+            var params = {jwt: utils.jwt.admin};
+            params.id = ILLEGAL_DEVICE_ID_3;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
+
+                done();
+            });
+        });
+
     });
 
     describe('#Unauthorized', function () {

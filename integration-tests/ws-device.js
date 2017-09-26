@@ -299,6 +299,12 @@ describe('WebSocket API Device', function () {
 
         var conn = null;
         var networkId = null;
+        var illegalDeviceId1 = JSON.parse(JSON.stringify(device));
+        var illegalDeviceId2 = JSON.parse(JSON.stringify(device));
+        var illegalDeviceId3 = JSON.parse(JSON.stringify(device));
+        illegalDeviceId1.id = 'comma,test';
+        illegalDeviceId2.id = '$pecial_symbol&test';
+        illegalDeviceId3.id = 'm*!t1s1#bo!_test';
 
         before(function (done) {
         	function createNetwork(callback) {
@@ -410,6 +416,33 @@ describe('WebSocket API Device', function () {
                 saveDevice,
                 checkDevice
             ], done);
+        });
+
+        it('should return error for device id with illegal characters', function(done) {
+            var requestId = getRequestId();
+            conn.params({
+                action: 'device/save',
+                requestId: requestId,
+                device: illegalDeviceId1
+            })
+                .expectError(400, 'Device Id can only contain letters, digits, dashes and underscores.')
+                .send(done);
+
+            conn.params({
+                action: 'device/save',
+                requestId: requestId,
+                device: illegalDeviceId2
+            })
+                .expectError(400, 'Device Id can only contain letters, digits, dashes and underscores.')
+                .send(done);
+
+            conn.params({
+                action: 'device/save',
+                requestId: requestId,
+                device: illegalDeviceId3
+            })
+                .expectError(400, 'Device Id can only contain letters, digits, dashes and underscores.')
+                .send(done);
         });
 
         after(function (done) {
