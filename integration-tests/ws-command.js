@@ -3,13 +3,11 @@ var assert = require('assert');
 var utils = require('./common/utils');
 var path = require('./common/path');
 var req = require('./common/request');
-var status = require('./common/http').status;
-var format = require('util').format;
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
 describe('WebSocket API Command', function () {
-    this.timeout(10000);
+    this.timeout(90000);
     var url = null;
 
     var DEVICE = utils.getName('ws-cmd-device');
@@ -29,14 +27,18 @@ describe('WebSocket API Command', function () {
     var user = null;
     var token = null;
     var invalidToken = null;
+    var device = null;
     var networkId = null;
     var networkId1 = null;
     var commandId1 = null;
     var commandId2 = null;
 
-    var conn = null;
-    var adminConn = null;
-    var connInvalidToken = null;
+    var clientToken = null;
+    var clientInvalidToken = null;
+
+    beforeEach(function(done) {
+        setTimeout(done, 1000);
+    });
 
     before(function (done) {
         function getWsUrl(callback) {
@@ -151,7 +153,7 @@ describe('WebSocket API Command', function () {
                     'UpdateDeviceCommand'
                 ],
                 deviceIds: ['*'],
-                networkIds: [networkId]
+                networkIds: ['*']
             };
             utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceIds, function (err, result) {
                 if (err) {
@@ -178,22 +180,21 @@ describe('WebSocket API Command', function () {
         }
 
         function createConn(callback) {
-            conn = new Websocket(url);
-            conn.connect(callback);
+            device = new Websocket(url);
+            device.connect(callback);
         }
 
-        function createAdminConn(callback) {
-            adminConn = new Websocket(url);
-            adminConn.connect(callback);
+        function createConnTokenAuth(callback) {
+            clientToken = new Websocket(url);
+            clientToken.connect(callback);
         }
 
         function createConnInvalidTokenAuth(callback) {
-            connInvalidToken = new Websocket(url);
-            connInvalidToken.connect(callback);
+            clientInvalidToken = new Websocket(url);
+            clientInvalidToken.connect(callback);
         }
-        
-        function authenticateConn(callback) {
-            conn.params({
+        function authenticateWithToken(callback) {
+            clientToken.params({
                 action: 'authenticate',
                 requestId: getRequestId(),
                 token: token
@@ -201,20 +202,20 @@ describe('WebSocket API Command', function () {
                 .send(callback);
         }
 
-        function authenticateAdminConn(callback) {
-            adminConn.params({
-                action: 'authenticate',
-                requestId: getRequestId(),
-                token: utils.jwt.admin
-            })
-                .send(callback);
-        }
-        
         function authenticateWithInvalidToken(callback) {
-            connInvalidToken.params({
+            clientInvalidToken.params({
                 action: 'authenticate',
                 requestId: getRequestId(),
                 token: invalidToken
+            })
+                .send(callback);
+        }
+
+        function authenticateConn(callback) {
+            device.params({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: token
             })
                 .send(callback);
         }
@@ -230,18 +231,18 @@ describe('WebSocket API Command', function () {
             insertCommand2,
             createToken,
             createInvalidToken,
-            createConn,
-            createAdminConn,
+            createConnTokenAuth,
             createConnInvalidTokenAuth,
-            authenticateConn,
-            authenticateAdminConn,
-            authenticateWithInvalidToken
+            createConn,
+            authenticateWithToken,
+            authenticateWithInvalidToken,
+            authenticateConn
         ], done);
     });
     
     describe('#Invalid credentials', function(done) {
         it('should return error with refresh token', function() {
-            conn.params({
+            clientToken.params({
                 action: 'authenticate',
                 requestId: getRequestId(),
                 token: utils.jwt.admin_refresh
@@ -261,14 +262,14 @@ describe('WebSocket API Command', function () {
             status: 'in progress'
         };
 
-        it('should add new command, jwt auth', function (done) {
+        function runTest(client, done) {
             var requestId = getRequestId();
-            adminConn.params({
-                action: 'command/insert',
-                requestId: requestId,
-                deviceId: deviceId,
-                command: command
-            })
+            client.params({
+                    action: 'command/insert',
+                    requestId: requestId,
+                    deviceId: deviceId,
+                    command: command
+                })
                 .expect({
                     action: 'command/insert',
                     status: 'success',
@@ -291,10 +292,14 @@ describe('WebSocket API Command', function () {
                     .expect(command)
                     .send(done);
             }
+        }
+
+        it('should add new command, jwt auth', function (done) {
+            runTest(clientToken, done);
         });
 
         it('should fail when using wrong jwt', function (done) {
-            connInvalidToken.params({
+            clientInvalidToken.params({
                     action: 'command/insert',
                     requestId: getRequestId(),
                     deviceId: deviceId,
@@ -304,9 +309,9 @@ describe('WebSocket API Command', function () {
                 .send(done);
         });
 
-        it('should fail when using wrong deviceId with ', function (done) {
+        it('should fail when using wrong deviceId', function (done) {
             var invalidDeviceId = 'invalid-device-id';
-            conn.params({
+            device.params({
                     action: 'command/insert',
                     requestId: getRequestId(),
                     deviceId: invalidDeviceId,
@@ -320,10 +325,9 @@ describe('WebSocket API Command', function () {
 
     describe('#command/list', function () {
 
-        it('should check if inserted commands are in results', function (done) {
+        function runTest(client, done) {
             var requestId = getRequestId();
-            
-            conn.params({
+            client.params({
                 action: 'command/list',
                 requestId: requestId,
                 deviceId: deviceId
@@ -336,13 +340,17 @@ describe('WebSocket API Command', function () {
                     return command.id;
                 });
                 var areCommandsInList = commandIds.indexOf(commandId1) >= 0 && commandIds.indexOf(commandId2) >= 0;
-
+                   
                 assert.equal(areCommandsInList, true, "Commands with required ids are not in the list");
             }).send(done);
+        }
+
+        it('should check if inserted commands are in results', function (done) {
+            runTest(clientToken, done);
         });
 
         it('should fail when using wrong jwt', function (done) {
-            connInvalidToken.params({
+            clientInvalidToken.params({
                 action: 'command/list',
                 requestId: getRequestId(),
                 deviceId: deviceId
@@ -351,20 +359,9 @@ describe('WebSocket API Command', function () {
                 .send(done);
         });
 
-        it('should fail when using wrong deviceId with client token', function (done) {
+        it('should fail when using wrong deviceId', function (done) {
             var invalidDeviceId = 'invalid-device-id';
-            conn.params({
-                action: 'command/list',
-                requestId: getRequestId(),
-                deviceId: invalidDeviceId
-            })
-                .expectError(403, 'Access is denied')
-                .send(done);
-        });
-
-        it('should fail when using wrong deviceId with admin token', function (done) {
-            var invalidDeviceId = 'invalid-device-id';
-            adminConn.params({
+            device.params({
                 action: 'command/list',
                 requestId: getRequestId(),
                 deviceId: invalidDeviceId
@@ -374,7 +371,7 @@ describe('WebSocket API Command', function () {
         });
 
         it('should fail when no deviceId is provided', function (done) {
-            conn.params({
+            clientToken.params({
                 action: 'command/list',
                 requestId: getRequestId()
             })
@@ -405,11 +402,11 @@ describe('WebSocket API Command', function () {
         }
 
         it('should check if inserted commands are in results', function (done) {
-            runTest(conn, done);
+            runTest(clientToken, done);
         });
 
         it('should fail when using wrong jwt', function (done) {
-            connInvalidToken.params({
+            clientInvalidToken.params({
                 action: 'command/get',
                 requestId: getRequestId(),
                 deviceId: deviceId,
@@ -419,21 +416,9 @@ describe('WebSocket API Command', function () {
                 .send(done);
         });
 
-        it('should fail when using wrong deviceId with client token', function (done) {
+        it('should fail when using wrong deviceId', function (done) {
             var invalidDeviceId = 'invalid-device-id';
-            conn.params({
-                action: 'command/get',
-                requestId: getRequestId(),
-                deviceId: invalidDeviceId,
-                commandId: commandId1
-            })
-                .expectError(403, 'Access is denied')
-                .send(done);
-        });
-
-        it('should fail when using wrong deviceId with admin token', function (done) {
-            var invalidDeviceId = 'invalid-device-id';
-            adminConn.params({
+            device.params({
                 action: 'command/get',
                 requestId: getRequestId(),
                 deviceId: invalidDeviceId,
@@ -444,7 +429,7 @@ describe('WebSocket API Command', function () {
         });
 
         it('should fail when no deviceId is provided', function (done) {
-            conn.params({
+            clientToken.params({
                 action: 'command/get',
                 requestId: getRequestId(),
                 commandId: commandId1
@@ -454,7 +439,7 @@ describe('WebSocket API Command', function () {
         });
 
         it('should fail when no notificationId is provided', function (done) {
-            conn.params({
+            clientToken.params({
                 action: 'command/get',
                 requestId: getRequestId(),
                 deviceId: deviceId
@@ -466,7 +451,7 @@ describe('WebSocket API Command', function () {
         it('should fail when not integer commandId is provided', function (done) {
             var invalidCommandId = 'invalid-command-id';
 
-            conn.params({
+            clientToken.params({
                 action: 'command/get',
                 requestId: getRequestId(),
                 deviceId: deviceId,
@@ -479,7 +464,7 @@ describe('WebSocket API Command', function () {
         it('should fail when not existing commandId is provided', function (done) {
             var invalidCommandId = 123454321;
 
-            conn.params({
+            clientToken.params({
                 action: 'command/get',
                 requestId: getRequestId(),
                 deviceId: deviceId,
@@ -636,42 +621,17 @@ describe('WebSocket API Command', function () {
         }
 
         it('should subscribe to device commands, no returnUpdated, jwt authorization', function (done) {
-            runTest(conn, null, done);
-        });
-
-        it('should subscribe to non existing device commands, no returnUpdated, client jwt authorization', function (done) {
-            var requestId = getRequestId();
-            conn.params({
-                action: 'command/subscribe',
-                requestId: requestId,
-                deviceId: utils.NON_EXISTING_ID,
-                names: [COMMAND]
-            })
-                .expectError(status.FORBIDDEN, 'Access is denied')
-                .send(done);
-        });
-
-        it('should subscribe to non existing device commands, no returnUpdated, admin jwt authorization', function (done) {
-            var requestId = getRequestId();
-            adminConn.params({
-                action: 'command/subscribe',
-                requestId: requestId,
-                deviceId: utils.NON_EXISTING_ID,
-                names: [COMMAND]
-            })
-                .expectError(status.NOT_FOUND, 
-                    format('Devices with such deviceIds wasn\'t found: {[%d]}', utils.NON_EXISTING_ID))
-                .send(done);
+            runTest(clientToken, null, done);
         });
         
         it('should subscribe to device commands with timestamp, no returnUpdated, jwt authorization', function (done) {
-            runTest(conn, new Date().toISOString(), done);
+            runTest(clientToken, new Date().toISOString(), done);
         });
 
         it('should subscribe to device commands for single device, no returnUpdated,', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            device.params({
                 action: 'command/subscribe',
                 deviceIds: [deviceId],
                 requestId: requestId
@@ -688,7 +648,7 @@ describe('WebSocket API Command', function () {
                     return done(err);
                 }
 
-                conn.waitFor('command/insert', cleanUp)
+                device.waitFor('command/insert', cleanUp)
                     .expect({
                         action: 'command/insert',
                         command: { command: COMMAND }
@@ -706,7 +666,7 @@ describe('WebSocket API Command', function () {
                         return done(err);
                     }
 
-                    conn.params({
+                    device.params({
                         action: 'command/unsubscribe',
                         requestId: getRequestId()
                     })
@@ -718,7 +678,7 @@ describe('WebSocket API Command', function () {
         it('should subscribe to device commands for multiple devices, no returnUpdated,', function (done) {
             var requestId = getRequestId();
 
-            adminConn.params({
+            device.params({
                 action: 'command/subscribe',
                 deviceIds: [deviceId, deviceId1],
                 requestId: requestId
@@ -736,7 +696,7 @@ describe('WebSocket API Command', function () {
                 }
 
                 var subscriptionId = result.subscriptionId;
-                adminConn.waitFor('command/insert', cleanUp)
+                device.waitFor('command/insert', cleanUp)
                     .expect({
                         action: 'command/insert',
                         command: { command: COMMAND }
@@ -754,7 +714,7 @@ describe('WebSocket API Command', function () {
                         return done(err);
                     }
 
-                    adminConn.params({
+                    device.params({
                         action: 'command/unsubscribe',
                         requestId: getRequestId(),
                         subscriptionId: subscriptionId
@@ -765,17 +725,17 @@ describe('WebSocket API Command', function () {
         });
 
         it('should subscribe to device commands, returnUpdated=true, jwt authorization', function (done) {
-            runTestWithUpdatedCommands(conn, null, done);
+            runTestWithUpdatedCommands(clientToken, null, done);
         });
 
         it('should subscribe to device commands with timestamp, returnUpdated = true, jwt authorization', function (done) {
-            runTestWithUpdatedCommands(conn, new Date().toISOString(), done);
+            runTestWithUpdatedCommands(clientToken, new Date().toISOString(), done);
         });
 
         it('should subscribe to device commands for single device, returnUpdated = true', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            device.params({
                 action: 'command/subscribe',
                 deviceIds: [deviceId],
                 returnUpdatedCommands: true,
@@ -794,7 +754,7 @@ describe('WebSocket API Command', function () {
                 }
 
                 var subscriptionId = result.subscriptionId;
-                conn.waitFor('command/update', cleanUp)
+                device.waitFor('command/update', cleanUp)
                     .expect({
                         action: 'command/update',
                         command: { command: COMMAND }
@@ -822,7 +782,7 @@ describe('WebSocket API Command', function () {
                         return done(err);
                     }
 
-                    conn.params({
+                    device.params({
                         action: 'command/unsubscribe',
                         requestId: getRequestId(),
                         subscriptionId: subscriptionId
@@ -835,7 +795,7 @@ describe('WebSocket API Command', function () {
         it('should subscribe to device commands for single network, returnUpdated = true', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            device.params({
                 action: 'command/subscribe',
                 networkIds: [networkId],
                 returnUpdatedCommands: true,
@@ -854,7 +814,7 @@ describe('WebSocket API Command', function () {
                 }
 
                 var subscriptionId = result.subscriptionId;
-                conn.waitFor('command/update', cleanUp)
+                device.waitFor('command/update', cleanUp)
                     .expect({
                         action: 'command/update',
                         command: { command: COMMAND }
@@ -882,7 +842,7 @@ describe('WebSocket API Command', function () {
                         return done(err);
                     }
 
-                    conn.params({
+                    device.params({
                         action: 'command/unsubscribe',
                         requestId: getRequestId(),
                         subscriptionId: subscriptionId
@@ -895,7 +855,7 @@ describe('WebSocket API Command', function () {
         it('should subscribe to device commands for multiple networks, returnUpdated = true', function (done) {
             var requestId = getRequestId();
 
-            adminConn.params({
+            device.params({
                 action: 'command/subscribe',
                 networkIds: [networkId, networkId1],
                 returnUpdatedCommands: true,
@@ -914,7 +874,7 @@ describe('WebSocket API Command', function () {
                 }
 
                 var subscriptionId = result.subscriptionId;
-                adminConn.waitFor('command/update', cleanUp)
+                device.waitFor('command/update', cleanUp)
                     .expect({
                         action: 'command/update',
                         command: { command: COMMAND }
@@ -942,7 +902,7 @@ describe('WebSocket API Command', function () {
                         return done(err);
                     }
 
-                    adminConn.params({
+                    device.params({
                         action: 'command/unsubscribe',
                         requestId: getRequestId(),
                         subscriptionId: subscriptionId
@@ -956,7 +916,7 @@ describe('WebSocket API Command', function () {
             var requestId = getRequestId();
             var subscriptionId = null;
 
-            adminConn.params({
+            device.params({
                 action: 'command/subscribe',
                 networkIds: [networkId, networkId1],
                 requestId: requestId
@@ -975,7 +935,7 @@ describe('WebSocket API Command', function () {
 
                 subscriptionId = result.subscriptionId;
 
-                adminConn.params({
+                device.params({
                     action: 'device/save',
                     requestId: requestId,
                     device: {
@@ -997,7 +957,7 @@ describe('WebSocket API Command', function () {
                     return done(err);
                 }
 
-                adminConn.waitFor('command/insert', cleanUp)
+                device.waitFor('command/insert', cleanUp)
                     .expect({
                         action: 'command/insert',
                         command: { command: COMMAND },
@@ -1016,7 +976,7 @@ describe('WebSocket API Command', function () {
                         return done(err);
                     }
 
-                    adminConn.params({
+                    device.params({
                         action: 'device/delete',
                         requestId: requestId,
                         deviceId: newDeviceId
@@ -1026,16 +986,14 @@ describe('WebSocket API Command', function () {
                             requestId: requestId,
                             status: 'success'
                         })
-                        .send(function () {
-                            adminConn.params({
-                                action: 'command/unsubscribe',
-                                requestId: getRequestId(),
-                                subscriptionId: subscriptionId
-                            })
-                                .send(done);        
-                        });
+                        .send();
 
-                    
+                    device.params({
+                        action: 'command/unsubscribe',
+                        requestId: getRequestId(),
+                        subscriptionId: subscriptionId
+                    })
+                        .send(done);
                 }
             }
         });
@@ -1044,7 +1002,7 @@ describe('WebSocket API Command', function () {
             var requestId = getRequestId();
             var subscriptionId = null;
 
-                conn.params({
+                device.params({
                 action: 'command/subscribe',
                 requestId: requestId
             })
@@ -1061,7 +1019,7 @@ describe('WebSocket API Command', function () {
                 }
                 subscriptionId = result.subscriptionId;
 
-                conn.params({
+                device.params({
                     action: 'device/save',
                     requestId: requestId,
                     device: {
@@ -1084,7 +1042,7 @@ describe('WebSocket API Command', function () {
                 }
 
 
-                conn.waitFor('command/insert', cleanUp)
+                device.waitFor('command/insert', cleanUp)
                     .expect({
                         action: 'command/insert',
                         command: { command: COMMAND },
@@ -1103,7 +1061,7 @@ describe('WebSocket API Command', function () {
                         return done(err);
                     }
 
-                    conn.params({
+                    device.params({
                         action: 'device/delete',
                         requestId: requestId,
                         deviceId: newDeviceId
@@ -1113,16 +1071,14 @@ describe('WebSocket API Command', function () {
                             requestId: requestId,
                             status: 'success'
                         })
-                        .send(function () {
-                            conn.params({
-                                action: 'command/unsubscribe',
-                                requestId: getRequestId(),
-                                subscriptionId: subscriptionId
-                            })
-                                .send(done);        
-                        });
+                        .send();
 
-                    
+                    device.params({
+                        action: 'command/unsubscribe',
+                        requestId: getRequestId(),
+                        subscriptionId: subscriptionId
+                    })
+                        .send(done);
                 }
             }
         });
@@ -1131,7 +1087,7 @@ describe('WebSocket API Command', function () {
             var requestId = getRequestId();
             var subscriptionId = null;
 
-            conn.params({
+            device.params({
                 action: 'command/subscribe',
                 returnUpdatedCommands: true,
                 requestId: requestId
@@ -1149,7 +1105,7 @@ describe('WebSocket API Command', function () {
                 }
                 subscriptionId = result.subscriptionId;
 
-                conn.params({
+                device.params({
                     action: 'device/save',
                     requestId: requestId,
                     device: {
@@ -1172,7 +1128,7 @@ describe('WebSocket API Command', function () {
                 }
 
 
-                conn.waitFor('command/update', cleanUp)
+                device.waitFor('command/update', cleanUp)
                     .expect({
                         action: 'command/update',
                         command: { command: COMMAND },
@@ -1201,7 +1157,7 @@ describe('WebSocket API Command', function () {
                         return done(err);
                     }
 
-                    conn.params({
+                    device.params({
                         action: 'device/delete',
                         requestId: requestId,
                         deviceId: newDeviceId
@@ -1213,7 +1169,7 @@ describe('WebSocket API Command', function () {
                         })
                         .send();
 
-                    conn.params({
+                    device.params({
                         action: 'command/unsubscribe',
                         requestId: getRequestId(),
                         subscriptionId: subscriptionId
@@ -1226,7 +1182,7 @@ describe('WebSocket API Command', function () {
         it('should not subscribe to recently created device in different network for network subscription', function (done) {
             var requestId = getRequestId();
 
-            adminConn.params({
+            device.params({
                 action: 'command/subscribe',
                 networkIds: [networkId1],
                 requestId: requestId
@@ -1243,7 +1199,7 @@ describe('WebSocket API Command', function () {
                     return done(err);
                 }
 
-                adminConn.params({
+                device.params({
                     action: 'device/save',
                     requestId: requestId,
                     device: {
@@ -1267,26 +1223,25 @@ describe('WebSocket API Command', function () {
 
                 var subscriptionId = result.subscriptionId;
 
-                conn.waitFor('command/insert', function (err) {
+                device.waitFor('command/insert', function (err) {
                     assert.strictEqual(!(!err), true, 'Commands should not arrive');
                     utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\' for 2000ms'});
                     cleanUp();
                 });
 
-                setTimeout(function() {
-                    req.create(path.COMMAND.get(newDeviceId))
-                        .params({
-                            jwt: utils.jwt.admin,
-                            data: {command: COMMAND}
-                        })
-                }, 1000);
+                req.create(path.COMMAND.get(newDeviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {command: COMMAND}
+                    })
+                    .send(cleanUp);
 
                 function cleanUp(err) {
                     if (err) {
                         return done(err);
                     }
 
-                    conn.params({
+                    device.params({
                         action: 'device/delete',
                         requestId: requestId,
                         deviceId: newDeviceId
@@ -1296,16 +1251,14 @@ describe('WebSocket API Command', function () {
                             requestId: requestId,
                             status: 'success'
                         })
-                        .send(function () {
-                                conn.params({
-                                    action: 'command/unsubscribe',
-                                    requestId: getRequestId(),
-                                    subscriptionId: subscriptionId
-                                })
-                                    .send(done);        
-                        });
+                        .send();
 
-                    
+                    device.params({
+                        action: 'command/unsubscribe',
+                        requestId: getRequestId(),
+                        subscriptionId: subscriptionId
+                    })
+                        .send(done);
                 }
             }
         });
@@ -1313,7 +1266,7 @@ describe('WebSocket API Command', function () {
         it('should reject subscribe to device commands for non existing network, returnUpdated = true', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            device.params({
                 action: 'command/subscribe',
                 networkIds: [utils.NON_EXISTING_ID],
                 returnUpdatedCommands: true,
@@ -1322,7 +1275,6 @@ describe('WebSocket API Command', function () {
                 .expectError(403, "Networks with such networkIds wasn't found: {[" + utils.NON_EXISTING_ID + "]}")
                 .send(done);
         });
-
     });
 
     describe('#command/unsubscribe', function () {
@@ -1357,7 +1309,7 @@ describe('WebSocket API Command', function () {
                     .send(onUnubscribed);
             }
 
-            function onUnubscribed(err, result) {
+            function onUnubscribed(err) {
                 if (err) {
                     return done(err);
                 }
@@ -1368,20 +1320,18 @@ describe('WebSocket API Command', function () {
                     done();
                 });
 
-                setTimeout(function() {
-                    req.create(path.COMMAND.get(deviceId))
-                        .params({
-                            jwt: utils.jwt.admin,
-                            data: {command: COMMAND}
-                        }).send();
-                }, 100);
+                req.create(path.COMMAND.get(deviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {command: COMMAND}
+                    })
+                    .send();
             }
         }
 
         it('should unsubscribe to device commands, jwt authorization', function (done) {
-            runTest(conn, done);
+            runTest(clientToken, done);
         });
-
     });
 
     describe('#command/update', function () {
@@ -1445,11 +1395,11 @@ describe('WebSocket API Command', function () {
         }
 
         it('should update existing command, jwt auth', function (done) {
-            runTest(conn, done);
+            runTest(clientToken, done);
         });
 
         it('should fail when no deviceId is provided', function (done) {
-            conn.params({
+            clientToken.params({
                 action: 'command/update',
                 requestId: getRequestId(),
                 deviceId: null,
@@ -1462,7 +1412,7 @@ describe('WebSocket API Command', function () {
 
         it('should fail when using wrong deviceId', function (done) {
             var invalidDeviceId = 'invalid-device-id';
-            conn.params({
+            device.params({
                     action: 'command/update',
                     requestId: getRequestId(),
                     deviceId: invalidDeviceId,
@@ -1533,7 +1483,7 @@ describe('WebSocket API Command', function () {
 
         it('should notify when command was inserted, jwt auth', function (done) {
             setTimeout(function () {
-                runTest(conn, done);
+                runTest(clientToken, done);
             }, 500);
         });
 
@@ -1562,17 +1512,17 @@ describe('WebSocket API Command', function () {
         }
 
         it('should not notify when command was inserted without prior subscription, jwt auth', function (done) {
-            runTestNoSubscr(conn, done);
+            runTestNoSubscr(clientToken, done);
         });
 
         it('should notify when command was inserted, device auth', function (done) {
             setTimeout(function () {
-                runTest(conn, done);
+                runTest(device, done);
             }, 500);
         });
 
         it('should not notify when command was inserted without prior subscription, device auth', function (done) {
-            runTestNoSubscr(conn, done);
+            runTestNoSubscr(clientToken, done);
         });
     });
 
@@ -1625,13 +1575,13 @@ describe('WebSocket API Command', function () {
         }
 
         it('should notify when command was updated, jwt auth', function (done) {
-            runTest(conn, done);
+            runTest(clientToken, done);
         });
     });
 
     after(function (done) {
-        conn.close();
-        connInvalidToken.close();
+        clientToken.close();
+        clientInvalidToken.close();
         utils.clearDataJWT(done);
     });
 });
