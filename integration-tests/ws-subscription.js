@@ -23,6 +23,10 @@ describe('WebSocket API Subscription', function () {
     var clientToken = null;
     var clientInvalidToken = null;
 
+    beforeEach(function(done) {
+        setTimeout(done, 1000);
+    });
+
     before(function (done) {
         function getWsUrl(callback) {
             req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {

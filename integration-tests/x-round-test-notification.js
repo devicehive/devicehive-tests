@@ -13,7 +13,7 @@ describe('Round tests for notification', function () {
     //var INTERVAL = 500;
     //var TOTAL_NOTIFS = 20;
 
-    var INTERVAL = 100;
+    var INTERVAL = 1000;
     var TOTAL_NOTIFS = 10;
 
     var NOTIFICATION = utils.getName('round-notification');

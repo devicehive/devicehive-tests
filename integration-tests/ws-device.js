@@ -41,7 +41,6 @@ describe('WebSocket API Device', function () {
     describe('#device/get', function () {
 
         var conn = null;
-        var adminConn = null;
         var networkId = null;
 
         before(function (done) {
@@ -73,11 +72,6 @@ describe('WebSocket API Device', function () {
                 conn.connect(callback);
             }
 
-            function createAdminConn(callback) {
-                adminConn = new Websocket(url);
-                adminConn.connect(callback);
-            }
-
             function createToken(callback) {
                 var args = {
                     actions: [
@@ -107,23 +101,12 @@ describe('WebSocket API Device', function () {
                     .send(callback);
             }
 
-            function authenticateAdminConn(callback) {
-                adminConn.params({
-                    action: 'authenticate',
-                    requestId: getRequestId(),
-                    token: utils.jwt.admin
-                })
-                    .send(callback);
-            }
-
             async.series([
             	createNetwork,
                 createDevice,
                 createToken,
                 createConn,
-                createAdminConn,
-                authenticateConn,
-                authenticateAdminConn
+                authenticateConn
             ], done);
         });
 
@@ -164,24 +147,11 @@ describe('WebSocket API Device', function () {
                 .send(done);
         });
 
-        it('should return 403 when client has no access to device', function (done) {
+        it('should return 404 when no device exists', function (done) {
             var requestId = getRequestId();
             var invalidDeviceId = 'invalid-device-id';
 
             conn.params({
-                action: 'device/get',
-                deviceId: invalidDeviceId,
-                requestId: requestId
-            })
-                .expectError(403, 'Access is denied')
-                .send(done);
-        });
-
-        it('should return 404 for admin when no device exists', function (done) {
-            var requestId = getRequestId();
-            var invalidDeviceId = 'invalid-device-id';
-
-            adminConn.params({
                 action: 'device/get',
                 deviceId: invalidDeviceId,
                 requestId: requestId
@@ -192,7 +162,6 @@ describe('WebSocket API Device', function () {
 
         after(function (done) {
             conn.close();
-            adminConn.close();
             utils.clearDataJWT(done);
         });
     });
@@ -452,8 +421,6 @@ describe('WebSocket API Device', function () {
     describe('#device/delete', function () {
 
         var conn = null;
-        var refreshConn = null;
-        var adminConn = null;
         var networkId = null;
 
         var DEVICE_TO_DELETE = utils.getName('ws-device');
@@ -493,16 +460,6 @@ describe('WebSocket API Device', function () {
                 conn = new Websocket(url);
                 conn.connect(callback);
             }
-            
-            function createRefreshConn(callback) {
-                refreshConn = new Websocket(url);
-                refreshConn.connect(callback);
-            }
-
-            function createAdminConn(callback) {
-                adminConn = new Websocket(url);
-                adminConn.connect(callback);
-            }
 
             function createToken(callback) {
                 var args = {
@@ -528,16 +485,8 @@ describe('WebSocket API Device', function () {
                 conn.params({
                     action: 'authenticate',
                     requestId: getRequestId(),
+                    deviceId: deviceId,
                     token: token
-                })
-                    .send(callback);
-            }
-
-            function authenticateAdminConn(callback) {
-                adminConn.params({
-                    action: 'authenticate',
-                    requestId: getRequestId(),
-                    token: utils.jwt.admin
                 })
                     .send(callback);
             }
@@ -547,48 +496,22 @@ describe('WebSocket API Device', function () {
                 createDevice,
                 createToken,
                 createConn,
-                createRefreshConn,
-                createAdminConn,
-                authenticateConn,
-                authenticateAdminConn
+                authenticateConn
             ], done);
         });
 
         
         it('should return error using refresh jwt', function(done) {
-            var requestId = getRequestId();
-
-            refreshConn.params({
-                action: 'authenticate',
-                requestId: getRequestId(),
-                token: utils.jwt.admin_refresh
-            })
-                .expectError(401, 'Invalid credentials')
+            req.delete(path.DEVICE)
+                .params({jwt: utils.jwt.admin_refresh, id: deviceToDeleteId})
+                .expectError(401, 'Unauthorized')
                 .send(done);
         });
 
-        it('should return 403 for invalid device id with client token', function(done) {
-            var requestId = getRequestId();
+        it('should return error for invalid device id', function(done) {
             var deviceToDeleteInvalidId = 'invalid-device-id';
-            
-            conn.params({
-                action: 'device/delete',
-                requestId: requestId,
-                deviceId: deviceToDeleteInvalidId
-            })
-                .expectError(403, 'Access is denied')
-                .send(done);
-        });
-
-        it('should return 404 for invalid device id with admin token', function(done) {
-            var requestId = getRequestId();
-            var deviceToDeleteInvalidId = 'invalid-device-id';
-            
-            adminConn.params({
-                action: 'device/delete',
-                requestId: requestId,
-                deviceId: deviceToDeleteInvalidId
-            })
+            req.delete(path.DEVICE)
+                .params({jwt: utils.jwt.admin, id: deviceToDeleteInvalidId})
                 .expectError(404, 'Device with such deviceId = ' + deviceToDeleteInvalidId + ' not found')
                 .send(done);
         });
@@ -597,7 +520,7 @@ describe('WebSocket API Device', function () {
 
             function deleteDevice(callback) {
                 var requestId = getRequestId();
-                adminConn.params({
+                conn.params({
                     action: 'device/delete',
                     requestId: requestId,
                     deviceId: deviceToDeleteId
@@ -628,7 +551,6 @@ describe('WebSocket API Device', function () {
 
         after(function (done) {
             conn.close();
-            adminConn.close();
             utils.clearDataJWT(done);
         });
     });
