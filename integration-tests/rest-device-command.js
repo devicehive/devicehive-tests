@@ -102,7 +102,7 @@ describe('REST API Device Command', function () {
                 utils.create(path.current, params, function (err) {
                     setTimeout(function () {
                         callback(err);
-                    }, 20000);
+                    }, 2000);
                 })
             })
         }
@@ -328,7 +328,7 @@ describe('REST API Device Command', function () {
             setTimeout(function () {
                 var params = helper.getParamsObj(COMMAND, jwt);
                 utils.create(path.current, params, function () {});
-            }, 100);
+            }, 1000);
         })
 
         it('should return array with commands when poll updated with waitTimeout=3', function (done) {
@@ -372,7 +372,20 @@ describe('REST API Device Command', function () {
                     assert.strictEqual(!(!err), false, 'No error');
                 });
             }, 100);
-        })
+        });
+
+        it('should return an error when polling for the non existent device', function (done) {
+            var params = {jwt: jwt};
+            var deviceList = path.COMMAND.get(utils.NON_EXISTING_ID);
+            var $path = path.combine(deviceList, path.POLL);
+            params.query = path.query('waitTimeout', 3);
+            utils.get($path, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'Access is denied');
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+                done();
+            });
+        });
     });
 
     describe('#Poll limit', function () {
@@ -485,7 +498,35 @@ describe('REST API Device Command', function () {
                 globalId = result.id;
                 globalTimestamp = result.timestamp
             });}, 100);
-        })
+        });
+
+        it('should return an error when polling for the non existent device with client jwt', function (done) {
+            var params = {jwt: jwt};
+            var deviceList = path.COMMAND.get(DEVICE_ID + "%2C" + utils.NON_EXISTING_ID);
+            var $path = path.combine(deviceList, path.POLL);
+            params.query = path.query('waitTimeout', 3);
+            utils.get($path, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'Access is denied');
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+                done();
+            });
+        });
+
+        it('should return an error when polling for the non existent device with admin jwt', function (done) {
+            var params = {jwt: utils.jwt.admin};
+            var deviceList = path.COMMAND.get(DEVICE_ID + "%2C" + utils.NON_EXISTING_ID);
+            var $path = path.combine(deviceList, path.POLL);
+            params.query = path.query('waitTimeout', 3);
+            utils.get($path, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, format('Devices with such deviceIds wasn\'t found: {[%d]}',
+                    utils.NON_EXISTING_ID));
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+                done();
+            });
+        });
+
     });
 
     describe('#Poll Many - Other Device', function () {
