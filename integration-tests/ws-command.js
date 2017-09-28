@@ -978,8 +978,8 @@ describe('WebSocket API Command', function () {
                 adminConn.params({
                     action: 'device/save',
                     requestId: requestId,
+                    deviceId: newDeviceId,
                     device: {
-                        id: newDeviceId,
                         name: newDeviceId,
                         networkId: networkId
                     }
@@ -1067,8 +1067,8 @@ describe('WebSocket API Command', function () {
                 conn.params({
                     action: 'device/save',
                     requestId: requestId,
+                    deviceId: newDeviceId,
                     device: {
-                        id: newDeviceId,
                         name: newDeviceId,
                         networkId: networkId
                     }
@@ -1157,8 +1157,8 @@ describe('WebSocket API Command', function () {
                 conn.params({
                     action: 'device/save',
                     requestId: requestId,
+                    deviceId: newDeviceId,
                     device: {
-                        id: newDeviceId,
                         name: newDeviceId,
                         networkId: networkId
                     }
@@ -1251,8 +1251,8 @@ describe('WebSocket API Command', function () {
                 adminConn.params({
                     action: 'device/save',
                     requestId: requestId,
+                    deviceId: newDeviceId,
                     device: {
-                        id: newDeviceId,
                         name: newDeviceId,
                         networkId: networkId
                     }

@@ -875,8 +875,8 @@ describe('WebSocket API Notification', function () {
                 adminConn.params({
                     action: 'device/save',
                     requestId: requestId,
+                    deviceId: newDeviceId,
                     device: {
-                        id: newDeviceId,
                         name: newDeviceId,
                         networkId: networkId
                     }
@@ -959,8 +959,8 @@ describe('WebSocket API Notification', function () {
                 conn.params({
                     action: 'device/save',
                     requestId: requestId,
+                    deviceId: newDeviceId,
                     device: {
-                        id: newDeviceId,
                         name: newDeviceId,
                         networkId: networkId
                     }
@@ -1043,8 +1043,8 @@ describe('WebSocket API Notification', function () {
                 adminConn.params({
                     action: 'device/save',
                     requestId: requestId,
+                    deviceId: newDeviceId,
                     device: {
-                        id: newDeviceId,
                         name: newDeviceId,
                         networkId: networkId
                     }
