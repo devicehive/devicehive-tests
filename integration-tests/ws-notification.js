@@ -38,6 +38,7 @@ describe('WebSocket API Notification', function () {
     var adminConn = null;
     var refreshToken = null;
     var clientInvalidToken = null;
+    var startTestTimestamp = new Date().toISOString();
 
     before(function (done) {
         function getWsUrl(callback) {
@@ -747,6 +748,58 @@ describe('WebSocket API Notification', function () {
             }
         });
 
+        it('should subscribe to already created device notifications for multiple devices', function (done) {
+            var requestId = getRequestId();
+            var subscriptionId = null;
+
+            adminConn.params({
+                action: 'notification/subscribe',
+                deviceIds: [deviceId, deviceId1],
+                requestId: requestId,
+                timestamp: startTestTimestamp
+            })
+                .expect({
+                    action: 'notification/subscribe',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .send(onSubscribed);
+
+            function onSubscribed(err, result) {
+                if (err) {
+                    return done(err);
+                }
+                subscriptionId = result.subscriptionId;
+
+                adminConn.waitFor('notification/insert', checkFirstInserted)
+                    .expect({
+                        action: 'notification/insert',
+                        subscriptionId: subscriptionId
+                    });
+
+                function checkFirstInserted(err) {
+                    adminConn.waitFor('notification/insert', cleanUp)
+                        .expect({
+                            action: 'notification/insert',
+                            subscriptionId: subscriptionId
+                        });
+                }
+
+                function cleanUp(err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    adminConn.params({
+                        action: 'notification/unsubscribe',
+                        requestId: getRequestId(),
+                        subscriptionId: subscriptionId
+                    })
+                        .send(done);
+                }
+            }
+        });
+
         it('should subscribe to device notifications for single network, returnUpdated = true', function (done) {
             var requestId = getRequestId();
             var subscriptionId = null;
@@ -901,13 +954,15 @@ describe('WebSocket API Notification', function () {
                         subscriptionId: subscriptionId
                     });
 
-                req.create(path.NOTIFICATION.get(newDeviceId))
-                    .params({
-                        jwt: utils.jwt.admin,
-                        data: {notification: NOTIFICATION}
-                    })
-                    .send();
-
+                setTimeout(function () {
+                    req.create(path.NOTIFICATION.get(newDeviceId))
+                        .params({
+                            jwt: utils.jwt.admin,
+                            data: {notification: NOTIFICATION}
+                        })
+                        .send();
+                }, 500);
+                
                 function cleanUp(err) {
                     if (err) {
                         return done(err);
@@ -986,12 +1041,14 @@ describe('WebSocket API Notification', function () {
                         subscriptionId: subscriptionId
                     });
 
-                req.create(path.NOTIFICATION.get(newDeviceId))
-                    .params({
-                        jwt: utils.jwt.admin,
-                        data: {notification: NOTIFICATION}
-                    })
-                    .send();
+                setTimeout(function () {
+                    req.create(path.NOTIFICATION.get(newDeviceId))
+                        .params({
+                            jwt: utils.jwt.admin,
+                            data: {notification: NOTIFICATION}
+                        })
+                        .send();
+                }, 500);
 
                 function cleanUp(err) {
                     if (err) {
