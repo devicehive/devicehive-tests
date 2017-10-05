@@ -100,11 +100,9 @@ describe('REST API Device Command', function () {
 
                 var params = helper.getParamsObj(utils.getName('cmd-2'), jwt);
                 utils.create(path.current, params, function (err) {
-                    setTimeout(function () {
-                        callback(err);
-                    }, 2000);
-                })
-            })
+                    callback(err);
+                });
+            });
         }
 
         async.series([
@@ -304,20 +302,18 @@ describe('REST API Device Command', function () {
             });
 
             setTimeout(function () {
-                var params = helper.getParamsObj(COMMAND_2, jwt);
-                utils.create(path.current, params, function () {});
+                var params1 = helper.getParamsObj(COMMAND, jwt);
+                var params2 = helper.getParamsObj(COMMAND_2, jwt);
+                utils.create(path.current, params2, function () {});
+                utils.create(path.current, params1, function () {});
             }, 100);
 
-            setTimeout(function () {
-                var params = helper.getParamsObj(COMMAND, jwt);
-                utils.create(path.current, params, function () {});
-            }, 100);
         });
 
-        it('should return array with commands when poll with waitTimeout=3', function (done) {
+        it('should return array with commands when poll with waitTimeout=5', function (done) {
             var params = {jwt: jwt};
             var $path = path.combine(path.current, path.POLL);
-            params.query = path.query('waitTimeout', 3);
+            params.query = path.query('waitTimeout', 5);
             utils.get($path, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.length > 0, true);
@@ -328,15 +324,15 @@ describe('REST API Device Command', function () {
             setTimeout(function () {
                 var params = helper.getParamsObj(COMMAND, jwt);
                 utils.create(path.current, params, function () {});
-            }, 1000);
-        })
+            }, 100);
+        });
 
-        it('should return array with commands when poll updated with waitTimeout=3', function (done) {
+        it('should return array with commands when poll updated with waitTimeout=5', function (done) {
             var params = {
                 jwt: jwt
             };
             var $path = path.combine(path.current, path.POLL);
-            params.query = path.query('waitTimeout', 3, 'returnUpdatedCommands', true);
+            params.query = path.query('waitTimeout', 5, 'returnUpdatedCommands', true);
             utils.get($path, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.length > 0, true);
@@ -352,14 +348,14 @@ describe('REST API Device Command', function () {
                     utils.update(path.current, params, function () {});
                 });
             }, 100);
-        })
+        });
 
-        it('should return empty array with commands when poll updated with waitTimeout=3', function (done) {
+        it('should return empty array with commands when poll updated with waitTimeout=5', function (done) {
             var params = {
                 jwt: jwt
             };
             var $path = path.combine(path.current, path.POLL);
-            params.query = path.query('waitTimeout', 3, 'returnUpdatedCommands', true);
+            params.query = path.query('waitTimeout', 5, 'returnUpdatedCommands', true);
             utils.get($path, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.length === 0, true);
@@ -378,7 +374,7 @@ describe('REST API Device Command', function () {
             var params = {jwt: jwt};
             var deviceList = path.COMMAND.get(utils.NON_EXISTING_ID);
             var $path = path.combine(deviceList, path.POLL);
-            params.query = path.query('waitTimeout', 3);
+            params.query = path.query('waitTimeout', 5);
             utils.get($path, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, 'Access is denied');
@@ -392,21 +388,20 @@ describe('REST API Device Command', function () {
         it('should return limited array with commands', function (done) {
             var params = {jwt: jwt};
             var $path = path.combine(path.current, path.POLL);
-
-            params.query = path.query('waitTimeout', 3, 'timestamp', beforeCreateCommandsTimestamp, 'limit', 3);
-            utils.get($path, params, function (err, result) {
-                assert.strictEqual(!(!err), false, 'No error');
-                assert.strictEqual(result.length === 3, true);
-                done();
-            });
+            
+            for (i = 0; i < 5; i++) {
+                var params = helper.getParamsObj(utils.getName('' + i), jwt);
+                utils.create(path.current, params, function () {});
+            }
 
             setTimeout(function () {
-                for (i = 0; i < 5; i++) {
-                    var params = helper.getParamsObj(utils.getName('' + i), jwt);
-                    utils.create(path.current, params, function () {});
-                }
-            }, 100)
-
+                params.query = path.query('waitTimeout', 5, 'timestamp', beforeCreateCommandsTimestamp, 'limit', 3);
+                utils.get($path, params, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    assert.strictEqual(result.length === 3, true, 'Result length is not correct');
+                    done();
+                });
+            }, 2000);
         })
     });
 
@@ -447,14 +442,12 @@ describe('REST API Device Command', function () {
             });
 
             setTimeout(function () {
-                var params = helper.getParamsObj(COMMAND_2, jwt);
-                utils.create(path.current, params, function () {});
+                var params1 = helper.getParamsObj(COMMAND, jwt);
+                var params2 = helper.getParamsObj(COMMAND_2, jwt);
+                utils.create(path.current, params2, function () {});
+                utils.create(path.current, params1, function () {});
             }, 100);
 
-            setTimeout(function () {
-                var params = helper.getParamsObj(COMMAND, jwt);
-                utils.create(path.current, params, function () {});
-            }, 100);
         });
 
         it('should not return command with the same timestamp', function (done) {
@@ -492,12 +485,14 @@ describe('REST API Device Command', function () {
 
             async.series([pollWithoutTimestamp, updateCommand], pollWithTimestamp);
 
-            var params = helper.getParamsObj(COMMAND, jwt);
-            setTimeout(function(){utils.create(path.current, params, function (err, result) {
-                assert.strictEqual(!(!err), false, 'No error');
-                globalId = result.id;
-                globalTimestamp = result.timestamp
-            });}, 100);
+            setTimeout(function() {
+                var params = helper.getParamsObj(COMMAND, jwt);
+                utils.create(path.current, params, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    globalId = result.id;
+                    globalTimestamp = result.timestamp
+                });
+                }, 100);
         });
 
         it('should return an error when polling for the non existent device with client jwt', function (done) {
@@ -584,13 +579,9 @@ describe('REST API Device Command', function () {
             setTimeout(function () {
                 var params = helper.getParamsObj(COMMAND_2, utils.jwt.admin);
                 utils.create(path.COMMAND.get(OTHER_DEVICE_ID), params, function () {});
-            }, 200);
-
-            setTimeout(function () {
-                var params = helper.getParamsObj(COMMAND_2, utils.jwt.admin);
                 utils.create(path.current, params, function () {});
-            }, 200);
-        })
+            }, 100);
+        });
     });
 
     describe('#Poll Many No Wait', function () {
@@ -646,8 +637,7 @@ describe('REST API Device Command', function () {
             var params = {jwt: jwt};
             params.id = commandId;
             params.data = commandUpdate;
-            utils.update(path.current, params, function () {});
-            setTimeout(function () {
+            utils.update(path.current, params, function () {
                 var params = {jwt: jwt};
                 var $path = path.combine(path.current, commandId, path.POLL);
                 params.query = path.query('waitTimeout', 0);
@@ -657,7 +647,7 @@ describe('REST API Device Command', function () {
                     assert.deepEqual(result.result, commandUpdate.result);
                     done();
                 });
-            },10);
+            });
         });
     });
 

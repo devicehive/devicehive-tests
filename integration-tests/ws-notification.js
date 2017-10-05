@@ -546,15 +546,13 @@ describe('WebSocket API Notification', function () {
                         subscriptionId: subscriptionId
                     });
 
-                setTimeout(function() {
-                    req.create(path.NOTIFICATION.get(deviceId))
-                        .params({
-                            jwt: token,
-                            data: {notification: NOTIFICATION}
-                        })
-                        .send();
-                }, 1000);
-
+                req.create(path.NOTIFICATION.get(deviceId))
+                    .params({
+                        jwt: token,
+                        data: {notification: NOTIFICATION}
+                    })
+                    .send();
+                
                 function cleanUp(err) {
                     if (err) {
                         return done(err);
@@ -841,11 +839,16 @@ describe('WebSocket API Notification', function () {
                         return done(err);
                     }
 
+                    var requestId = getRequestId();
                     conn.params({
                         action: 'notification/unsubscribe',
-                        requestId: getRequestId(),
+                        requestId: requestId,
                         subscriptionId: subscriptionId
+                    }).expect({
+                        action: 'notification/unsubscribe',
+                        requestId: requestId,
                     })
+                    
                         .send(done);
                 }
             }
@@ -892,10 +895,14 @@ describe('WebSocket API Notification', function () {
                         return done(err);
                     }
 
+                    var requestId = getRequestId();
                     adminConn.params({
                         action: 'notification/unsubscribe',
-                        requestId: getRequestId(),
+                        requestId: requestId,
                         subscriptionId: subscriptionId
+                    }).expect({
+                        action: 'notification/unsubscribe',
+                        requestId: requestId
                     })
                         .send(done);
                 }
@@ -954,14 +961,12 @@ describe('WebSocket API Notification', function () {
                         subscriptionId: subscriptionId
                     });
 
-                setTimeout(function () {
-                    req.create(path.NOTIFICATION.get(newDeviceId))
-                        .params({
-                            jwt: utils.jwt.admin,
-                            data: {notification: NOTIFICATION}
-                        })
-                        .send();
-                }, 500);
+                req.create(path.NOTIFICATION.get(newDeviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {notification: NOTIFICATION}
+                    })
+                    .send();
                 
                 function cleanUp(err) {
                     if (err) {
@@ -1041,14 +1046,12 @@ describe('WebSocket API Notification', function () {
                         subscriptionId: subscriptionId
                     });
 
-                setTimeout(function () {
-                    req.create(path.NOTIFICATION.get(newDeviceId))
-                        .params({
-                            jwt: utils.jwt.admin,
-                            data: {notification: NOTIFICATION}
-                        })
-                        .send();
-                }, 500);
+                req.create(path.NOTIFICATION.get(newDeviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {notification: NOTIFICATION}
+                    })
+                    .send();
 
                 function cleanUp(err) {
                     if (err) {
@@ -1127,16 +1130,14 @@ describe('WebSocket API Notification', function () {
                     cleanUp();
                 });
 
-                setTimeout(function () {
-                    req.create(path.NOTIFICATION.get(newDeviceId))
-                        .params({
-                            jwt: utils.jwt.admin,
-                            data: {notification: NOTIFICATION}
-                        })
-                        .send();    
-                }, 1000);
-
-                function cleanUp(err) {
+                req.create(path.NOTIFICATION.get(newDeviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {notification: NOTIFICATION}
+                    })
+                    .send();    
+                
+                    function cleanUp(err) {
                     if (err) {
                         return done(err);
                     }
@@ -1220,16 +1221,12 @@ describe('WebSocket API Notification', function () {
                     done();
                 });
                 
-                setTimeout(function () {
-                    req.create(path.NOTIFICATION.get(deviceId))
-                        .params({
-                            jwt: utils.jwt.admin,
-                            data: {notification: NOTIFICATION}
-                        })
-                        .send();    
-                }, 1000);
-
-                
+                req.create(path.NOTIFICATION.get(deviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {notification: NOTIFICATION}
+                    })
+                    .send();    
             }
         }
 
