@@ -169,7 +169,7 @@ describe('REST API Device Notification', function () {
 
                     done();
                 })
-            }, 200);
+            }, 100);
         });
 
         it('should get notifications by start date', function (done) {
@@ -186,7 +186,7 @@ describe('REST API Device Notification', function () {
 
                     done();
                 })
-            }, 400);
+            }, 100);
         });
 
         it('should return empty notifications list when start date is out of range', function (done) {
@@ -333,14 +333,12 @@ describe('REST API Device Notification', function () {
             });
 
             setTimeout(function () {
-                var params = helper.getParamsObj(NOTIFICATION_2, jwt1);
-                utils.create(path.current, params, function () {});
+                var params1 = helper.getParamsObj(NOTIFICATION, jwt1);
+                var params2 = helper.getParamsObj(NOTIFICATION_2, jwt1);
+                utils.create(path.current, params2, function () {});
+                utils.create(path.current, params1, function () {});
             }, 100);
 
-            setTimeout(function () {
-                var params = helper.getParamsObj(NOTIFICATION, jwt1);
-                utils.create(path.current, params, function () {});
-            }, 100);
         });
 
         it('should return array with notifications when poll with waitTimeout=3', function (done) {
@@ -398,13 +396,10 @@ describe('REST API Device Notification', function () {
             });
 
             setTimeout(function () {
-                var params = helper.getParamsObj(NOTIFICATION_2, jwt1);
-                utils.create(path.current, params, function () {});
-            }, 100);
-
-            setTimeout(function () {
-                var params = helper.getParamsObj(NOTIFICATION, jwt1);
-                utils.create(path.current, params, function () {});
+                var params1 = helper.getParamsObj(NOTIFICATION, jwt1);
+                var params2 = helper.getParamsObj(NOTIFICATION_2, jwt1);
+                utils.create(path.current, params2, function () {});
+                utils.create(path.current, params1, function () {});
             }, 100);
         });
 
@@ -492,13 +487,9 @@ describe('REST API Device Notification', function () {
             setTimeout(function () {
                 var params = helper.getParamsObj(NOTIFICATION_2, utils.jwt.admin);
                 utils.create(path.NOTIFICATION.get(OTHER_DEVICE_ID), params, function () {});
-            }, 100);
-
-            setTimeout(function () {
-                var params = helper.getParamsObj(NOTIFICATION_2, utils.jwt.admin);
                 utils.create(path.current, params, function () {});
             }, 100);
-        })
+        });
     });
 
     describe('#Poll Many No Wait', function () {
