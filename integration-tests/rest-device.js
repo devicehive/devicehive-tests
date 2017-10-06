@@ -505,7 +505,7 @@ describe('REST API Device Unit', function () {
 
         before(function (done) {
         	function createJWT(callback) {
-        		utils.jwt.create(user.id, '*', networkId, NEW_DEVICE_ID, function (err, result) {
+        		utils.jwt.create(user.id, ['*'], networkId, NEW_DEVICE_ID, function (err, result) {
         			if (err) {
         				return callback(err);
         			}
