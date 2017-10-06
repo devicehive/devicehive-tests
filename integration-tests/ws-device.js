@@ -453,7 +453,7 @@ describe('WebSocket API Device', function () {
                 requestId: requestId,
                 deviceId: illegalDeviceId1
             })
-                .expectError(400, 'Device Id can only contain letters, digits, dashes and underscores.')
+                .expectError(400, 'Device Id can only contain letters, digits and dashes.')
                 .send(done);
 
             requestId = getRequestId();
@@ -462,7 +462,7 @@ describe('WebSocket API Device', function () {
                 requestId: requestId,
                 deviceId: illegalDeviceId2
             })
-                .expectError(400, 'Device Id can only contain letters, digits, dashes and underscores.')
+                .expectError(400, 'Device Id can only contain letters, digits and dashes.')
                 .send(done);
 
             requestId = getRequestId();
@@ -471,7 +471,7 @@ describe('WebSocket API Device', function () {
                 requestId: requestId,
                 deviceId: illegalDeviceId3
             })
-                .expectError(400, 'Device Id can only contain letters, digits, dashes and underscores.')
+                .expectError(400, 'Device Id can only contain letters, digits and dashes.')
                 .send(done);
         });
 
