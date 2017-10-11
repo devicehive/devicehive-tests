@@ -17,7 +17,7 @@ function getParam(key) {
 
 var utils = {
 
-    NAME_PREFIX: '_it-',
+    NAME_PREFIX: 'it-',
     NON_EXISTING_ID: 999999,
     NEW_USER_PASSWORD: 'new_user_password',
 
