@@ -398,9 +398,11 @@ describe('WebSocket API Command', function () {
                     action: 'command/get',
                     status: 'success',
                     requestId: requestId
+                    
                 })
                 .assert(function (result) {
                     assert.equal(result.command.id, commandId1, "Commands with required id is not returned");
+                    assert.equal(result.command.networkId, networkId, "Commands with networkId is not returned");
                 })
                 .send(done);
         }

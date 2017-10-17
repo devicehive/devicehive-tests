@@ -283,6 +283,7 @@ describe('REST API Device Command', function () {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 2), true, 'Is array of 2 objects');
                 assert.strictEqual(result.some(hasCommand), true);
+                assert.strictEqual(result[0].networkId, networkId, 'Result has networkId');
 
                 done();
             });
