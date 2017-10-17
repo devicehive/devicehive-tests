@@ -295,7 +295,6 @@ describe('WebSocket API Notification', function () {
                 req.get(path.NOTIFICATION.get(deviceId))
                     .params({jwt: token, id: notificationId})
                     .expect({id: notificationId})
-                    .expect({networkId: networkId})
                     .expect(notification)
                     .send(done);
             }

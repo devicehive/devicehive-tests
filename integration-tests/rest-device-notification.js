@@ -312,7 +312,6 @@ describe('REST API Device Notification', function () {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayNonEmpty(result), true, 'Is array of 2 objects');
                 assert.strictEqual(result.some(hasNotification), true);
-                assert.strictEqual(result[0].networkId, networkId, 'Result has networkId');
 
                 done();
             });
