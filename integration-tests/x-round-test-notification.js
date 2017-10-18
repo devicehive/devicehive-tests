@@ -7,13 +7,9 @@ var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
 describe('Round tests for notification', function () {
-    this.timeout(60000);
+    this.timeout(90000);
     var url = null;
 
-    //var INTERVAL = 500;
-    //var TOTAL_NOTIFS = 20;
-
-    var INTERVAL = 100;
     var TOTAL_NOTIFS = 10;
 
     var NOTIFICATION = utils.getName('round-notification');
@@ -89,7 +85,7 @@ describe('Round tests for notification', function () {
 
                     req.get(path.get(path.DEVICE, deviceId))
                         .params({jwt: utils.jwt.admin})
-                        .send(function (err, result) {
+                        .send(function (err) {
                             if (err) {
                                 return callback(err);
                             }
@@ -194,12 +190,6 @@ describe('Round tests for notification', function () {
                 })
         });
 
-        function runTestDelayed(notification, done) {
-            setTimeout(function () {
-                runTest(notification, done);
-            }, INTERVAL);
-        }
-
         function runTest(notification, done) {
 
             clientConn.waitFor('notification/insert', done)
@@ -218,16 +208,19 @@ describe('Round tests for notification', function () {
         }
 
         it('WS device -> WS client', function (done) {
-            async.eachSeries(notifications, runTestDelayed, done);
+            async.eachSeries(notifications, runTest, done);
         });
 
         after(function (done) {
+            var requestId = getRequestId();
             clientConn.params({
                     action: 'notification/unsubscribe',
-                    requestId: getRequestId(),
+                    requestId:requestId,
                     subscriptionId: subscriptionId
-                })
-                .send(done);
+                }).expect({
+                    action: 'notification/unsubscribe',
+                    requestId:requestId
+                }).send(done);
         });
     });
 
@@ -238,12 +231,6 @@ describe('Round tests for notification', function () {
         before(function () {
             $path = path.combine(path.NOTIFICATION.get(deviceId), path.POLL);
         });
-
-        function runTestDelayed(notification, done) {
-            setTimeout(function () {
-                runTest(notification, done);
-            }, INTERVAL);
-        }
 
         function runTest(notification, done) {
 
@@ -257,18 +244,18 @@ describe('Round tests for notification', function () {
                 .send(done);
 
             setTimeout(function () {
+                var requestId = getRequestId();
                 deviceConn.params({
-                        action: 'notification/insert',
-                        requestId: getRequestId(),
-                        deviceId: deviceId,
-                        notification: notification
-                    })
-                    .send();
+                    action: 'notification/insert',
+                    requestId: requestId,
+                    deviceId: deviceId,
+                    notification: notification
+                }).send();
             }, 500);
         }
 
         it('WS device -> REST client', function (done) {
-            async.eachSeries(notifications, runTestDelayed, done);
+            async.eachSeries(notifications, runTest, done);
         });
     });
 
@@ -282,30 +269,23 @@ describe('Round tests for notification', function () {
             $path = path.NOTIFICATION.get(deviceId);
 
             clientConn.params({
-                    action: 'notification/subscribe',
-                    requestId: getRequestId(),
-                    deviceIds: [deviceId],
-                    names: [NOTIFICATION]
-                })
-                .send(function (err, result) {
-                    if (err) {
-                        return done(err);
-                    }
+                action: 'notification/subscribe',
+                requestId: getRequestId(),
+                deviceIds: [deviceId],
+                names: [NOTIFICATION]
+            }).send(function (err, result) {
+                if (err) {
+                    return done(err);
+                }
 
-                    subscriptionId = result.subscriptionId;
-                    done();
-                })
+                subscriptionId = result.subscriptionId;
+                done();
+            })
         });
-
-        function runTestDelayed(notification, done) {
-            setTimeout(function () {
-                runTest(notification, done);
-            }, INTERVAL);
-        }
 
         function runTest(notification, done) {
 
-            clientConn.waitFor('notification/insert', 4000, done)
+            clientConn.waitFor('notification/insert', done)
                 .expect({
                     action: 'notification/insert',
                     notification: notification
@@ -320,16 +300,19 @@ describe('Round tests for notification', function () {
         }
 
         it('REST device -> WS client', function (done) {
-            async.eachSeries(notifications, runTestDelayed, done);
+            async.eachSeries(notifications, runTest, done);
         });
 
         after(function (done) {
+            var requestId = getRequestId();
             clientConn.params({
-                    action: 'notification/unsubscribe',
-                    requestId: getRequestId(),
-                    subscriptionId: subscriptionId
-                })
-                .send(done);
+                action: 'notification/unsubscribe',
+                requestId: requestId,
+                subscriptionId: subscriptionId
+            }).expect({
+                action: 'notification/unsubscribe',
+                requestId: requestId
+            }).send(done);
         });
     });
 
@@ -341,41 +324,45 @@ describe('Round tests for notification', function () {
         var devicePath = null;
         var clientPath = null;
 
-        before(function () {
+        before(function (done) {
             devicePath = path.NOTIFICATION.get(deviceId);
             clientPath = path.combine(path.NOTIFICATION.get(deviceId), path.POLL);
+            done();
         });
-
-        function runTestDelayed(notification, done) {
-            setTimeout(function () {
-                runTest(notification, done);
-            }, INTERVAL);
-        }
 
         function runTest(notification, done) {
 
             var expectedNotif = utils.core.clone(notification);
             expectedNotif.deviceId = deviceId;
+            
+            var deviceParams = utils.core.clone(deviceAuth);
+            var clientParams = utils.core.clone(clientAuth);
 
             req.get(clientPath)
-                .params(utils.core.clone(clientAuth))
+                .params(clientParams)
                 .query('names', NOTIFICATION)
-                .expect([expectedNotif])
-                .send(done);
-
+                .send(function(err, result) {
+                    expectedNotif.id = result[0].id;
+                    expectedNotif.timestamp = result[0].timestamp;
+                    assert.deepEqual(result, [expectedNotif], "Not expected notification");
+                    done();
+                });
+            
+            
             setTimeout(function () {
-                var params = utils.core.clone(deviceAuth);
-                params.data = notification;
+                deviceParams.data = notification;
                 req.create(devicePath)
-                    .params(params)
+                    .params(deviceParams)
                     .send();
-            }, 500);
+            }, 100);
+            
+            
         }
 
         it('REST device -> REST client', function (done) {
-            deviceAuth = {jwt: jwt};
+            deviceAuth = {jwt: utils.jwt.admin};
             clientAuth = {jwt: jwt};
-            async.eachSeries(notifications, runTestDelayed, done);
+            async.eachSeries(notifications, runTest, done);
         });
     });
 

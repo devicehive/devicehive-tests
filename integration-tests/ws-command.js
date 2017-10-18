@@ -9,7 +9,7 @@ var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
 describe('WebSocket API Command', function () {
-    this.timeout(10000);
+    this.timeout(90000);
     var url = null;
 
     var DEVICE = utils.getName('ws-cmd-device');
@@ -37,7 +37,7 @@ describe('WebSocket API Command', function () {
     var conn = null;
     var adminConn = null;
     var connInvalidToken = null;
-    var startTestTimestamp = new Date().toISOString();
+    var startTestTimestamp = null;
 
     before(function (done) {
         function getWsUrl(callback) {
@@ -105,42 +105,6 @@ describe('WebSocket API Command', function () {
                 .params(utils.device.getParamsObj(DEVICE_1, utils.jwt.admin,
                     networkId1, {name: DEVICE_1, version: '1'}))
                 .send(callback);
-        }
-
-        function insertCommand1(callback) {
-            var params = {
-                jwt: utils.jwt.admin,
-                data: {
-                    command: COMMAND1
-                }
-            };
-
-            utils.create(path.COMMAND.get(deviceId), params, function (err, result) {
-                if (err) {
-                    return callback(err);
-                }
-
-                commandId1 = result.id;
-                callback();
-            });
-        }
-
-        function insertCommand2(callback) {
-            var params = {
-                jwt: utils.jwt.admin,
-                data: {
-                    command: COMMAND2
-                }
-            };
-
-            utils.create(path.COMMAND.get(deviceId), params, function (err, result) {
-                if (err) {
-                    return callback(err);
-                }
-
-                commandId2 = result.id;
-                callback();
-            });
         }
 
         function createToken(callback) {
@@ -227,8 +191,6 @@ describe('WebSocket API Command', function () {
             createUser,
             createDevice,
             createDevice1,
-            insertCommand1,
-            insertCommand2,
             createToken,
             createInvalidToken,
             createConn,
@@ -320,6 +282,50 @@ describe('WebSocket API Command', function () {
     });
 
     describe('#command/list', function () {
+
+        before(function (done) {
+            function insertCommand1(callback) {
+                var params = {
+                    jwt: utils.jwt.admin,
+                    data: {
+                        command: COMMAND1
+                    }
+                };
+
+                utils.create(path.COMMAND.get(deviceId), params, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    commandId1 = result.id;
+                    callback();
+                });
+            }
+
+            function insertCommand2(callback) {
+                var params = {
+                    jwt: utils.jwt.admin,
+                    data: {
+                        command: COMMAND2
+                    }
+                };
+
+                utils.create(path.COMMAND.get(deviceId), params, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    commandId2 = result.id;
+                    callback();
+                });
+            }
+
+            async.series([
+                insertCommand1,
+                insertCommand2
+            ], done);
+
+        });
 
         it('should check if inserted commands are in results', function (done) {
             var requestId = getRequestId();
@@ -494,6 +500,52 @@ describe('WebSocket API Command', function () {
     });
 
     describe('#command/subscribe', function () {
+        
+        startTestTimestamp = new Date().toISOString();
+        
+        before(function (done) {
+            function insertCommand1(callback) {
+                var params = {
+                    jwt: utils.jwt.admin,
+                    data: {
+                        command: COMMAND1
+                    }
+                };
+
+                utils.create(path.COMMAND.get(deviceId), params, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    commandId1 = result.id;
+                    callback();
+                });
+            }
+
+            function insertCommand2(callback) {
+                var params = {
+                    jwt: utils.jwt.admin,
+                    data: {
+                        command: COMMAND2
+                    }
+                };
+
+                utils.create(path.COMMAND.get(deviceId), params, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    commandId2 = result.id;
+                    callback();
+                });
+            }
+
+            async.series([
+                insertCommand1,
+                insertCommand2
+            ], done);
+            
+        });
 
         function runTest(client, ts, done) {
             var requestId = getRequestId();
@@ -626,13 +678,17 @@ describe('WebSocket API Command', function () {
                     if (err) {
                         return done(err);
                     }
+                    
+                    var requestId = getRequestId();
 
                     client.params({
                         action: 'command/unsubscribe',
-                        requestId: getRequestId(),
+                        requestId: requestId,
                         subscriptionId: subscriptionId
-                    })
-                        .send(done);
+                    }).expect({
+                        action: 'command/unsubscribe',
+                        requestId: requestId
+                    }).send(done);
                 }
             }
         }
@@ -696,23 +752,26 @@ describe('WebSocket API Command', function () {
                         command: { command: COMMAND }
                     });
                 
-                setTimeout(function () {
-                    req.create(path.COMMAND.get(deviceId))
-                        .params({
-                            jwt: utils.jwt.admin,
-                            data: {command: COMMAND}
-                        })
-                        .send();
-                }, 500);
+                req.create(path.COMMAND.get(deviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {command: COMMAND}
+                    })
+                    .send();
 
                 function cleanUp(err) {
                     if (err) {
                         return done(err);
                     }
+                    
+                    var requestId = getRequestId();
 
                     conn.params({
                         action: 'command/unsubscribe',
-                        requestId: getRequestId()
+                        requestId: requestId
+                    }).expect({
+                        action: 'command/unsubscribe',
+                        requestId: requestId
                     })
                         .send(done);
                 }
@@ -746,24 +805,27 @@ describe('WebSocket API Command', function () {
                         command: { command: COMMAND }
                     });
 
-                setTimeout(function () {
-                    req.create(path.COMMAND.get(deviceId))
-                        .params({
-                            jwt: utils.jwt.admin,
-                            data: {command: COMMAND}
-                        })
-                        .send();    
-                }, 500);
+                req.create(path.COMMAND.get(deviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {command: COMMAND}
+                    })
+                    .send();    
 
                 function cleanUp(err) {
                     if (err) {
                         return done(err);
                     }
+                    
+                    var requestId = getRequestId();
 
                     adminConn.params({
                         action: 'command/unsubscribe',
-                        requestId: getRequestId(),
+                        requestId: requestId,
                         subscriptionId: subscriptionId
+                    }).expect({
+                        action: 'command/unsubscribe',
+                        requestId: requestId
                     })
                         .send(done);
                 }
@@ -1062,14 +1124,12 @@ describe('WebSocket API Command', function () {
                         subscriptionId: subscriptionId
                     });
 
-                setTimeout(function () {
-                    req.create(path.COMMAND.get(newDeviceId))
-                        .params({
-                            jwt: utils.jwt.admin,
-                            data: {command: COMMAND}
-                        })
-                        .send();
-                }, 1000);
+                req.create(path.COMMAND.get(newDeviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {command: COMMAND}
+                    })
+                    .send();
                     
 
                 function cleanUp(err) {
@@ -1152,15 +1212,13 @@ describe('WebSocket API Command', function () {
                         subscriptionId: subscriptionId
                     });
 
-                setTimeout(function () {
-                    req.create(path.COMMAND.get(newDeviceId))
-                        .params({
-                            jwt: utils.jwt.admin,
-                            data: {command: COMMAND}
-                        })
-                        .send();
-                }, 1000);
-
+                req.create(path.COMMAND.get(newDeviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {command: COMMAND}
+                    })
+                    .send();
+                
                 function cleanUp(err) {
                     if (err) {
                         return done(err);
@@ -1264,6 +1322,8 @@ describe('WebSocket API Command', function () {
                         return done(err);
                     }
 
+                    var requestId = getRequestId();
+
                     conn.params({
                         action: 'device/delete',
                         requestId: requestId,
@@ -1274,14 +1334,17 @@ describe('WebSocket API Command', function () {
                             requestId: requestId,
                             status: 'success'
                         })
-                        .send();
-
-                    conn.params({
-                        action: 'command/unsubscribe',
-                        requestId: getRequestId(),
-                        subscriptionId: subscriptionId
-                    })
-                        .send(done);
+                        .send(function () {
+                            var requestId = getRequestId();
+                                                        conn.params({
+                                action: 'command/unsubscribe',
+                                requestId: requestId,
+                                subscriptionId: subscriptionId
+                            }).expect({
+                                action: 'command/unsubscribe',
+                                requestId: requestId
+                            }).send(done);
+                        });
                 }
             }
         });
@@ -1336,14 +1399,12 @@ describe('WebSocket API Command', function () {
                     cleanUp();
                 });
 
-                setTimeout(function() {
-                    req.create(path.COMMAND.get(newDeviceId))
-                        .params({
-                            jwt: utils.jwt.admin,
-                            data: {command: COMMAND}
-                        })
-                }, 1000);
-
+                req.create(path.COMMAND.get(newDeviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {command: COMMAND}
+                    })
+                
                 function cleanUp(err) {
                     if (err) {
                         return done(err);
@@ -1360,12 +1421,15 @@ describe('WebSocket API Command', function () {
                             status: 'success'
                         })
                         .send(function () {
+                                var requestId = getRequestId();
                                 conn.params({
                                     action: 'command/unsubscribe',
-                                    requestId: getRequestId(),
+                                    requestId: requestId,
                                     subscriptionId: subscriptionId
-                                })
-                                    .send(done);        
+                                }).expect({
+                                    action: 'command/unsubscribe',
+                                    requestId: requestId
+                                }).send(done);        
                         });
 
                     
@@ -1431,13 +1495,11 @@ describe('WebSocket API Command', function () {
                     done();
                 });
 
-                setTimeout(function() {
-                    req.create(path.COMMAND.get(deviceId))
-                        .params({
-                            jwt: utils.jwt.admin,
-                            data: {command: COMMAND}
-                        }).send();
-                }, 100);
+                req.create(path.COMMAND.get(deviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {command: COMMAND}
+                    }).send();
             }
         }
 
@@ -1595,9 +1657,7 @@ describe('WebSocket API Command', function () {
         }
 
         it('should notify when command was inserted, jwt auth', function (done) {
-            setTimeout(function () {
-                runTest(conn, done);
-            }, 500);
+            runTest(conn, done);
         });
 
         function runTestNoSubscr(client, done) {
@@ -1629,9 +1689,7 @@ describe('WebSocket API Command', function () {
         });
 
         it('should notify when command was inserted, device auth', function (done) {
-            setTimeout(function () {
-                runTest(conn, done);
-            }, 500);
+            runTest(conn, done);
         });
 
         it('should not notify when command was inserted without prior subscription, device auth', function (done) {
@@ -1680,7 +1738,7 @@ describe('WebSocket API Command', function () {
                     })
                     .expect({
                         action: 'command/update',
-                        status: "success"
+                        status: 'success'
                     })
                     .send(done);
             }
