@@ -395,4 +395,8 @@ describe('REST API JSON Web Tokens', function () {
             });
         });
     });
+
+    after(function (done) {
+        utils.clearDataJWT(done);
+    });
 });
