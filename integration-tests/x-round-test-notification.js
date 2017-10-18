@@ -334,6 +334,7 @@ describe('Round tests for notification', function () {
 
             var expectedNotif = utils.core.clone(notification);
             expectedNotif.deviceId = deviceId;
+            expectedNotif.networkId = networkId;
             
             var deviceParams = utils.core.clone(deviceAuth);
             var clientParams = utils.core.clone(clientAuth);

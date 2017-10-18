@@ -151,5 +151,8 @@ describe('REST API Configuration', function () {
         });
     });
 
+    after(function (done) {
+        utils.clearDataJWT(done);
+    });
 
 });
