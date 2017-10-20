@@ -190,7 +190,7 @@ var utils = {
     },
 
     create: function ($path, params, cb) {
-        new Http(this.url, $path, this.loggingOff)
+        new Http(this.url, path.get($path, null, params.query), this.loggingOff)
             .post(params, function (err, result, xhr) {
                 if (err) {
                     err.httpStatus = xhr.status;
