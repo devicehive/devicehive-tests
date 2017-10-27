@@ -373,6 +373,28 @@ describe('WebSocket API Command', function () {
             }).send(done);
         });
 
+        it('should check if command with correct name is in results', function (done) {
+            var requestId = getRequestId();
+
+            conn.params({
+                action: 'command/list',
+                requestId: requestId,
+                command: COMMAND2,
+                deviceId: deviceId
+            }).expect({
+                action: 'command/list',
+                status: 'success',
+                requestId: requestId
+            }).assert(function (result) {
+                var commandIds = result.commands.map(function (command) {
+                    return command.id;
+                });
+                var areCommandsInList = commandIds.indexOf(commandId1) < 0 && commandIds.indexOf(commandId2) >= 0;
+
+                assert.equal(areCommandsInList, true, "Commands with required ids are not in the list");
+            }).send(done);
+        });
+
         it('should fail when using wrong jwt', function (done) {
             connInvalidToken.params({
                 action: 'command/list',

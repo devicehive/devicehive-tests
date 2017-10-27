@@ -413,6 +413,31 @@ describe('WebSocket API Notification', function () {
                 .send(done);
         });
 
+        it('should check if notification with correct name is in results', function (done) {
+            var requestId = getRequestId();
+            conn.params({
+                action: 'notification/list',
+                requestId: requestId,
+                notification: NOTIFICATION2,
+                deviceId: deviceId
+            })
+                .expect({
+                    action: 'notification/list',
+                    status: 'success',
+                    requestId: requestId
+                })
+                .assert(function (result) {
+                    var notificationIds = result.notifications.map(function (notification) {
+                        return notification.id;
+                    });
+                    var areNotificationsInList = notificationIds.indexOf(notificationId1) < 0
+                        && notificationIds.indexOf(notificationId2) >= 0;
+
+                    assert.equal(areNotificationsInList, true, "Commands with required ids are not in the list");
+                })
+                .send(done);
+        });
+
         it('should fail when using wrong jwt', function (done) {
             clientInvalidToken.params({
                 action: 'notification/list',
