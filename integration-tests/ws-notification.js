@@ -33,6 +33,7 @@ describe('WebSocket API Notification', function () {
     var networkId1 = null;
     var notificationId1 = null;
     var notificationId2 = null;
+    var timestamp = null;
 
     var conn = null;
     var adminConn = null;
@@ -124,6 +125,7 @@ describe('WebSocket API Notification', function () {
                 }
 
                 notificationId1 = result.id;
+                timestamp = new Date().getTime();
                 callback();
             });
         }
@@ -362,9 +364,9 @@ describe('WebSocket API Notification', function () {
 
     describe('#notification/list', function () {
 
-        function runTest(client, done) {
+        it('should check if inserted notifications are in results', function (done) {
             var requestId = getRequestId();
-            client.params({
+            conn.params({
                 action: 'notification/list',
                 requestId: requestId,
                 deviceId: deviceId
@@ -378,16 +380,37 @@ describe('WebSocket API Notification', function () {
                     var notificationIds = result.notifications.map(function (notification) {
                         return notification.id;
                     });
-                    var areNotificationsInList = notificationIds.indexOf(notificationId1) >= 0 
+                    var areNotificationsInList = notificationIds.indexOf(notificationId1) >= 0
                         && notificationIds.indexOf(notificationId2) >= 0;
 
                     assert.equal(areNotificationsInList, true, "Commands with required ids are not in the list");
                 })
                 .send(done);
-        }
+        });
 
-        it('should check if inserted notifications are in results', function (done) {
-            runTest(conn, done);
+        it('should check if start timestamp limits notifications in results', function (done) {
+            var requestId = getRequestId();
+            conn.params({
+                action: 'notification/list',
+                requestId: requestId,
+                start: timestamp,
+                deviceId: deviceId
+            })
+                .expect({
+                    action: 'notification/list',
+                    status: 'success',
+                    requestId: requestId
+                })
+                .assert(function (result) {
+                    var notificationIds = result.notifications.map(function (notification) {
+                        return notification.id;
+                    });
+                    var areNotificationsInList = notificationIds.indexOf(notificationId1) < 0
+                        && notificationIds.indexOf(notificationId2) >= 0;
+
+                    assert.equal(areNotificationsInList, true, "Commands with required ids are not in the list");
+                })
+                .send(done);
         });
 
         it('should fail when using wrong jwt', function (done) {
