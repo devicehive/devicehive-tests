@@ -282,6 +282,8 @@ describe('WebSocket API Command', function () {
     });
 
     describe('#command/list', function () {
+        
+        var timestamp = null;
 
         before(function (done) {
             function insertCommand1(callback) {
@@ -298,6 +300,7 @@ describe('WebSocket API Command', function () {
                     }
 
                     commandId1 = result.id;
+                    timestamp = new Date().getTime();
                     callback();
                 });
             }
@@ -343,6 +346,28 @@ describe('WebSocket API Command', function () {
                     return command.id;
                 });
                 var areCommandsInList = commandIds.indexOf(commandId1) >= 0 && commandIds.indexOf(commandId2) >= 0;
+
+                assert.equal(areCommandsInList, true, "Commands with required ids are not in the list");
+            }).send(done);
+        });
+
+        it('should check if start timestamp limits commands in results', function (done) {
+            var requestId = getRequestId();
+
+            conn.params({
+                action: 'command/list',
+                requestId: requestId,
+                start: timestamp,
+                deviceId: deviceId
+            }).expect({
+                action: 'command/list',
+                status: 'success',
+                requestId: requestId
+            }).assert(function (result) {
+                var commandIds = result.commands.map(function (command) {
+                    return command.id;
+                });
+                var areCommandsInList = commandIds.indexOf(commandId1) < 0 && commandIds.indexOf(commandId2) >= 0;
 
                 assert.equal(areCommandsInList, true, "Commands with required ids are not in the list");
             }).send(done);
