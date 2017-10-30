@@ -108,7 +108,7 @@ Websocket.prototype = {
             timeout = null;
         }
 
-        timeout || (timeout = 2000);
+        timeout || (timeout = utils.WEBSOCKET_TIMEOUT);
 
         var self = this;
         this.context = {

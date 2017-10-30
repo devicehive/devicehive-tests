@@ -20,6 +20,7 @@ var utils = {
     NAME_PREFIX: 'it-',
     NON_EXISTING_ID: 999999,
     NEW_USER_PASSWORD: 'new_user_password',
+    WEBSOCKET_TIMEOUT: 2000,
 
     emptyCb: function () { },
 
@@ -28,6 +29,8 @@ var utils = {
     url:  getParam("restUrl") ,
 
     authUrl:  getParam("authRestUrl") ,
+
+    pluginUrl:  getParam("pluginRestUrl") ,
 
     admin: {
         login: 'dhadmin',
@@ -206,6 +209,21 @@ var utils = {
 
     createAuth: function ($path, params, cb) {
         new Http(this.authUrl, $path, this.loggingOff)
+            .post(params, function (err, result, xhr) {
+                if (err) {
+                    err.httpStatus = xhr.status;
+                    return cb(err);
+                }
+
+                var resource = path.get($path, result.id);
+                assert.strictEqual(xhr.status, status.EXPECTED_CREATED);
+
+                cb(null, result, resource);
+            });
+    },
+
+    createPlugin: function ($path, params, cb) {
+        new Http(this.pluginUrl, path.get($path, null, params.query), this.loggingOff)
             .post(params, function (err, result, xhr) {
                 if (err) {
                     err.httpStatus = xhr.status;

@@ -39,7 +39,7 @@ describe('WebSocket API Notification', function () {
     var adminConn = null;
     var refreshToken = null;
     var clientInvalidToken = null;
-    var startTestTimestamp = new Date().toISOString();
+    var startTestTimestamp = null;
 
     before(function (done) {
         function getWsUrl(callback) {
@@ -125,7 +125,7 @@ describe('WebSocket API Notification', function () {
                 }
 
                 notificationId1 = result.id;
-                timestamp = new Date().getTime();
+                timestamp = new Date().toISOString();
                 callback();
             });
         }
@@ -562,6 +562,8 @@ describe('WebSocket API Notification', function () {
     });
 
     describe('#notification/subscribe', function () {
+
+        startTestTimestamp = new Date().toISOString();
 
         function runTest(client, done) {
             var requestId = getRequestId();
@@ -1175,7 +1177,7 @@ describe('WebSocket API Notification', function () {
 
                 adminConn.waitFor('notification/insert', function (err) {
                     assert.strictEqual(!(!err), true, 'Notifications should not arrive');
-                    utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'notification/insert\' for 2000ms'});
+                    utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'notification/insert\' for ' + utils.WEBSOCKET_TIMEOUT + 'ms'});
                     cleanUp();
                 });
 
@@ -1266,7 +1268,7 @@ describe('WebSocket API Notification', function () {
 
                 client.waitFor('notification/insert', function (err) {
                     assert.strictEqual(!(!err), true, 'Commands should not arrive');
-                    utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'notification/insert\' for 2000ms'});
+                    utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'notification/insert\' for ' + utils.WEBSOCKET_TIMEOUT + 'ms'});
                     done();
                 });
                 
@@ -1350,7 +1352,7 @@ describe('WebSocket API Notification', function () {
 
             client.waitFor('notification/insert', function (err) {
                 assert.strictEqual(!(!err), true, 'Commands should not arrive');
-                utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'notification/insert\' for 2000ms'});
+                utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'notification/insert\' for ' + utils.WEBSOCKET_TIMEOUT + 'ms'});
                 done();
             });
 

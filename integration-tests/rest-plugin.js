@@ -104,7 +104,7 @@ describe('REST API Plugin', function () {
             };
             params.query = path.query('deviceIds', DEVICE_ID, 'pollType', 'Command', 'timestamp', timestamp);
             
-            utils.create(path.current, params, function (err, result) {
+            utils.createPlugin(path.current, params, function (err, result) {
                 assert.strictEqual(err.error, 'Access is denied');
                 assert.strictEqual(err.httpStatus, status.FORBIDDEN);
 
@@ -142,7 +142,7 @@ describe('REST API Plugin', function () {
             );
             
 
-            utils.create(path.current, params, function (err, result) {
+            utils.createPlugin(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.description, description, 'Wrong description');
                 assert.strictEqual(result.healthCheckPeriod, healthCheckPeriod, 'Wrong healthCheckPeriod');

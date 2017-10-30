@@ -5,8 +5,9 @@
     "port": "8080",
     "restUrl": "http://localhost:8080/dh/rest",
     "authRestUrl": "http://localhost:8090/dh/rest",
+    "pluginRestUrl": "http://localhost:8110/dh/rest",
     "backendRestUrl": "http://localhost:8090/dh/rest",
-    "jwt": "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTU5MzQ3MjAwMDAwLCJ0IjoxfX0.pBjhmAQ31t5Y1AogEau8m8nCDjRCCndBLtQ3f6R-IBw"
+    "jwt": "admin_token"
   },
   "loadTests": {
     "runAsync": false,
