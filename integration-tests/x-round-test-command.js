@@ -7,10 +7,9 @@ var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
 describe('Round tests for command', function () {
-    this.timeout(60000);
+    this.timeout(90000);
     var url = null;
 
-    var INTERVAL = 100;
     var TOTAL_COMMANDS = 10;
 
     var COMMAND = utils.getName('round-command');
@@ -86,7 +85,7 @@ describe('Round tests for command', function () {
 
                     req.get(path.get(path.DEVICE, deviceId))
                         .params({jwt: utils.jwt.admin})
-                        .send(function (err, result) {
+                        .send(function (err) {
                             if (err) {
                                 return callback(err);
                             }
@@ -174,26 +173,20 @@ describe('Round tests for command', function () {
     describe('#WS client -> WS device', function () {
 
         before(function (done) {
+            var requestId = getRequestId();
             deviceConn.params({
+                action: 'command/subscribe',
+                requestId: requestId
+            }).send(function () {
+                var requestId2 = getRequestId();
+                clientConn.params({
                     action: 'command/subscribe',
-                    requestId: getRequestId()
-                })
-                .send(function () {
-                    clientConn.params({
-                        action: 'command/subscribe',
-                        returnUpdatedCommands: true,
-                        requestId: getRequestId()
-                    })
-                        .send(done);        
-                });
+                    returnUpdatedCommands: true,
+                    requestId: requestId2
+                }).send(done);        
+            });
             
         });
-
-        function runTestDelayed(command, done) {
-            setTimeout(function () {
-                runTest(command, done);
-            }, INTERVAL);
-        }
 
         function runTest(command, done) {
 
@@ -206,12 +199,12 @@ describe('Round tests for command', function () {
                     });
 
                 clientConn.params({
-                        action: 'command/insert',
-                        requestId: getRequestId(),
-                        deviceId: deviceId,
-                        command: command
-                    })
-                    .send();
+                    action: 'command/insert',
+                    requestId: getRequestId(),
+                    deviceId: deviceId,
+                    command: command
+                })
+                    .send();    
             }
 
             function sendReply(cmnd, callback) {
@@ -230,12 +223,12 @@ describe('Round tests for command', function () {
                     });
 
                 deviceConn.params({
-                        action: 'command/update',
-                        requestId: getRequestId(),
-                        deviceId: deviceId,
-                        commandId: cmnd.command.id,
-                        command: update
-                    })
+                    action: 'command/update',
+                    requestId: getRequestId(),
+                    deviceId: deviceId,
+                    commandId: cmnd.command.id,
+                    command: update
+                })
                     .send();
             }
 
@@ -246,15 +239,23 @@ describe('Round tests for command', function () {
         }
 
         it('WS client -> WS device', function (done) {
-            async.eachSeries(commands, runTestDelayed, done);
+            async.eachSeries(commands, runTest, done);
         });
 
         after(function (done) {
-            deviceConn.params({
+            var requestId = getRequestId();
+            
+            clientConn.params({
+                action: 'command/unsubscribe',
+                requestId: requestId
+            }).send(function() {
+                var requestId2 = getRequestId();
+                
+                deviceConn.params({
                     action: 'command/unsubscribe',
-                    requestId: getRequestId()
-                })
-                .send(done);
+                    requestId: requestId2
+                }).send(done);
+            });
         });
     });
 
@@ -265,19 +266,15 @@ describe('Round tests for command', function () {
         before(function (done) {
 
             createPath = path.COMMAND.get(deviceId);
-
+            var requestId = getRequestId();
             deviceConn.params({
                     action: 'command/subscribe',
-                    requestId: getRequestId()
-                })
-                .send(done);
+                    requestId: requestId
+                }).expect({
+                    action: 'command/subscribe',
+                    requestId: requestId
+                }).send(done);
         });
-
-        function runTestDelayed(command, done) {
-            setTimeout(function () {
-                runTest(command, done);
-            }, INTERVAL);
-        }
 
         function runTest(command, done) {
 
@@ -315,15 +312,19 @@ describe('Round tests for command', function () {
                 });
 
                 setTimeout(function () {
+                    var requestId = getRequestId();
                     deviceConn.params({
-                            action: 'command/update',
-                            requestId: getRequestId(),
-                            deviceId: deviceId,
-                            commandId: cmnd.command.id,
-                            command: update
-                        })
-                        .send();
-                }, 500);
+                        action: 'command/update',
+                        requestId: requestId,
+                        deviceId: deviceId,
+                        commandId: cmnd.command.id,
+                        command: update
+                    }).expect({
+                        action: 'command/update',
+                        requestId: requestId,
+
+                    }).send();
+                }, 100);
             }
 
             async.waterfall([
@@ -333,7 +334,7 @@ describe('Round tests for command', function () {
         }
 
         it('REST client -> WS device', function (done) {
-            async.eachSeries(commands, runTestDelayed, done);
+            async.eachSeries(commands, runTest, done);
         });
 
         after(function (done) {
@@ -363,12 +364,6 @@ describe('Round tests for command', function () {
             
         });
 
-        function runTestDelayed(command, done) {
-            setTimeout(function () {
-                runTest(command, done);
-            }, INTERVAL);
-        }
-
         function runTest(command, done) {
 
             function sendCommand(callback) {
@@ -383,12 +378,12 @@ describe('Round tests for command', function () {
 
                 setTimeout(function () {
                     clientConn.params({
-                            action: 'command/insert',
-                            requestId: getRequestId(),
-                            deviceId: deviceId,
-                            command: command
-                        })
-                        .send();
+                        action: 'command/insert',
+                        requestId: getRequestId(),
+                        deviceId: deviceId,
+                        command: command
+                    })
+                        .send();    
                 }, 500);
             }
 
@@ -401,20 +396,37 @@ describe('Round tests for command', function () {
                     status: 'updated',
                     result: {done: 'yes'}
                 };
+                
+                async.parallel({
+                    one: function (cb) {
+                        clientConn.waitFor('command/update', cb)
+                            .expect({
+                                action: 'command/update',
+                                command: update
+                            });        
+                    },
+                    two: function (cb) {
+                        setTimeout(function () {
+                            var updatePath = path.get($path, cmnd.id);
+                            req.update(updatePath)
+                                .params({
+                                    jwt: jwt,
+                                    data: update
+                                })
+                                .send(cb);
+                        }, 500);        
+                    }
+                }, function (err) {
+                    if (err) {
+                        callback(err);
+                    }
+                    
+                    callback();
+                });
 
-                clientConn.waitFor('command/update', 4000, callback)
-                    .expect({
-                        action: 'command/update',
-                        command: update
-                    });
+                
 
-                var updatePath = path.get($path, cmnd.id);
-                req.update(updatePath)
-                    .params({
-                        jwt: jwt,
-                        data: update
-                    })
-                    .send();
+                
             }
 
             async.waterfall([
@@ -424,7 +436,7 @@ describe('Round tests for command', function () {
         }
 
         it('WS client -> REST device', function (done) {
-            async.eachSeries(commands, runTestDelayed, done);
+            async.eachSeries(commands, runTest, done);
         });
     });
 
@@ -440,12 +452,6 @@ describe('Round tests for command', function () {
             createPath = path.COMMAND.get(deviceId);
             pollPath = path.combine(createPath, path.POLL);
         });
-
-        function runTestDelayed(command, done) {
-            setTimeout(function () {
-                runTest(command, done);
-            }, INTERVAL);
-        }
 
         function runTest(command, done) {
 
@@ -463,7 +469,7 @@ describe('Round tests for command', function () {
                     req.create(createPath)
                         .params(params)
                         .send();
-                }, 1000);
+                }, 500);
             }
 
             function sendReply(commands, callback) {
@@ -478,23 +484,34 @@ describe('Round tests for command', function () {
                     result: {done: 'yes'}
                 };
 
-                utils.get(waitPath, utils.core.clone(clientAuth), function (err, result) {
-                    assert.strictEqual(!(!err), false, 'No error');
-                    assert.strictEqual(result.command, update.command);
-                    assert.strictEqual(result.lifetime, update.lifetime);
-                    assert.strictEqual(result.status, update.status);
+                async.parallel({
+                    one: function (cb) {
+                        utils.get(waitPath, utils.core.clone(clientAuth), function (err, result) {
+                            assert.strictEqual(!(!err), false, 'No error');
+                            assert.strictEqual(result.command, update.command);
+                            assert.strictEqual(result.lifetime, update.lifetime);
+                            assert.strictEqual(result.status, update.status);
 
+                            cb();
+                        });
+                    },
+                    two: function (cb) {
+                        setTimeout(function () {
+                            var updatePath = path.get(createPath, cmnd.id);
+                            var params = utils.core.clone(deviceAuth);
+                            params.data = update;
+                            req.update(updatePath)
+                                .params(params)
+                                .send(cb);
+                        }, 500);
+                    }
+                }, function (err) {
+                    if (err) {
+                        callback(err);
+                    }
+    
                     callback();
                 });
-
-                setTimeout(function () {
-                    var updatePath = path.get(createPath, cmnd.id);
-                    var params = utils.core.clone(deviceAuth);
-                    params.data = update;
-                    req.update(updatePath)
-                        .params(params)
-                        .send();
-                }, 1000);
             }
 
             async.waterfall([
@@ -506,7 +523,7 @@ describe('Round tests for command', function () {
         it('REST client -> REST device', function (done) {
             clientAuth = {jwt: jwt};
             deviceAuth = {jwt: jwt};
-            async.eachSeries(commands, runTestDelayed, done);
+            async.eachSeries(commands, runTest, done);
         });
     });
 

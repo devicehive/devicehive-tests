@@ -17,6 +17,45 @@ describe('WebSocket API Server Info', function () {
         });
     });
 
+    describe('#server/json-error', function () {
+
+        it('should get malformed json error when request message is not a proper json', function (done) {
+
+            function waitForSocketConnection(client, callback){
+                setTimeout(
+                    function () {
+                        if (client.readyState === 1) {
+                            if(callback != null){
+                                callback();
+                            }
+                            return;
+                        } else {
+                            waitForSocketConnection(client, callback);
+                        }
+                    }, 5);
+            }
+
+            var client = new global.WebSocket(url);
+            var assert = require('assert');
+            var malformedJson = 'not a Json';
+
+            waitForSocketConnection(client, function () {
+                client.send(malformedJson);
+                console.log('-> "%s"', malformedJson);
+            });
+
+            client.onmessage = function (evt) {
+                var received_msg = evt.data;
+                console.log('<- %s', received_msg);
+                var responseJSON = JSON.parse(received_msg);
+                assert.equal(responseJSON.code, 400);
+                assert.equal(responseJSON.error, 'Malformed Json received.');
+                done();
+            };
+
+        });
+    });
+
     describe('#server/info', function () {
 
         it('should get server info, no auth', function (done) {

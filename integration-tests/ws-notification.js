@@ -33,6 +33,7 @@ describe('WebSocket API Notification', function () {
     var networkId1 = null;
     var notificationId1 = null;
     var notificationId2 = null;
+    var timestamp = null;
 
     var conn = null;
     var adminConn = null;
@@ -124,6 +125,7 @@ describe('WebSocket API Notification', function () {
                 }
 
                 notificationId1 = result.id;
+                timestamp = new Date().getTime();
                 callback();
             });
         }
@@ -295,6 +297,7 @@ describe('WebSocket API Notification', function () {
                 req.get(path.NOTIFICATION.get(deviceId))
                     .params({jwt: token, id: notificationId})
                     .expect({id: notificationId})
+                    .expect({networkId: networkId})
                     .expect(notification)
                     .send(done);
             }
@@ -361,9 +364,9 @@ describe('WebSocket API Notification', function () {
 
     describe('#notification/list', function () {
 
-        function runTest(client, done) {
+        it('should check if inserted notifications are in results', function (done) {
             var requestId = getRequestId();
-            client.params({
+            conn.params({
                 action: 'notification/list',
                 requestId: requestId,
                 deviceId: deviceId
@@ -377,16 +380,62 @@ describe('WebSocket API Notification', function () {
                     var notificationIds = result.notifications.map(function (notification) {
                         return notification.id;
                     });
-                    var areNotificationsInList = notificationIds.indexOf(notificationId1) >= 0 
+                    var areNotificationsInList = notificationIds.indexOf(notificationId1) >= 0
                         && notificationIds.indexOf(notificationId2) >= 0;
 
                     assert.equal(areNotificationsInList, true, "Commands with required ids are not in the list");
                 })
                 .send(done);
-        }
+        });
 
-        it('should check if inserted notifications are in results', function (done) {
-            runTest(conn, done);
+        it('should check if start timestamp limits notifications in results', function (done) {
+            var requestId = getRequestId();
+            conn.params({
+                action: 'notification/list',
+                requestId: requestId,
+                start: timestamp,
+                deviceId: deviceId
+            })
+                .expect({
+                    action: 'notification/list',
+                    status: 'success',
+                    requestId: requestId
+                })
+                .assert(function (result) {
+                    var notificationIds = result.notifications.map(function (notification) {
+                        return notification.id;
+                    });
+                    var areNotificationsInList = notificationIds.indexOf(notificationId1) < 0
+                        && notificationIds.indexOf(notificationId2) >= 0;
+
+                    assert.equal(areNotificationsInList, true, "Commands with required ids are not in the list");
+                })
+                .send(done);
+        });
+
+        it('should check if notification with correct name is in results', function (done) {
+            var requestId = getRequestId();
+            conn.params({
+                action: 'notification/list',
+                requestId: requestId,
+                notification: NOTIFICATION2,
+                deviceId: deviceId
+            })
+                .expect({
+                    action: 'notification/list',
+                    status: 'success',
+                    requestId: requestId
+                })
+                .assert(function (result) {
+                    var notificationIds = result.notifications.map(function (notification) {
+                        return notification.id;
+                    });
+                    var areNotificationsInList = notificationIds.indexOf(notificationId1) < 0
+                        && notificationIds.indexOf(notificationId2) >= 0;
+
+                    assert.equal(areNotificationsInList, true, "Commands with required ids are not in the list");
+                })
+                .send(done);
         });
 
         it('should fail when using wrong jwt', function (done) {
@@ -494,7 +543,7 @@ describe('WebSocket API Notification', function () {
                 deviceId: deviceId,
                 notificationId: invalidNotificationId
             })
-                .expectError(400, 'Invalid request parameters')
+                .expectError(400, 'Notification id should be an integer value.')
                 .send(done);
         });
 
@@ -546,15 +595,13 @@ describe('WebSocket API Notification', function () {
                         subscriptionId: subscriptionId
                     });
 
-                setTimeout(function() {
-                    req.create(path.NOTIFICATION.get(deviceId))
-                        .params({
-                            jwt: token,
-                            data: {notification: NOTIFICATION}
-                        })
-                        .send();
-                }, 1000);
-
+                req.create(path.NOTIFICATION.get(deviceId))
+                    .params({
+                        jwt: token,
+                        data: {notification: NOTIFICATION}
+                    })
+                    .send();
+                
                 function cleanUp(err) {
                     if (err) {
                         return done(err);
@@ -841,11 +888,16 @@ describe('WebSocket API Notification', function () {
                         return done(err);
                     }
 
+                    var requestId = getRequestId();
                     conn.params({
                         action: 'notification/unsubscribe',
-                        requestId: getRequestId(),
+                        requestId: requestId,
                         subscriptionId: subscriptionId
+                    }).expect({
+                        action: 'notification/unsubscribe',
+                        requestId: requestId,
                     })
+                    
                         .send(done);
                 }
             }
@@ -892,10 +944,14 @@ describe('WebSocket API Notification', function () {
                         return done(err);
                     }
 
+                    var requestId = getRequestId();
                     adminConn.params({
                         action: 'notification/unsubscribe',
-                        requestId: getRequestId(),
+                        requestId: requestId,
                         subscriptionId: subscriptionId
+                    }).expect({
+                        action: 'notification/unsubscribe',
+                        requestId: requestId
                     })
                         .send(done);
                 }
@@ -954,14 +1010,12 @@ describe('WebSocket API Notification', function () {
                         subscriptionId: subscriptionId
                     });
 
-                setTimeout(function () {
-                    req.create(path.NOTIFICATION.get(newDeviceId))
-                        .params({
-                            jwt: utils.jwt.admin,
-                            data: {notification: NOTIFICATION}
-                        })
-                        .send();
-                }, 500);
+                req.create(path.NOTIFICATION.get(newDeviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {notification: NOTIFICATION}
+                    })
+                    .send();
                 
                 function cleanUp(err) {
                     if (err) {
@@ -1041,14 +1095,12 @@ describe('WebSocket API Notification', function () {
                         subscriptionId: subscriptionId
                     });
 
-                setTimeout(function () {
-                    req.create(path.NOTIFICATION.get(newDeviceId))
-                        .params({
-                            jwt: utils.jwt.admin,
-                            data: {notification: NOTIFICATION}
-                        })
-                        .send();
-                }, 500);
+                req.create(path.NOTIFICATION.get(newDeviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {notification: NOTIFICATION}
+                    })
+                    .send();
 
                 function cleanUp(err) {
                     if (err) {
@@ -1127,16 +1179,14 @@ describe('WebSocket API Notification', function () {
                     cleanUp();
                 });
 
-                setTimeout(function () {
-                    req.create(path.NOTIFICATION.get(newDeviceId))
-                        .params({
-                            jwt: utils.jwt.admin,
-                            data: {notification: NOTIFICATION}
-                        })
-                        .send();    
-                }, 1000);
-
-                function cleanUp(err) {
+                req.create(path.NOTIFICATION.get(newDeviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {notification: NOTIFICATION}
+                    })
+                    .send();    
+                
+                    function cleanUp(err) {
                     if (err) {
                         return done(err);
                     }
@@ -1220,16 +1270,12 @@ describe('WebSocket API Notification', function () {
                     done();
                 });
                 
-                setTimeout(function () {
-                    req.create(path.NOTIFICATION.get(deviceId))
-                        .params({
-                            jwt: utils.jwt.admin,
-                            data: {notification: NOTIFICATION}
-                        })
-                        .send();    
-                }, 1000);
-
-                
+                req.create(path.NOTIFICATION.get(deviceId))
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {notification: NOTIFICATION}
+                    })
+                    .send();    
             }
         }
 
