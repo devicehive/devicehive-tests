@@ -115,7 +115,6 @@ describe('REST API Plugin', function () {
         it('should register plugin with admin token', function (done) {
             var description = 'Plugin Description';
             var healthCheckUrl = 'http://healthcheck.com';
-            var healthCheckPeriod = 301;
             var paramObject = JSON.stringify({"asd": "asd"});
             
             var params = {
@@ -124,7 +123,6 @@ describe('REST API Plugin', function () {
                     name: PLUGIN,
                     description: description,
                     healthCheckUrl: healthCheckUrl,
-                    healthCheckPeriod: healthCheckPeriod,
                     parameters: {
                         jsonString: paramObject
                     }
@@ -145,7 +143,6 @@ describe('REST API Plugin', function () {
             utils.createPlugin(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.description, description, 'Wrong description');
-                assert.strictEqual(result.healthCheckPeriod, healthCheckPeriod, 'Wrong healthCheckPeriod');
                 assert.strictEqual(result.healthCheckUrl, healthCheckUrl, 'Wrong healthCheckUrl');
                 assert.equal(JSON.stringify(result.parameters) === paramObject, true, 'Wrong parameters');
                 assert.equal(result.id !== null, true, 'Id is not returned');

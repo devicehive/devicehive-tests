@@ -351,7 +351,7 @@ var utils = {
     },
 
     getName: function ($for) {
-        return [this.NAME_PREFIX, $for, '-', (Date.now())].join('');
+        return [this.NAME_PREFIX, $for, '-', Date.now(), '-', Math.floor(Math.random() * 100) + 1].join('');
     },
 
     getInvalidName: function () {
