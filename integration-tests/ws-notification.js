@@ -383,7 +383,7 @@ describe('WebSocket API Notification', function () {
                     var areNotificationsInList = notificationIds.indexOf(notificationId1) >= 0
                         && notificationIds.indexOf(notificationId2) >= 0;
 
-                    assert.equal(areNotificationsInList, true, "Commands with required ids are not in the list");
+                    assert.equal(areNotificationsInList, true, "Notifications with required ids are not in the list" + notificationIds);
                 })
                 .send(done);
         });
@@ -408,7 +408,8 @@ describe('WebSocket API Notification', function () {
                     var areNotificationsInList = notificationIds.indexOf(notificationId1) < 0
                         && notificationIds.indexOf(notificationId2) >= 0;
 
-                    assert.equal(areNotificationsInList, true, "Commands with required ids are not in the list");
+                    assert.equal(areNotificationsInList, true, 
+                        "Notifications with required ids are not in the list" + notificationIds);
                 })
                 .send(done);
         });

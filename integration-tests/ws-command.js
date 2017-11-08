@@ -369,7 +369,7 @@ describe('WebSocket API Command', function () {
                 });
                 var areCommandsInList = commandIds.indexOf(commandId1) < 0 && commandIds.indexOf(commandId2) >= 0;
 
-                assert.equal(areCommandsInList, true, "Commands with required ids are not in the list");
+                assert.equal(areCommandsInList, true, "Commands with required ids are not in the list:" + commandIds);
             }).send(done);
         });
 

@@ -20,7 +20,7 @@ var utils = {
     NAME_PREFIX: 'it-',
     NON_EXISTING_ID: 999999,
     NEW_USER_PASSWORD: 'new_user_password',
-    WEBSOCKET_TIMEOUT: 2000,
+    WEBSOCKET_TIMEOUT: 4000,
 
     emptyCb: function () { },
 

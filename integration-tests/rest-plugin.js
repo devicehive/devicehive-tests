@@ -116,6 +116,7 @@ describe('REST API Plugin', function () {
             var description = 'Plugin Description';
             var healthCheckUrl = 'http://healthcheck.com';
             var paramObject = JSON.stringify({"asd": "asd"});
+            var proxyEndpoint = 'localhost:3000';
             
             var params = {
                 jwt: utils.jwt.admin,
@@ -142,11 +143,9 @@ describe('REST API Plugin', function () {
 
             utils.createPlugin(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
-                assert.strictEqual(result.description, description, 'Wrong description');
-                assert.strictEqual(result.healthCheckUrl, healthCheckUrl, 'Wrong healthCheckUrl');
-                assert.equal(JSON.stringify(result.parameters) === paramObject, true, 'Wrong parameters');
-                assert.equal(result.id !== null, true, 'Id is not returned');
-                assert.equal(result.topicName !== null, true, 'Topic name is not returned');
+                assert.strictEqual(result.proxyEndpoint, proxyEndpoint, 'Wrong proxy endpoint');
+                assert.equal(result.accessToken !== null, true, 'Access token is not returned');
+                assert.equal(result.refreshToken !== null, true, 'Refresh token is not returned');
                 
                 done();
             })
