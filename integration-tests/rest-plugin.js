@@ -130,14 +130,13 @@ describe('REST API Plugin', function () {
                 }
             };
             params.query = path.query(
-                'waitTimeout', 30,
                 'deviceIds', DEVICE_ID,
                 'networkIds', networkId,
-                'pollType', 'Command',
                 'names', '',
                 'timestamp', timestamp,
-                'returnUpdatedCommands', false,
-                'limit', 100
+                'returnCommands', true,
+                'returnUpdatedCommands', true,
+                'returnNotifications', true
             );
             
 

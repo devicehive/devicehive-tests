@@ -10,6 +10,11 @@ var req = require('./common/request');
 describe('REST API JSON Web Tokens', function () {
     this.timeout(90000);
 
+    var PLUGIN = utils.getName('plugin');
+    var pluginAccessToken = null;
+    var pluginRefreshToken = null;
+    var proxyEndpoint = null;
+    
     var adminUser = null;
     var user = null;
     var inactiveUser = null;
@@ -52,10 +57,43 @@ describe('REST API JSON Web Tokens', function () {
             });
         }
 
+        function createPlugin(callback) {
+            var description = 'Plugin Description';
+            var healthCheckUrl = 'http://healthcheck.com';
+            
+            var params = {
+                jwt: utils.jwt.admin,
+                data: {
+                    name: PLUGIN,
+                    description: description,
+                    healthCheckUrl: healthCheckUrl
+                }
+            };
+            params.query = path.query(
+                'returnCommands', true,
+                'returnUpdatedCommands', false,
+                'returnNotifications', false
+            );
+
+
+            utils.createPlugin(path.PLUGIN_REGISTER, params, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+                
+                pluginProxyEndpoind = result.proxyEndpoint;
+                pluginAccessToken = result.accessToken;
+                pluginRefreshToken = result.refreshToken;
+                
+                callback()
+            });
+        }
+
         async.series([
             createAdminUser,
             createUser,
-            createInactiveUser
+            createInactiveUser,
+            createPlugin
         ], done);
     });
 
@@ -396,6 +434,266 @@ describe('REST API JSON Web Tokens', function () {
         });
     });
 
+    describe('#plugin/authenticate', function() {
+        
+        it('should not authenticate with invalid token', function (done) {
+            var params = {};
+
+            params.query = path.query(
+                'token', 'token'
+            );
+            
+            utils.getAuth(path.JWT + '/plugin/authenticate', params, function(err) {
+                assert.strictEqual(err.error, 'Token is not valid');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+
+                done();
+            });
+        });
+
+        it('should not authenticate with empty tonen', function (done) {
+            var params = {};
+
+            params.query = null;
+            
+            utils.getAuth(path.JWT + '/plugin/authenticate', params, function(err) {
+                assert.strictEqual(err.error, 'Token is empty');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+
+                done();
+            });
+        });
+
+        it('should not authenticate with refresh plugin token', function (done) {
+            var params = {};
+
+            params.query = path.query(
+                'token', pluginRefreshToken
+            );
+
+            utils.getAuth(path.JWT + '/plugin/authenticate', params, function(err) {
+                assert.strictEqual(err.error, 'Invalid token type');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+
+                done();
+            });
+        });
+        
+        it('should authenticate with access plugin token', function (done) {
+            var params = {};
+
+            params.query = path.query(
+                'token', pluginAccessToken
+            );
+
+            utils.getAuth(path.JWT + '/plugin/authenticate', params, function(err, result) {
+                if (err) {
+                    done(err);
+                }
+                utils.hasPropsWithValues(result, ['tpc', 'e', 't']);
+                assert.strictEqual(result.t, 1, "Wrong token type!")
+
+                done();
+            });
+        });
+
+    });
+
+    describe('#plugin/create', function() {
+        var payload = null;
+
+        before(function (done) {
+            var params = {};
+
+            params.query = path.query(
+                'token', pluginAccessToken
+            );
+
+            utils.getAuth(path.JWT + '/plugin/authenticate', params, function(err, result) {
+                payload = result;
+                
+                done();
+            });
+        });
+
+        it('should create access and refresh plugin tokens with correct payload', function (done) {
+            
+            utils.createAuth(path.JWT + '/plugin/create', {jwt: utils.jwt.admin, data: payload}, function (err, result) {
+                if (err) {
+                    done(err);
+                }
+
+                assert(result.accessToken != null);
+                assert(result.refreshToken != null);
+
+                done();
+            });
+            
+        });
+
+        it('should not create access and refresh plugin tokens with empty payload', function (done) {
+
+            utils.createAuth(path.JWT + '/plugin/create', {jwt: utils.jwt.admin, data: {}}, function (err, result) {
+                assert.strictEqual(err.error, 'No permisions or invalid topic name');
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+
+                done();
+            });
+
+        });
+
+        it('should not create access and refresh plugin tokens with invalid topic name payload', function (done) {
+
+            utils.createAuth(path.JWT + '/plugin/create', {jwt: utils.jwt.admin, data: {"tpc": "no_topic"}}, function (err, result) {
+                assert.strictEqual(err.error, 'No permisions or invalid topic name');
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+
+                done();
+            });
+
+        });
+
+        it('should create plugin token with custom expiration date', function (done) {
+            var expiration = "2018-01-01T00:00:00.000";
+            utils.createAuth(path.JWT + '/plugin/create', {jwt: utils.jwt.admin,
+                data: {
+                    tpc: payload.tpc,
+                    e: expiration
+                }
+            }, function (err, result) {
+                var params = {};
+
+                params.query = path.query(
+                    'token', result.accessToken
+                );
+                
+                utils.getAuth(path.JWT + '/plugin/authenticate', params, function(err, result) {
+                    if (err) {
+                        done(err);
+                    }
+
+                    assert.strictEqual(result.e, expiration, "Wrong expiration!");
+                    done();
+                });
+            });
+        });
+
+        it('should create access token without provided expiration date', function (done) {
+
+            var expiration = "2018-01-01T00:00:00.000";
+            utils.createAuth(path.JWT + '/plugin/create', {jwt: utils.jwt.admin,
+                data: {
+                    tpc: payload.tpc,
+                    e: expiration
+                }
+            }, function (err, result) {
+                var params = {};
+
+                params.query = path.query(
+                    'token', result.accessToken
+                );
+
+                utils.getAuth(path.JWT + '/plugin/authenticate', params, function(err, result) {
+                    if (err) {
+                        done(err);
+                    }
+
+                    assert.strictEqual(result.e, expiration, "Wrong expiration!");
+                    done();
+                });
+            });
+            
+            utils.createAuth(path.JWT + '/plugin/create', {jwt: utils.jwt.admin,
+                data: {
+                    tpc: payload.tpc,
+                }
+            }, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                assert(result.accessToken != null);
+                assert(result.refreshToken != null);
+
+                var accessTokenVO = utils.parseJwt(result.accessToken);
+                var refreshTokenVO = utils.parseJwt(result.refreshToken);
+                var expAccessTime = new Date().getTime() + defaultAccessTokenLifeTime;
+                var expRefreshTime = new Date().getTime() + defaultRefreshTokenLifeTime;
+
+                assert(accessTokenVO.payload.e - expAccessTime < 1000);
+                assert(refreshTokenVO.payload.e - expRefreshTime < 1000);
+
+                done();
+            });
+        });
+
+        it('should return error when creating token with refresh jwt', function (done) {
+            utils.createAuth(path.JWT + '/plugin/create', {jwt: utils.jwt.admin_refresh,
+                data: {
+                    tpc: payload.tpc,
+                }
+            }, function (err) {
+                assert.strictEqual(err.error, 'Unauthorized');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                done();
+            });
+        });
+
+    });
+
+    describe('#plugin/refresh', function() {
+        var payload = null;
+
+        before(function (done) {
+            var params = {};
+
+            params.query = path.query(
+                'token', pluginAccessToken
+            );
+
+            utils.getAuth(path.JWT + '/plugin/authenticate', params, function(err, result) {
+                payload = result;
+
+                done();
+            });
+        });
+
+        it('should not refresh token with error refresh token is not valid', function (done) {
+            utils.createAuth(path.JWT + '/plugin/refresh', {
+                data: {
+                    refreshToken: utils.jwt.admin_refresh_invalid
+                }
+            }, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'No permisions or invalid topic name');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
+                done();
+            });
+        });
+
+        it('should not refresh token with error refresh token has expired', function (done) {
+            var expiration = "2017-01-01T00:00:00.000";
+            utils.createAuth(path.JWT + '/plugin/create', {jwt: utils.jwt.admin,
+                data: {
+                    tpc: payload.tpc,
+                    e: expiration
+                }
+            }, function (err, result) {
+                utils.createAuth(path.JWT + '/plugin/refresh', {
+                    data: {
+                        refreshToken: result.refreshToken
+                    }
+                }, function (err) {
+                    assert.strictEqual(!(!err), true, 'Error object created');
+                    assert.strictEqual(err.error, 'Token has expired');
+                    assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
+                    done();
+                });
+            });
+        });
+
+    });
+    
     after(function (done) {
         utils.clearDataJWT(done);
     });
