@@ -9,6 +9,7 @@ var path = {
     CURRENT_ACCESS_KEY: '/user/current/accesskey',
     JWT: '/token',
     NETWORK: '/network',
+    DEVICE_TYPE: '/devicetype',
     INFO: '/info',
     INFO_CACHE: '/info/cache',
     HEALTH: '/health',
