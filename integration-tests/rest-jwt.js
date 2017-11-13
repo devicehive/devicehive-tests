@@ -658,14 +658,27 @@ describe('REST API JSON Web Tokens', function () {
             });
         });
 
-        it('should not refresh token with error refresh token is not valid', function (done) {
-            utils.createAuth(path.JWT + '/plugin/refresh', {
+        it('should not refresh token with error user refresh token', function (done) {
+            utils.createAuth(path.JWT + '/refresh', {
                 data: {
                     refreshToken: utils.jwt.admin_refresh_invalid
                 }
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'No permisions or invalid topic name');
+                assert.strictEqual(err.error, 'Token is not valid');
+                assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
+                done();
+            });
+        });
+
+        it('should not refresh token with error plugin refresh token', function (done) {
+            utils.createAuth(path.JWT + '/refresh', {
+                data: {
+                    refreshToken: utils.jwt.plugin_refresh_invalid
+                }
+            }, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'Plugin is not found');
                 assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                 done();
             });
@@ -679,7 +692,7 @@ describe('REST API JSON Web Tokens', function () {
                     e: expiration
                 }
             }, function (err, result) {
-                utils.createAuth(path.JWT + '/plugin/refresh', {
+                utils.createAuth(path.JWT + '/refresh', {
                     data: {
                         refreshToken: result.refreshToken
                     }
