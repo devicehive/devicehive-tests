@@ -580,29 +580,6 @@ describe('REST API JSON Web Tokens', function () {
 
         it('should create access token for plugin without provided expiration date', function (done) {
 
-            var expiration = "2018-01-01T00:00:00.000";
-            utils.createAuth(path.JWT + '/plugin/create', {jwt: utils.jwt.admin,
-                data: {
-                    tpc: payload.tpc,
-                    e: expiration
-                }
-            }, function (err, result) {
-                var params = {};
-
-                params.query = path.query(
-                    'token', result.accessToken
-                );
-
-                utils.getAuth(path.JWT + '/plugin/authenticate', params, function(err, result) {
-                    if (err) {
-                        done(err);
-                    }
-
-                    assert.strictEqual(result.e, expiration, "Wrong expiration!");
-                    done();
-                });
-            });
-            
             utils.createAuth(path.JWT + '/plugin/create', {jwt: utils.jwt.admin,
                 data: {
                     tpc: payload.tpc,
