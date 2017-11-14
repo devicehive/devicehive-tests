@@ -14,6 +14,7 @@ var path = {
     HEALTH: '/health',
     DEVICE: '/device',
     CONFIGURATION: '/configuration',
+    PLUGIN_REGISTER: '/plugin/register',
     NOTIFICATION: {
         get: function (deviceId) {
             return path.combine(path.DEVICE, deviceId, 'notification');

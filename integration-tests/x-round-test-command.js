@@ -384,7 +384,7 @@ describe('Round tests for command', function () {
                         command: command
                     })
                         .send();    
-                }, 500);
+                }, 1000);
             }
 
             function sendReply(commands, callback) {
@@ -414,7 +414,7 @@ describe('Round tests for command', function () {
                                     data: update
                                 })
                                 .send(cb);
-                        }, 500);        
+                        }, 1000);        
                     }
                 }, function (err) {
                     if (err) {
@@ -469,7 +469,7 @@ describe('Round tests for command', function () {
                     req.create(createPath)
                         .params(params)
                         .send();
-                }, 500);
+                }, 1000);
             }
 
             function sendReply(commands, callback) {

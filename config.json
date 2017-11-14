@@ -5,6 +5,7 @@
     "port": "8080",
     "restUrl": "http://localhost:8080/dh/rest",
     "authRestUrl": "http://localhost:8090/dh/rest",
+    "pluginRestUrl": "http://localhost:8110/dh/rest",
     "backendRestUrl": "http://localhost:8090/dh/rest",
     "jwt": "admin_token"
   },

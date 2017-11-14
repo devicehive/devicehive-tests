@@ -4,6 +4,7 @@ var path = require('./common/path');
 var req = require('./common/request');
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
+var status = require('./common/http').status;
 
 describe('WebSocket API Authentication', function () {
     this.timeout(90000);
@@ -497,7 +498,7 @@ describe('WebSocket API Authentication', function () {
                     requestId: getRequestId(),
                     refreshToken:  utils.jwt.admin_refresh_invalid
                 })
-                    .expectError(400, 'Token is not valid')
+                    .expectError(status.NOT_AUTHORIZED, 'Invalid token type')
                     .send(callback);
             }
 
@@ -527,7 +528,7 @@ describe('WebSocket API Authentication', function () {
                     requestId: getRequestId(),
                     refreshToken:  utils.jwt.admin_refresh_exp
                 })
-                    .expectError(400, 'Token has expired')
+                    .expectError(status.NOT_AUTHORIZED, 'Token has expired')
                     .send(callback);
             }
 

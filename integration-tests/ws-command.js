@@ -369,7 +369,7 @@ describe('WebSocket API Command', function () {
                 });
                 var areCommandsInList = commandIds.indexOf(commandId1) < 0 && commandIds.indexOf(commandId2) >= 0;
 
-                assert.equal(areCommandsInList, true, "Commands with required ids are not in the list");
+                assert.equal(areCommandsInList, true, "Commands with required ids are not in the list:" + commandIds);
             }).send(done);
         });
 
@@ -1442,7 +1442,7 @@ describe('WebSocket API Command', function () {
 
                 conn.waitFor('command/insert', function (err) {
                     assert.strictEqual(!(!err), true, 'Commands should not arrive');
-                    utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\' for 2000ms'});
+                    utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\' for ' + utils.WEBSOCKET_TIMEOUT + 'ms'});
                     cleanUp();
                 });
 
@@ -1538,7 +1538,7 @@ describe('WebSocket API Command', function () {
 
                 client.waitFor('command/insert', function (err) {
                     assert.strictEqual(!(!err), true, 'Commands should not arrive');
-                    utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\' for 2000ms'});
+                    utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\' for ' + utils.WEBSOCKET_TIMEOUT + 'ms'});
                     done();
                 });
 
@@ -1719,7 +1719,7 @@ describe('WebSocket API Command', function () {
 
             client.waitFor('command/insert', function (err) {
                 assert.strictEqual(!(!err), true, 'Commands should not arrive');
-                utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\' for 2000ms'});
+                utils.matches(err, {message: 'waitFor() timeout: hasn\'t got message \'command/insert\' for ' + utils.WEBSOCKET_TIMEOUT + 'ms'});
                 done();
             });
 
