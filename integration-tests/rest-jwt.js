@@ -401,8 +401,8 @@ describe('REST API JSON Web Tokens', function () {
                 }
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'Token is not valid');
-                assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
+                assert.strictEqual(err.error, 'Invalid token type');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                 done();
             });
         });
@@ -415,7 +415,7 @@ describe('REST API JSON Web Tokens', function () {
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, 'Token has expired');
-                assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                 done();
             });
         });
@@ -665,8 +665,8 @@ describe('REST API JSON Web Tokens', function () {
                 }
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'Token is not valid');
-                assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
+                assert.strictEqual(err.error, 'Invalid token type');
+                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                 done();
             });
         });
@@ -699,7 +699,7 @@ describe('REST API JSON Web Tokens', function () {
                 }, function (err) {
                     assert.strictEqual(!(!err), true, 'Error object created');
                     assert.strictEqual(err.error, 'Token has expired');
-                    assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
+                    assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                     done();
                 });
             });
