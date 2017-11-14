@@ -266,7 +266,7 @@ describe('REST API JSON Web Tokens', function () {
             });
         });
 
-        it('should create access token without provided expiration date', function (done) {
+        it('should refresh access token without provided expiration date', function (done) {
             utils.createAuth(path.JWT + '/refresh', {
                 data: {
                     refreshToken: utils.jwt.admin_refresh
@@ -578,7 +578,7 @@ describe('REST API JSON Web Tokens', function () {
             });
         });
 
-        it('should create access token without provided expiration date', function (done) {
+        it('should create access token for plugin without provided expiration date', function (done) {
 
             var expiration = "2018-01-01T00:00:00.000";
             utils.createAuth(path.JWT + '/plugin/create', {jwt: utils.jwt.admin,
