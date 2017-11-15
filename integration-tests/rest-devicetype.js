@@ -51,7 +51,7 @@ describe('REST API DEVICE TYPE', function () {
         }
 
         function createUser(callback) {
-            utils.createUser2(1, deviceTypeId1, function (err, result) {
+            utils.createUser4(1, deviceTypeId1, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -62,7 +62,7 @@ describe('REST API DEVICE TYPE', function () {
         }
 
         function createNonTypeUser(callback) {
-            utils.createUser2(1, void 0, function (err, result) {
+            utils.createUser4(1, void 0, function (err, result) {
                 if (err) {
                     return callback(err);
                 }

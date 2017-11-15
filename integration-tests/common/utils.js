@@ -446,6 +446,50 @@ var utils = {
         });
     },
 
+    createUser4: function (role, deviceTypeIds, callback) {
+
+        var self = this;
+
+        var user = {
+            login: this.getName('user'),
+            password: this.NEW_USER_PASSWORD
+        };
+
+        deviceTypeIds || (deviceTypeIds = []);
+        if (!Array.isArray(deviceTypeIds)) {
+            deviceTypeIds = [deviceTypeIds];
+        }
+
+        this.createUser(user.login, user.password, role, 0, function (err, result) {
+            if (err) {
+                return callback(err);
+            }
+
+            user.id = result.id;
+            async.eachSeries(deviceTypeIds,
+                function (deviceTypeId, cb) {
+                    var params = { jwt: self.jwt.admin };
+                    var $path = path.combine(path.USER, user.id, path.DEVICE_TYPE, deviceTypeId);
+                    new Http(self.url, $path)
+                        .put(params, function (err, result, xhr) {
+                            if (err) {
+                                return cb(err);
+                            }
+
+                            assert.strictEqual(xhr.status, status.EXPECTED_UPDATED);
+                            cb();
+                        })
+                },
+                function (err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    callback(null, {user: user});
+                })
+        });
+    },
+
     clearData: function (done) {
 
         var self = this;
