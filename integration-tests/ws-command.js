@@ -31,6 +31,7 @@ describe('WebSocket API Command', function () {
     var invalidToken = null;
     var networkId = null;
     var networkId1 = null;
+    var deviceTypeId = null;
     var commandId1 = null;
     var commandId2 = null;
 
@@ -116,9 +117,10 @@ describe('WebSocket API Command', function () {
                     'UpdateDeviceCommand'
                 ],
                 deviceIds: ['*'],
-                networkIds: [networkId]
+                networkIds: [networkId],
+                deviceTypeIds: [deviceTypeId]
             };
-            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceIds, function (err, result) {
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -131,9 +133,10 @@ describe('WebSocket API Command', function () {
             var args = {
                 actions: [ 'GetNetwork' ],
                 deviceIds: [deviceId, deviceId1],
-                networkIds: [networkId, networkId1]
+                networkIds: [networkId, networkId1],
+                deviceTypeIds: [deviceTypeId]
             };
-            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceIds, function (err, result) {
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
                 if (err) {
                     return callback(err);
                 }

@@ -65,7 +65,7 @@ describe('WebSocket API Device Type', function () {
                     ],
                     deviceTypeIds: deviceTypeId
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.deviceTypeIds, args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -207,7 +207,7 @@ describe('WebSocket API Device Type', function () {
                     ],
                     deviceTypeIds: [deviceTypeId1, deviceTypeId2]
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.deviceTypeIds, args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -246,7 +246,7 @@ describe('WebSocket API Device Type', function () {
             conn.params({
                 action: 'deviceType/list',
                 requestId: requestId,
-                namePattern: '%ws-devicetype-1%'
+                namePattern: '%ws-device-type-1%'
             })
                 .expect({
                     action: 'deviceType/list',
@@ -339,7 +339,7 @@ describe('WebSocket API Device Type', function () {
                         'ManageDeviceType'
                     ]
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.deviceTypeIds,  args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -409,7 +409,7 @@ describe('WebSocket API Device Type', function () {
                         'ManageDeviceType'
                     ]
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.deviceTypeIds,  args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -494,7 +494,7 @@ describe('WebSocket API Device Type', function () {
 
                 var requestId = getRequestId();
                 this.deviceTypeId = result.deviceType.id;
-                var DEVICE_TYPE1_UPDATE = utils.getName('ws-devicetype-1');
+                var DEVICE_TYPE1_UPDATE = utils.getName('ws-device-type-1');
                 adminConn.params({
                     action: 'deviceType/update',
                     requestId: requestId,
@@ -577,7 +577,7 @@ describe('WebSocket API Device Type', function () {
                     ],
                     deviceTypeIds: deviceTypeId
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.deviceTypeIds,  args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }

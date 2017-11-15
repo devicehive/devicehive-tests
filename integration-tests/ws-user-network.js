@@ -77,9 +77,10 @@ describe('Websocker API User Network', function () {
                     'ManageNetwork'
                 ],
                 deviceIds: deviceId,
-                networkIds: void 0
+                networkIds: void 0,
+                deviceTypeIds: void 0
             };
-            utils.jwt.create(userId, args.actions, args.networkIds, args.deviceIds, function (err, result) {
+            utils.jwt.create(userId, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -232,7 +233,7 @@ describe('Websocker API User Network', function () {
             before(function (done) {
                 
                 function createJWT(callback) {
-                    utils.jwt.create(utils.admin.id, 'RegisterDevice', void 0, void 0, function (err, result) {
+                    utils.jwt.create(utils.admin.id, 'RegisterDevice', void 0, void 0, void 0, function (err, result) {
                         if (err) {
                             return callback(err);
                         }

@@ -22,6 +22,7 @@ describe('REST API Device Command', function () {
     var commandId = null;
     var beforeCreateCommandsTimestamp = new Date().getTime();
     var networkId = null;
+    var deviceTypeId = null;
 
     function hasCommand(item) {
         return item.id === commandId && item.command === COMMAND;
@@ -69,7 +70,7 @@ describe('REST API Device Command', function () {
         }
 
         function createJWT(callback) {
-            utils.jwt.create(user.id, ['CreateDeviceCommand', 'GetDeviceCommand', 'UpdateDeviceCommand'], [networkId], [DEVICE_ID], function (err, result) {
+            utils.jwt.create(user.id, ['CreateDeviceCommand', 'GetDeviceCommand', 'UpdateDeviceCommand'], [networkId], [deviceTypeId], [DEVICE_ID], function (err, result) {
                 if (err) {
                     return callback(err);
                 }

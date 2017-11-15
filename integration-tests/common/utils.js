@@ -51,7 +51,7 @@ var utils = {
             var paramsCopy = params.slice(0);
             function createJWT(callback) {
                 var p = paramsCopy.shift();
-                utils.jwt.create(p.user.id, p.actions, p.networkIds, p.deviceIds,
+                utils.jwt.create(p.user.id, p.actions, p.networkIds, p.deviceTypeIds, p.deviceIds,
                     function (err, result) {
                         if (err) {
                             callback(err);
@@ -73,7 +73,7 @@ var utils = {
             var paramsCopy = params.slice(0);
             function createJWT(callback) {
                 var p = paramsCopy.shift();
-                utils.jwt.create(p.user.id, p.actions, p.networkIds, p.deviceIds,
+                utils.jwt.create(p.user.id, p.actions, p.networkIds, p.deviceTypeIds, p.deviceIds,
                     function (err, result) {
                         if (err) {
                             callback(err);
@@ -91,7 +91,7 @@ var utils = {
             async.series(callbacks, done);
         },
 
-        create: function (userId, actions, networkIds, deviceIds, callback) {
+        create: function (userId, actions, networkIds, deviceTypeIds, deviceIds, callback) {
 
             if (actions && !Array.isArray(actions)) {
                 actions = [actions];
@@ -101,6 +101,10 @@ var utils = {
                 networkIds = [networkIds];
             }
 
+            if (deviceTypeIds && !Array.isArray(deviceTypeIds)) {
+                deviceTypeIds = [deviceTypeIds];
+            }
+
             if (deviceIds && !Array.isArray(deviceIds)) {
                 deviceIds = [deviceIds];
             }
@@ -108,7 +112,7 @@ var utils = {
             var expDate = new Date();
             expDate.setFullYear(expDate.getFullYear() + 10);
 
-            utils.createAuth(path.JWT + '/create', {jwt: utils.jwt.admin, data: {userId: userId, actions: actions, networkIds: networkIds, deviceIds: deviceIds, expiration: expDate }}, callback);
+            utils.createAuth(path.JWT + '/create', {jwt: utils.jwt.admin, data: {userId: userId, actions: actions, networkIds: networkIds, deviceTypeIds: deviceTypeIds, deviceIds: deviceIds, expiration: expDate }}, callback);
         }
     },
     
@@ -128,7 +132,9 @@ var utils = {
         ManageUser: 12,
         ManageConfiguration: 13,
         ManageNetwork: 14,
-        ManageToken: 15
+        ManageToken: 15,
+        GetDeviceType: 16,
+        ManageDeviceType: 17
     },
 
     device: {

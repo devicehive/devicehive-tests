@@ -31,6 +31,7 @@ describe('WebSocket API Notification', function () {
     var invalidToken = null;
     var networkId = null;
     var networkId1 = null;
+    var deviceTypeId = null;
     var notificationId1 = null;
     var notificationId2 = null;
     var timestamp = null;
@@ -157,9 +158,10 @@ describe('WebSocket API Notification', function () {
                     'CreateDeviceNotification'
                 ],
                 deviceIds: ['*'],
-                networkIds: [networkId]
+                networkIds: [networkId],
+                deviceTypeIds: [deviceTypeId]
             };
-            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceIds , function (err, result) {
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds , function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -172,9 +174,10 @@ describe('WebSocket API Notification', function () {
             var args = {
                 actions: [ 'GetNetwork' ],
                 deviceIds: [deviceId, deviceId1],
-                networkIds: [networkId, networkId1]
+                networkIds: [networkId, networkId1],
+                deviceTypeIds: [deviceTypeId]
             };
-            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceIds, function (err, result) {
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
