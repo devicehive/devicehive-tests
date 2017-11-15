@@ -116,7 +116,7 @@ describe('REST API Plugin', function () {
             var description = 'Plugin Description';
             var healthCheckUrl = 'http://healthcheck.com';
             var paramObject = JSON.stringify({"asd": "asd"});
-            var proxyEndpoint = '';
+            var proxyEndpoint = 'localhost:3000';
             
             var params = {
                 jwt: utils.jwt.admin,
