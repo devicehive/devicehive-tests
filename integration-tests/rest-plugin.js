@@ -23,6 +23,10 @@ describe('REST API Plugin', function () {
     var timestamp = new Date().getTime();
 
     before(function (done) {
+        if (!utils.pluginUrl) {
+            this.skip();
+        }
+        
         path.current = path.PLUGIN_REGISTER;
 
         function createNetwork(callback) {
