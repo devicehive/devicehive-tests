@@ -24,7 +24,7 @@ describe('WebSocket API Device Type', function () {
         });
     });
 
-    describe('#deviceType/get', function () {
+    describe('#devicetype/get', function () {
 
         var conn = null;
         var adminConn = null;
@@ -106,7 +106,7 @@ describe('WebSocket API Device Type', function () {
             var requestId = getRequestId();
 
             conn.params({
-                action: 'deviceType/get',
+                action: 'devicetype/get',
                 requestId: requestId
             })
                 .expectError(400, 'Device type id is wrong or empty')
@@ -117,7 +117,7 @@ describe('WebSocket API Device Type', function () {
             var requestId = getRequestId();
 
             conn.params({
-                action: 'deviceType/get',
+                action: 'devicetype/get',
                 requestId: requestId,
                 id: null
             })
@@ -129,7 +129,7 @@ describe('WebSocket API Device Type', function () {
             var requestId = getRequestId();
 
             conn.params({
-                action: 'deviceType/get',
+                action: 'devicetype/get',
                 deviceTypeId: utils.NON_EXISTING_ID,
                 requestId: requestId
             })
@@ -141,7 +141,7 @@ describe('WebSocket API Device Type', function () {
             var requestId = getRequestId();
 
             adminConn.params({
-                action: 'deviceType/get',
+                action: 'devicetype/get',
                 deviceTypeId: utils.NON_EXISTING_ID,
                 requestId: requestId
             })
@@ -155,7 +155,7 @@ describe('WebSocket API Device Type', function () {
         });
     });
 
-    describe('#deviceType/list', function () {
+    describe('#devicetype/list', function () {
 
         var conn = null;
         var deviceTypeId1 = null;
@@ -244,12 +244,12 @@ describe('WebSocket API Device Type', function () {
             };
 
             conn.params({
-                action: 'deviceType/list',
+                action: 'devicetype/list',
                 requestId: requestId,
                 namePattern: '%ws-device-type-1%'
             })
                 .expect({
-                    action: 'deviceType/list',
+                    action: 'devicetype/list',
                     requestId: requestId,
                     status: 'success',
                     deviceTypes: [expectedDeviceType]
@@ -272,13 +272,13 @@ describe('WebSocket API Device Type', function () {
             };
 
             conn.params({
-                action: 'deviceType/list',
+                action: 'devicetype/list',
                 requestId: requestId,
                 sortField: 'name',
                 sortOrder: 'ASC'
             })
                 .expect({
-                    action: 'deviceType/list',
+                    action: 'devicetype/list',
                     requestId: requestId,
                     status: 'success',
                     deviceTypes: [expectedDeviceType1, expectedDeviceType2]
@@ -301,13 +301,13 @@ describe('WebSocket API Device Type', function () {
             };
 
             conn.params({
-                action: 'deviceType/list',
+                action: 'devicetype/list',
                 requestId: requestId,
                 sortField: 'name',
                 sortOrder: 'DESC'
             })
                 .expect({
-                    action: 'deviceType/list',
+                    action: 'devicetype/list',
                     requestId: requestId,
                     status: 'success',
                     deviceTypes: [expectedDeviceType2, expectedDeviceType1]
@@ -322,7 +322,7 @@ describe('WebSocket API Device Type', function () {
         });
     });
 
-    describe('#deviceType/insert', function () {
+    describe('#devicetype/insert', function () {
 
         var conn = null;
 
@@ -368,12 +368,12 @@ describe('WebSocket API Device Type', function () {
             var requestId = getRequestId();
 
             conn.params({
-                action: 'deviceType/insert',
+                action: 'devicetype/insert',
                 requestId: requestId,
                 deviceType: { name: DEVICE_TYPE1 }
             })
                 .expect({
-                    action: 'deviceType/insert',
+                    action: 'devicetype/insert',
                     requestId: requestId,
                     status: 'success'
                 })
@@ -386,7 +386,7 @@ describe('WebSocket API Device Type', function () {
         });
     });
 
-    describe('#deviceType/update', function () {
+    describe('#devicetype/update', function () {
 
         var conn = null;
         var adminConn = null;
@@ -449,7 +449,7 @@ describe('WebSocket API Device Type', function () {
             var requestId = getRequestId();
 
             conn.params({
-                action: 'deviceType/update',
+                action: 'devicetype/update',
                 requestId: requestId,
                 deviceTypeId: utils.NON_EXISTING_ID,
                 deviceType: DEVICE_TYPE1
@@ -463,7 +463,7 @@ describe('WebSocket API Device Type', function () {
             var deviceTypeId = utils.NON_EXISTING_ID;
 
             adminConn.params({
-                action: 'deviceType/delete',
+                action: 'devicetype/delete',
                 requestId: requestId,
                 deviceTypeId: deviceTypeId,
                 deviceType: DEVICE_TYPE1
@@ -476,12 +476,12 @@ describe('WebSocket API Device Type', function () {
             var requestId = getRequestId();
 
             adminConn.params({
-                action: 'deviceType/insert',
+                action: 'devicetype/insert',
                 requestId: requestId,
                 deviceType: { name: DEVICE_TYPE1 }
             })
                 .expect({
-                    action: 'deviceType/insert',
+                    action: 'devicetype/insert',
                     requestId: requestId,
                     status: 'success'
                 })
@@ -496,13 +496,13 @@ describe('WebSocket API Device Type', function () {
                 this.deviceTypeId = result.deviceType.id;
                 var DEVICE_TYPE1_UPDATE = utils.getName('ws-device-type-1');
                 adminConn.params({
-                    action: 'deviceType/update',
+                    action: 'devicetype/update',
                     requestId: requestId,
                     deviceTypeId: this.deviceTypeId,
                     deviceType: { name: DEVICE_TYPE1_UPDATE }
                 })
                     .expect({
-                        action: 'deviceType/update',
+                        action: 'devicetype/update',
                         status: 'success',
                         requestId: requestId
                     })
@@ -516,12 +516,12 @@ describe('WebSocket API Device Type', function () {
 
                 var requestId = getRequestId();
                 adminConn.params({
-                    action: 'deviceType/get',
+                    action: 'devicetype/get',
                     requestId: requestId,
                     deviceTypeId: this.deviceTypeId
                 })
                     .expect({
-                        action: 'deviceType/get',
+                        action: 'devicetype/get',
                         status: 'success',
                         requestId: requestId
                     })
@@ -536,7 +536,7 @@ describe('WebSocket API Device Type', function () {
         });
     });
 
-    describe('#deviceType/delete', function () {
+    describe('#devicetype/delete', function () {
 
         var conn = null;
         var adminConn = null;
@@ -618,7 +618,7 @@ describe('WebSocket API Device Type', function () {
             var requestId = getRequestId();
 
             conn.params({
-                action: 'deviceType/delete',
+                action: 'devicetype/delete',
                 requestId: requestId,
                 deviceTypeId: utils.NON_EXISTING_ID
             })
@@ -631,11 +631,11 @@ describe('WebSocket API Device Type', function () {
             var deviceTypeId = utils.NON_EXISTING_ID;
 
             adminConn.params({
-                action: 'deviceType/delete',
+                action: 'devicetype/delete',
                 requestId: requestId,
                 deviceTypeId: deviceTypeId
             })
-                .expectError(404, 'Drvice type with id = ' + deviceTypeId + ' not found')
+                .expectError(404, 'Device type with id = ' + deviceTypeId + ' not found')
                 .send(done);
         });
 
@@ -644,12 +644,12 @@ describe('WebSocket API Device Type', function () {
             function deleteDeviceType(callback) {
                 var requestId = getRequestId();
                 conn.params({
-                    action: 'deviceType/delete',
+                    action: 'devicetype/delete',
                     requestId: requestId,
                     deviceTypeId: deviceTypeId
                 })
                     .expect({
-                        action: 'deviceType/delete',
+                        action: 'devicetype/delete',
                         requestId: requestId,
                         status: 'success'
                     })

@@ -41,8 +41,8 @@ var utils = {
     loggingOff: false,
 
     jwt: {
-        admin: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTU5MzQ3MjAwMDAwLCJ0IjoxfX0.pBjhmAQ31t5Y1AogEau8m8nCDjRCCndBLtQ3f6R-IBw',
-        admin_refresh: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTU5MzQ3MjAwMDAwLCJ0IjowfX0.ocTz-0FY_I0QY3TqIqyCBKBNX4xN-N7IdHWqUY865Hw',
+        admin: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJkdCI6WyIqIl0sImUiOjE1NTkzNDcyMDAwMDAsInQiOjF9fQ.1JR5Z__jrGsdidujmCIzHmik-tlg2zKYSs4GYmv0340',
+        admin_refresh: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJkdCI6WyIqIl0sImUiOjE1NTkzNDcyMDAwMDAsInQiOjB9fQ.IJ3nOkoi_5mykBOucHIUGP6AWAw0xBM4RwSXeRO9nMQ',
         admin_refresh_exp: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNDY0NzkzMjkwNTY0LCJ0IjowfX0.njLWzNksQ29hwT0hvxZVxQY0MQA5JHrZHPv6x6YEaqI',
         admin_refresh_invalid: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTE0NzY0ODAwMDAwLCJ0IjoxfX0.dkA2H1MGmJHdAT382tqt-xhcmwwlTimGwnabS5HdfJc',
         plugin_refresh_invalid: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InRwYyI6Im5vX3RvcGljIiwiZSI6MTUxNDc2NDgwMDAwMCwidCI6MH19.xEza6bwewFj5pAwRa0tujlg-xKbnCPHfUQWEAnsb0vw',
@@ -577,11 +577,16 @@ var utils = {
             clearEntities(path.NETWORK, 'name', callback);
         }
 
+        function clearDeviceTypes(callback) {
+            clearEntities(path.DEVICE_TYPE, 'name', callback);
+        }
+
         self.loggingOff = true;
         async.series([
             clearUsers,
             clearDevices,
-            clearNetworks
+            clearNetworks,
+            clearDeviceTypes
         ], function (err) {
             if (err) {
                 done(err);
