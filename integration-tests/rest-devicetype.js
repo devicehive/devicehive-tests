@@ -5,7 +5,7 @@ var path = require('./common/path');
 var status = require('./common/http').status;
 var req = require('./common/request');
 
-describe('REST API DEVICE TYPE', function () {
+describe('REST API Device Type', function () {
     this.timeout(90000);
 
     var DEVICE_TYPE_1 = utils.getName('deviceType-1');
@@ -294,7 +294,7 @@ describe('REST API DEVICE TYPE', function () {
         });
     });
 
-    describe('#Create Devices', function () {
+    describe('#List Devices', function () {
 
         var DEVICE = utils.getName('deviceType-device');
         var DEVICE_ID = utils.getName('deviceType-id');
@@ -340,9 +340,10 @@ describe('REST API DEVICE TYPE', function () {
             }
 
             function createDevice(callback) {
+                var params = utils.device.getParamsObj(DEVICE, utils.jwt.admin, null, {name: DEVICE, version: '1'});
+                params.data.deviceTypeId = deviceTypeId1;
                 req.update(path.get(path.DEVICE, DEVICE_ID))
-                    .params(utils.device.getParamsObj(DEVICE, utils.jwt.admin,
-                        deviceTypeId1, {name: DEVICE, version: '1'}))
+                    .params(params)
                     .send(function (err) {
                         if (err) {
                             return callback(err);
