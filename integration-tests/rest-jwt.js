@@ -58,6 +58,9 @@ describe('REST API JSON Web Tokens', function () {
         }
 
         function createPlugin(callback) {
+            if (!utils.pluginUrl) {
+                return callback();
+            }
             var description = 'Plugin Description';
             var healthCheckUrl = 'http://healthcheck.com';
             
@@ -85,7 +88,7 @@ describe('REST API JSON Web Tokens', function () {
                 pluginAccessToken = result.accessToken;
                 pluginRefreshToken = result.refreshToken;
                 
-                callback()
+                callback();
             });
         }
 
@@ -435,6 +438,11 @@ describe('REST API JSON Web Tokens', function () {
     });
 
     describe('#plugin/authenticate', function() {
+        before(function() {
+            if (!utils.pluginUrl) {
+                this.skip();
+            }
+        });
         
         it('should not authenticate with invalid token', function (done) {
             var params = {};
@@ -503,6 +511,10 @@ describe('REST API JSON Web Tokens', function () {
         var payload = null;
 
         before(function (done) {
+            if (!utils.pluginUrl) {
+                this.skip();
+            }
+            
             var params = {};
 
             params.query = path.query(
@@ -622,6 +634,10 @@ describe('REST API JSON Web Tokens', function () {
         var payload = null;
 
         before(function (done) {
+            if (!utils.pluginUrl) {
+                this.skip();
+            }
+            
             var params = {};
 
             params.query = path.query(
