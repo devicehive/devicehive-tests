@@ -118,7 +118,7 @@ describe('REST API Plugin', function () {
 
         it('should register plugin with admin token', function (done) {
             var description = 'Plugin Description';
-            var healthCheckUrl = 'http://healthcheck.com';
+            var healthCheckUrl = utils.pluginUrl + '/info';
             var paramObject = JSON.stringify({"asd": "asd"});
             var proxyEndpointLocal = 'localhost:3000';
             var proxyEndpointDocker = 'kafkaproxy:3000';

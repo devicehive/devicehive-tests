@@ -62,7 +62,7 @@ describe('REST API JSON Web Tokens', function () {
                 return callback();
             }
             var description = 'Plugin Description';
-            var healthCheckUrl = 'http://healthcheck.com';
+            var healthCheckUrl = utils.pluginUrl + '/info';
             
             var params = {
                 jwt: utils.jwt.admin,
