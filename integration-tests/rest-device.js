@@ -506,7 +506,7 @@ describe('REST API Device Unit', function () {
 
         before(function (done) {
         	function createJWT(callback) {
-        		utils.jwt.create(user.id, ['*'], networkId, deviceTypeId, NEW_DEVICE_ID, function (err, result) {
+        		utils.jwt.create(user.id, ['*'], networkId, ['*'], NEW_DEVICE_ID, function (err, result) {
         			if (err) {
         				return callback(err);
         			}
@@ -562,6 +562,7 @@ describe('REST API Device Unit', function () {
                 },
                 {
                     user: user,
+                    deviceTypeIds: ['*'],
                     actions: 'RegisterDevice'
                 }
             ];
@@ -702,20 +703,24 @@ describe('REST API Device Unit', function () {
             var params = [
                 {
                     user: otherNetworkUser,
-                    actions: 'RegisterDevice'
+                    actions: 'RegisterDevice',
+                    deviceTypeIds: ['*']
                 },
                 {
                     user: nonNetworkUser,
-                    actions: 'RegisterDevice'
+                    actions: 'RegisterDevice',
+                    deviceTypeIds: ['*']
                 },
                 {
                     user: user,
                     actions: 'RegisterDevice',
+                    deviceTypeIds: ['*'],
                     deviceIds: utils.NON_EXISTING_ID
                 },
                 {
                     user: user,
-                    actions: 'RegisterDevice'
+                    actions: 'RegisterDevice',
+                    deviceTypeIds: ['*']
                 }
             ];
 
