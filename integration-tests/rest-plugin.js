@@ -100,6 +100,11 @@ describe('REST API Plugin', function () {
     });
 
     describe('#Plugin Register', function () {
+        before(function() {
+            if (!utils.pluginUrl) {
+                this.skip();
+            }
+        });
 
         it('should not register plugin without ManagePlugin permission', function (done) {
             var params = {
