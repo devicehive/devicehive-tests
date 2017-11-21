@@ -98,7 +98,7 @@ Websocket.prototype = {
 
             self.context.handled = true;
             done(new Error('send() timeout: hasn\'t got message \'' + self.context.params.action + '\''));
-        }, 30000);
+        }, 60000);
     },
 
     waitFor: function (action, timeout, callback) {
@@ -108,7 +108,7 @@ Websocket.prototype = {
             timeout = null;
         }
 
-        timeout || (timeout = 2000);
+        timeout || (timeout = utils.WEBSOCKET_TIMEOUT);
 
         var self = this;
         this.context = {

@@ -402,7 +402,7 @@ describe('REST API Device Command', function () {
                     var params = helper.getParamsObj(utils.getName('' + i), jwt);
                     utils.create(path.current, params, function () {});
                 }
-            }, 100)
+            }, 1000)
         })
     });
 

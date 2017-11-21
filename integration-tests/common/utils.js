@@ -20,6 +20,7 @@ var utils = {
     NAME_PREFIX: 'it-',
     NON_EXISTING_ID: 999999,
     NEW_USER_PASSWORD: 'new_user_password',
+    WEBSOCKET_TIMEOUT: 4000,
 
     emptyCb: function () { },
 
@@ -28,6 +29,8 @@ var utils = {
     url:  getParam("restUrl") ,
 
     authUrl:  getParam("authRestUrl") ,
+
+    pluginUrl:  getParam("pluginRestUrl") ,
 
     admin: {
         login: 'dhadmin',
@@ -42,6 +45,7 @@ var utils = {
         admin_refresh: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTU5MzQ3MjAwMDAwLCJ0IjowfX0.ocTz-0FY_I0QY3TqIqyCBKBNX4xN-N7IdHWqUY865Hw',
         admin_refresh_exp: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNDY0NzkzMjkwNTY0LCJ0IjowfX0.njLWzNksQ29hwT0hvxZVxQY0MQA5JHrZHPv6x6YEaqI',
         admin_refresh_invalid: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTE0NzY0ODAwMDAwLCJ0IjoxfX0.dkA2H1MGmJHdAT382tqt-xhcmwwlTimGwnabS5HdfJc',
+        plugin_refresh_invalid: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InRwYyI6Im5vX3RvcGljIiwiZSI6MTUxNDc2NDgwMDAwMCwidCI6MH19.xEza6bwewFj5pAwRa0tujlg-xKbnCPHfUQWEAnsb0vw',
         admin_refresh_invalid_signature: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTU5MzQ3MjAwMDAwLCJ0IjowfX0.lo2T-wbXe1J9DvVyxJtFkNlo76uH_kSVwVY-FxLZRkk',
         createMany: function (params, done) {
             var paramsCopy = params.slice(0);
@@ -190,7 +194,7 @@ var utils = {
     },
 
     create: function ($path, params, cb) {
-        new Http(this.url, $path, this.loggingOff)
+        new Http(this.url, path.get($path, null, params.query), this.loggingOff)
             .post(params, function (err, result, xhr) {
                 if (err) {
                     err.httpStatus = xhr.status;
@@ -206,6 +210,21 @@ var utils = {
 
     createAuth: function ($path, params, cb) {
         new Http(this.authUrl, $path, this.loggingOff)
+            .post(params, function (err, result, xhr) {
+                if (err) {
+                    err.httpStatus = xhr.status;
+                    return cb(err);
+                }
+
+                var resource = path.get($path, result.id);
+                assert.strictEqual(xhr.status, status.EXPECTED_CREATED);
+
+                cb(null, result, resource);
+            });
+    },
+
+    createPlugin: function ($path, params, cb) {
+        new Http(this.pluginUrl, path.get($path, null, params.query), this.loggingOff)
             .post(params, function (err, result, xhr) {
                 if (err) {
                     err.httpStatus = xhr.status;
@@ -333,7 +352,7 @@ var utils = {
     },
 
     getName: function ($for) {
-        return [this.NAME_PREFIX, $for, '-', (Date.now())].join('');
+        return [this.NAME_PREFIX, $for, '-', Date.now(), '-', Math.floor(Math.random() * 100) + 1].join('');
     },
 
     getInvalidName: function () {
