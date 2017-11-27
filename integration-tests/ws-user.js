@@ -81,7 +81,7 @@ describe('WebSocket API User', function () {
                 networkIds: void 0,
                 deviceTypeIds: void 0
             };
-            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -103,7 +103,7 @@ describe('WebSocket API User', function () {
                 networkIds: void 0,
                 deviceTypeIds: void 0
             };
-            utils.jwt.create(adminUser.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
+            utils.jwt.create(adminUser.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -489,7 +489,7 @@ describe('WebSocket API User', function () {
             }
 
             function createJWT1(callback) {
-                utils.jwt.create(user1.id, ['GetCurrentUser', 'UpdateCurrentUser'], void 0, void 0, void 0, function (err, result) {
+                utils.jwt.create(user1.id, ['GetCurrentUser', 'UpdateCurrentUser'], void 0, void 0, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -499,7 +499,7 @@ describe('WebSocket API User', function () {
             }
 
             function createJWT2(callback) {
-                utils.jwt.create(user2.id, ['GetCurrentUser', 'UpdateCurrentUser'], void 0, void 0, void 0, function (err, result) {
+                utils.jwt.create(user2.id, ['GetCurrentUser', 'UpdateCurrentUser'], void 0, void 0, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -901,7 +901,7 @@ describe('WebSocket API User', function () {
                 }
 
                 function createJWT(callback) {
-                    utils.jwt.create(nonNetworkUser.id, void 0, void 0, void 0, void 0, function (err, result) {
+                    utils.jwt.create(nonNetworkUser.id, void 0, void 0, void 0, function (err, result) {
                         if (err) {
                             return callback(err);
                         }

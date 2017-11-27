@@ -51,7 +51,7 @@ var utils = {
             var paramsCopy = params.slice(0);
             function createJWT(callback) {
                 var p = paramsCopy.shift();
-                utils.jwt.create(p.user.id, p.actions, p.networkIds, p.deviceTypeIds, p.deviceIds,
+                utils.jwt.create(p.user.id, p.actions, p.networkIds, p.deviceTypeIds,
                     function (err, result) {
                         if (err) {
                             callback(err);
@@ -73,7 +73,7 @@ var utils = {
             var paramsCopy = params.slice(0);
             function createJWT(callback) {
                 var p = paramsCopy.shift();
-                utils.jwt.create(p.user.id, p.actions, p.networkIds, p.deviceTypeIds, p.deviceIds,
+                utils.jwt.create(p.user.id, p.actions, p.networkIds, p.deviceTypeIds,
                     function (err, result) {
                         if (err) {
                             callback(err);
@@ -91,7 +91,7 @@ var utils = {
             async.series(callbacks, done);
         },
 
-        create: function (userId, actions, networkIds, deviceTypeIds, deviceIds, callback) {
+        create: function (userId, actions, networkIds, deviceTypeIds, callback) {
 
             if (actions && !Array.isArray(actions)) {
                 actions = [actions];
@@ -105,14 +105,10 @@ var utils = {
                 deviceTypeIds = [deviceTypeIds];
             }
 
-            if (deviceIds && !Array.isArray(deviceIds)) {
-                deviceIds = [deviceIds];
-            }
-
             var expDate = new Date();
             expDate.setFullYear(expDate.getFullYear() + 10);
 
-            utils.createAuth(path.JWT + '/create', {jwt: utils.jwt.admin, data: {userId: userId, actions: actions, networkIds: networkIds, deviceTypeIds: deviceTypeIds, deviceIds: deviceIds, expiration: expDate }}, callback);
+            utils.createAuth(path.JWT + '/create', {jwt: utils.jwt.admin, data: {userId: userId, actions: actions, networkIds: networkIds, deviceTypeIds: deviceTypeIds, expiration: expDate }}, callback);
         }
     },
     

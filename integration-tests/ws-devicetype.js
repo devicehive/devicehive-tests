@@ -65,7 +65,7 @@ describe('WebSocket API Device Type', function () {
                     ],
                     deviceTypeIds: deviceTypeId
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -207,7 +207,7 @@ describe('WebSocket API Device Type', function () {
                     ],
                     deviceTypeIds: [deviceTypeId1, deviceTypeId2]
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -339,7 +339,7 @@ describe('WebSocket API Device Type', function () {
                         'ManageDeviceType'
                     ]
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -409,7 +409,7 @@ describe('WebSocket API Device Type', function () {
                         'ManageDeviceType'
                     ]
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -577,7 +577,7 @@ describe('WebSocket API Device Type', function () {
                     ],
                     deviceTypeIds: deviceTypeId
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }

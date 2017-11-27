@@ -79,7 +79,7 @@ describe('WebSocket API Subscription', function () {
                 networkIds: ['*'],
                 deviceTypeIds: ['*']
             };
-            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -95,7 +95,7 @@ describe('WebSocket API Subscription', function () {
                 networkIds: [networkId],
                 deviceTypeIds: [deviceTypeId]
             };
-            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                 if (err) {
                     return callback(err);
                 }

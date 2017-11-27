@@ -90,7 +90,7 @@ describe('WebSocket API Device', function () {
                     networkIds: void 0,
                     deviceTypeIds: void 0
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -251,7 +251,7 @@ describe('WebSocket API Device', function () {
                     networkIds: void 0,
                     deviceTypeIds: void 0
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -378,7 +378,7 @@ describe('WebSocket API Device', function () {
                     networkIds: void 0,
                     deviceTypeIds: ['*']
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -551,7 +551,7 @@ describe('WebSocket API Device', function () {
                     networkIds: void 0,
                     deviceTypeIds: void 0
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }

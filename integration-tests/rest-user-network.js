@@ -129,7 +129,7 @@ describe('REST API User Network', function () {
             var jwt = null;
 
             before(function (done) {
-                utils.jwt.create(utils.admin.id, 'RegisterDevice', void 0, void 0, void 0, function (err, result) {
+                utils.jwt.create(utils.admin.id, 'RegisterDevice', void 0, void 0, function (err, result) {
                     if (err) {
                         return done(err);
                     }

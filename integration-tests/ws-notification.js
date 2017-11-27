@@ -161,7 +161,7 @@ describe('WebSocket API Notification', function () {
                 networkIds: [networkId],
                 deviceTypeIds: [deviceTypeId]
             };
-            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds , function (err, result) {
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -177,7 +177,7 @@ describe('WebSocket API Notification', function () {
                 networkIds: [networkId, networkId1],
                 deviceTypeIds: [deviceTypeId]
             };
-            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                 if (err) {
                     return callback(err);
                 }

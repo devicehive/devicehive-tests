@@ -450,7 +450,7 @@ describe('REST API Device Unit', function () {
             }
 
             function createJWT(callback) {
-                utils.jwt.create(user.id, 'GetDeviceNotification', networkId, deviceTypeId, NEW_DEVICE_ID, function (err, result) {
+                utils.jwt.create(user.id, 'GetDeviceNotification', networkId, deviceTypeId, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -506,7 +506,7 @@ describe('REST API Device Unit', function () {
 
         before(function (done) {
         	function createJWT(callback) {
-        		utils.jwt.create(user.id, ['*'], networkId, ['*'], NEW_DEVICE_ID, function (err, result) {
+        		utils.jwt.create(user.id, ['*'], networkId, ['*'], function (err, result) {
         			if (err) {
         				return callback(err);
         			}

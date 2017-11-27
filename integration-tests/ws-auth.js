@@ -72,7 +72,7 @@ describe('WebSocket API Authentication', function () {
                 deviceTypeIds: void 0,
                 deviceId: void 0
             };
-            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceId, function (err, result) {
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                 if (err) {
                     return callback(err);
                 }

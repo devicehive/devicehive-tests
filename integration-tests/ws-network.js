@@ -65,7 +65,7 @@ describe('WebSocket API Network', function () {
                     ],
                     networkIds: networkId
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -207,7 +207,7 @@ describe('WebSocket API Network', function () {
                     ],
                     networkIds: [networkId1, networkId2]
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -339,7 +339,7 @@ describe('WebSocket API Network', function () {
                         'ManageNetwork'
                     ]
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -409,7 +409,7 @@ describe('WebSocket API Network', function () {
                         'ManageNetwork'
                     ]
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -577,7 +577,7 @@ describe('WebSocket API Network', function () {
                     ],
                     networkIds: networkId
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }

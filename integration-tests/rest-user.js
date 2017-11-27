@@ -91,7 +91,7 @@ describe('REST API User', function () {
             }
 
             function createJWT(callback) {
-                utils.jwt.create(user.id, 'GetCurrentUser', void 0, void 0, void 0, function (err, result) {
+                utils.jwt.create(user.id, 'GetCurrentUser', void 0, void 0, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -367,7 +367,7 @@ describe('REST API User', function () {
             }
 
             function createJWT(callback) {
-                utils.jwt.create(user.id, ['GetCurrentUser', 'UpdateCurrentUser'], void 0, void 0, void 0, function (err, result) {
+                utils.jwt.create(user.id, ['GetCurrentUser', 'UpdateCurrentUser'], void 0, void 0, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -377,7 +377,7 @@ describe('REST API User', function () {
             }
 
             function createJWT2(callback) {
-                utils.jwt.create(user3.id, ['GetCurrentUser', 'UpdateCurrentUser'], void 0, void 0, void 0, function (err, result) {
+                utils.jwt.create(user3.id, ['GetCurrentUser', 'UpdateCurrentUser'], void 0, void 0, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -548,7 +548,7 @@ describe('REST API User', function () {
                 if(err){
                     done(err);
                 }
-                utils.jwt.create(user.id, 'ManageUser', void 0, void 0, void 0, function(err, jwt){
+                utils.jwt.create(user.id, 'ManageUser', void 0, void 0, function(err, jwt){
                     if(err){
                         done(err);
                     }
@@ -566,7 +566,7 @@ describe('REST API User', function () {
                 if(err){
                     done(err);
                 }
-                utils.jwt.create(user.id,  void 0, void 0, void 0, void 0, function(err, jwt){
+                utils.jwt.create(user.id,  void 0, void 0, void 0, function(err, jwt){
                     if(err){
                         done(err);
                     }
@@ -661,7 +661,7 @@ describe('REST API User', function () {
                 }
 
                 function createJWT(callback) {
-                    utils.jwt.create(nonNetworkUser.id, void 0, void 0, void 0, void 0, function (err, result) {
+                    utils.jwt.create(nonNetworkUser.id, void 0, void 0, void 0, function (err, result) {
                         if (err) {
                             return callback(err);
                         }
@@ -725,7 +725,7 @@ describe('REST API User', function () {
             var jwt = null;
 
             before(function (done) {
-                utils.jwt.create(utils.admin.id, 'RegisterDevice', void 0, void 0, void 0, function (err, result) {
+                utils.jwt.create(utils.admin.id, 'RegisterDevice', void 0, void 0, function (err, result) {
                     if (err) {
                         return done(err);
                     }

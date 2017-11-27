@@ -555,7 +555,7 @@ describe('REST API Network', function () {
             var jwt = null;
 
             before(function (done) {
-                utils.jwt.create(user.id, user.actions, void 0, void 0, void 0, function (err, result) {
+                utils.jwt.create(user.id, user.actions, void 0, void 0, function (err, result) {
                     if (err) {
                         return done(err);
                     }
