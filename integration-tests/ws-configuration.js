@@ -142,6 +142,7 @@ describe('WebSocket API Configuration', function () {
     describe('#configuration/put', function () {
         var requestId = getRequestId();
         var configurationName = "ws_test_property";
+        var configurationNameWith33symbols = "a11112222333344445555666677778888";
         var configurationValue = "ws_test_value_create";
 
         it('should create configuration', function (done) {
@@ -164,6 +165,18 @@ describe('WebSocket API Configuration', function () {
                 })
                 .send(done);
             
+        });
+
+        it('should fail with 400 when configuration name\'s length exceeded', function (done) {
+            connTokenAuth.params({
+                action: 'configuration/put',
+                requestId: requestId,
+                name: configurationNameWith33symbols,
+                value: configurationValue
+            })
+                .expectError(status.BAD_REQUEST)
+                .send(done);
+
         });
 
         after(function (done) {
