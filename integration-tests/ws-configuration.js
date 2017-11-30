@@ -176,7 +176,6 @@ describe('WebSocket API Configuration', function () {
             })
                 .expectError(status.BAD_REQUEST)
                 .send(done);
-
         });
 
         after(function (done) {
