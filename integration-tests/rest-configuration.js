@@ -31,6 +31,7 @@ describe('REST API Configuration', function () {
     describe('#Update', function () {
 
         var propertyId = "test_property_create";
+        var propertyIdWith33symbols = "a11112222333344445555666677778888";
         var propertyValue = {"value": "test_value_create"};
 
         it('should create configuration', function (done) {
@@ -44,6 +45,17 @@ describe('REST API Configuration', function () {
                     "name": "test_property_create",
                     "value": "test_value_create"
                 })
+                .send(done);
+        });
+
+        it('should fail with 400 when configuration name\'s length exceeded', function (done) {
+            req.update(path.current)
+                .params({
+                    id: propertyIdWith33symbols,
+                    jwt: utils.jwt.admin,
+                    data: propertyValue
+                })
+                .expectError(status.BAD_REQUEST)
                 .send(done);
         });
 
