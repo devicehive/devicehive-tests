@@ -480,7 +480,6 @@ describe('REST API User', function () {
                             login: user.login,
                             role: 1,
                             status: 1,
-                            lastLogin: null,
                             introReviewed: true
                         })
                         .send(done);
