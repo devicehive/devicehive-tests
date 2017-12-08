@@ -266,7 +266,6 @@ describe('WebSocket API User', function () {
                         login: user.login,
                         role: 1,
                         status: 0,
-                        lastLogin: null,
                         introReviewed: false
                     }
                 })
@@ -653,7 +652,6 @@ describe('WebSocket API User', function () {
                                 login: user.login,
                                 role: 1,
                                 status: 1,
-                                lastLogin: null,
                                 introReviewed: true
                             }
                         })
