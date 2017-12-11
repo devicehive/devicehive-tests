@@ -4,6 +4,7 @@ var utils = require('./common/utils');
 var path = require('./common/path');
 var status = require('./common/http').status;
 var req = require('./common/request');
+var assert = require('assert');
 
 describe('REST API User', function () {
     this.timeout(90000);
@@ -480,7 +481,6 @@ describe('REST API User', function () {
                             login: user.login,
                             role: 1,
                             status: 1,
-                            lastLogin: null,
                             introReviewed: true
                         })
                         .send(done);
@@ -792,6 +792,107 @@ describe('REST API User', function () {
                 .params({jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID})
                 .expectError(status.NOT_FOUND, format('User with id = ' + utils.NON_EXISTING_ID + ' not found'))
                 .send(done);
+        });
+    });
+
+    describe('#Last Login', function () {
+
+        it('should set last login on first login', function (done) {
+            var user = {
+                login: utils.getName('usr-1'),
+                password: utils.NEW_USER_PASSWORD
+            };
+            var params = {jwt: utils.jwt.admin};
+
+            utils.createUser(user.login, user.password, 0, 0,
+                function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    user.id = result.id;
+                });
+
+            setTimeout(function() {
+                utils.createAuth(path.JWT, {data: {
+                login: user.login,
+                password: user.password
+                }
+                }, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                })}, 100);
+
+            setTimeout(function() {
+                (utils.get(path.combine(path.USER, user.id), params, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    assert(result.lastLogin !== null);
+                    done();
+                }))}, 200);
+        });
+
+        it('should set last login on token refresh', function (done) {
+            var user = {
+                login: utils.getName('usr-2'),
+                password: utils.NEW_USER_PASSWORD
+            };
+            var params = {jwt: utils.jwt.admin};
+
+            utils.createUser(user.login, user.password, 0, 0,
+                function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    user.id = result.id;
+                });
+
+            setTimeout(function createToken(callback) {
+                var args = {
+                    actions: [
+                        'GetDeviceNotification',
+                        'GetDeviceCommand',
+                        'CreateDeviceNotification',
+                        'CreateDeviceCommand',
+                        'UpdateDeviceCommand'
+                    ],
+                    networkIds: void 0,
+                    deviceId: void 0
+                };
+                utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceId, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    user.refreshToken = result.refreshToken;
+                })}, 100);
+
+            setTimeout(function() {
+                (utils.get(path.combine(path.USER, user.id), params, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    assert(result.lastLogin === null);
+                }))}, 200);
+
+            setTimeout(function() {
+                utils.createAuth(path.JWT + '/refresh', {
+                    data: {
+                        refreshToken: user.refreshToken
+                    }}, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                })}, 300);
+
+            setTimeout(function() {
+                (utils.get(path.combine(path.USER, user.id), params, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    assert(result.lastLogin !== null);
+                    done();
+                }))}, 400);
         });
     });
 
