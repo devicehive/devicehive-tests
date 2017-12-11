@@ -1081,6 +1081,64 @@ describe('WebSocket API User', function () {
         });
     });
 
+    describe('#Last Login', function () {
+
+        it('should set last login on authentication', function (done) {
+            var user = {
+                login: utils.getName('usr-1'),
+                password: utils.NEW_USER_PASSWORD
+            };
+            var params = {jwt: utils.jwt.admin};
+
+            utils.createUser(user.login, user.password, 0, 0,
+                function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    user.id = result.id;
+                });
+
+            setTimeout(function createToken(callback) {
+                var args = {
+                    actions: [
+                        'GetDeviceNotification',
+                        'GetDeviceCommand',
+                        'CreateDeviceNotification',
+                        'CreateDeviceCommand',
+                        'UpdateDeviceCommand'
+                    ],
+                    networkIds: void 0,
+                    deviceId: void 0
+                };
+                utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceId, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    user.accessToken = result.accessToken;
+                })}, 100);
+
+            setTimeout(function authenticateConn(callback) {
+                conn.params({
+                    action: 'authenticate',
+                    requestId: getRequestId(),
+                    token: user.accessToken
+                })
+                    .send(callback);
+                }, 200);
+
+            setTimeout(function() {
+                adminConn.params({
+                    action: 'user/get',
+                    userId: user.id
+                })
+                .assert(function (result) {
+                    assert(result.user.lastLogin !== null);
+                })
+                .send(done);
+                }, 300);
+        });
+    });
+
     after(function (done) {
         adminConn.close();
         noTokenConn.close();
