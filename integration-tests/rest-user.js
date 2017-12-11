@@ -868,6 +868,14 @@ describe('REST API User', function () {
                 })}, 100);
 
             setTimeout(function() {
+                (utils.get(path.combine(path.USER, user.id), params, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    assert(result.lastLogin === null);
+                }))}, 200);
+
+            setTimeout(function() {
                 utils.createAuth(path.JWT + '/refresh', {
                     data: {
                         refreshToken: user.refreshToken
@@ -875,7 +883,7 @@ describe('REST API User', function () {
                     if (err) {
                         return done(err);
                     }
-                })}, 200);
+                })}, 300);
 
             setTimeout(function() {
                 (utils.get(path.combine(path.USER, user.id), params, function (err, result) {
@@ -884,7 +892,7 @@ describe('REST API User', function () {
                     }
                     assert(result.lastLogin !== null);
                     done();
-                }))}, 300);
+                }))}, 400);
         });
     });
 
