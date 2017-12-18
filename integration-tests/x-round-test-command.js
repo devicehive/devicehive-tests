@@ -26,7 +26,6 @@ describe('Round tests for command', function () {
     };
     var deviceId = utils.getName('round-cmd-device-id');
     var networkId = null;
-    var deviceTypeId = null;
 
     var user = null;
     var jwt = null;
@@ -115,8 +114,7 @@ describe('Round tests for command', function () {
                     'UpdateDeviceCommand'
                 ],
                 networkIds: networkId,
-                deviceTypeIds: deviceTypeId,
-                deviceIds: deviceId
+                deviceTypeIds: [1]
             };
             utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds,
                 function (err, result) {

@@ -88,12 +88,14 @@ describe('REST API Device Notification', function () {
                     user: user,
                     actions: ['GetDeviceNotification', 'CreateDeviceNotification'],
                     networkIds: networkId,
+                    deviceTypeIds: ['*'],
                     deviceIds: DEVICE_ID
                 },
                 {
                     user: nonNetworkUser,
                     actions: ['GetDeviceNotification', 'CreateDeviceNotification'],
                     networkIds: void 0,
+                    deviceTypeIds: ['*'],
                     deviceIds: DEVICE_ID
                 }
             ];
@@ -246,6 +248,7 @@ describe('REST API Device Notification', function () {
                     user: user,
                     actions: 'GetDeviceNotification',
                     networkIds: networkId,
+                    deviceTypeIds: ['*'],
                     deviceIds: DEVICE_ID
                 }
             ];
@@ -533,6 +536,7 @@ describe('REST API Device Notification', function () {
                     user: user,
                     actions: 'CreateDeviceNotification',
                     networkIds: networkId,
+                    deviceTypeIds: ['*'],
                     deviceIds: DEVICE_ID
                 }
             ];

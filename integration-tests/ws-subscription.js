@@ -19,12 +19,13 @@ describe('WebSocket API Subscription', function () {
     var invalidToken = null;
     var device = null;
     var networkId = null;
-    var deviceTypeId = null;
 
     var clientToken = null;
     var clientInvalidToken = null;
 
     before(function (done) {
+        this.skip(); // fixme: DEV-338
+
         function getWsUrl(callback) {
             req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
                 if (err) {
@@ -93,7 +94,7 @@ describe('WebSocket API Subscription', function () {
                 actions: [ 'GetNetwork' ],
                 deviceIds: [deviceId],
                 networkIds: [networkId],
-                deviceTypeIds: [deviceTypeId]
+                deviceTypeIds: ['*']
             };
             utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                 if (err) {
@@ -345,6 +346,7 @@ describe('WebSocket API Subscription', function () {
     });
 
     after(function (done) {
+        this.skip(); // fixme: DEV-338
         device.close();
         clientToken.close();
         clientInvalidToken.close();
