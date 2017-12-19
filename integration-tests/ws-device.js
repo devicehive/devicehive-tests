@@ -248,7 +248,7 @@ describe('WebSocket API Device', function () {
                         'ManageNetwork'
                     ],
                     deviceIds: [deviceId, deviceId2],
-                    networkIds: void 0,
+                    networkIds: [networkId],
                     deviceTypeIds: void 0
                 };
                 utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {

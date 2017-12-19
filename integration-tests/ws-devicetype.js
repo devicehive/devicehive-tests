@@ -14,6 +14,12 @@ describe('WebSocket API Device Type', function () {
     var DEVICE_TYPE2 = utils.getName('ws-device-type-2');
     var token = null;
 
+    var deviceTypeDefault = {
+        name: 'Default Device Type',
+        id: 1,
+        description: 'Default DeviceHive device type'
+    };
+
     before(function (done) {
         req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
             if (err) {
@@ -281,7 +287,7 @@ describe('WebSocket API Device Type', function () {
                     action: 'devicetype/list',
                     requestId: requestId,
                     status: 'success',
-                    deviceTypes: [expectedDeviceType1, expectedDeviceType2]
+                    deviceTypes: [deviceTypeDefault, expectedDeviceType1, expectedDeviceType2]
                 })
                 .send(done);
         });
@@ -310,7 +316,7 @@ describe('WebSocket API Device Type', function () {
                     action: 'devicetype/list',
                     requestId: requestId,
                     status: 'success',
-                    deviceTypes: [expectedDeviceType2, expectedDeviceType1]
+                    deviceTypes: [expectedDeviceType2, expectedDeviceType1, deviceTypeDefault]
                 })
                 .send(done);
         });
