@@ -326,7 +326,8 @@ var utils = {
                 login: login,
                 password: password,
                 role: role,
-                status: status
+                status: status,
+                allDeviceTypesAvailable: false
             }
         };
 
