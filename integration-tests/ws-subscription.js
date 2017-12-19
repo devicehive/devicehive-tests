@@ -6,7 +6,7 @@ var req = require('./common/request');
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
-describe('WebSocket API Subscription', function () {
+describe.skip('WebSocket API Subscription', function () { // fixme: DEV-338
     this.timeout(90000);
     var url = null;
 
