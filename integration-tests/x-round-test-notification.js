@@ -25,6 +25,7 @@ describe('Round tests for notification', function () {
     };
     var deviceId = utils.getName('round-notif-device-id');
     var networkId = null;
+    var deviceTypeId = 1;
 
     var user = null;
     var jwt = null;
@@ -333,6 +334,7 @@ describe('Round tests for notification', function () {
         function runTest(notification, done) {
 
             var expectedNotif = utils.core.clone(notification);
+            expectedNotif.deviceTypeId = deviceTypeId;
             expectedNotif.deviceId = deviceId;
             expectedNotif.networkId = networkId;
             

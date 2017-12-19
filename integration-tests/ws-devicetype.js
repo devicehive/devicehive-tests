@@ -125,7 +125,7 @@ describe('WebSocket API Device Type', function () {
                 .send(done);
         });
 
-        it('should return 403 when no device type exists with client token', function (done) {
+        it('should return 404 when no device type exists with client token', function (done) {
             var requestId = getRequestId();
 
             conn.params({
@@ -133,7 +133,7 @@ describe('WebSocket API Device Type', function () {
                 deviceTypeId: utils.NON_EXISTING_ID,
                 requestId: requestId
             })
-                .expectError(403, 'Access is denied')
+                .expectError(404, 'Device type with id = ' + utils.NON_EXISTING_ID + ' not found')
                 .send(done);
         });
 
@@ -622,7 +622,7 @@ describe('WebSocket API Device Type', function () {
                 requestId: requestId,
                 deviceTypeId: utils.NON_EXISTING_ID
             })
-                .expectError(403, 'Access is denied')
+                .expectError(404, 'Device type with id = ' + utils.NON_EXISTING_ID + ' not found')
                 .send(done);
         });
 
