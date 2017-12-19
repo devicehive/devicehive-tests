@@ -455,12 +455,12 @@ describe('WebSocket API Device Type', function () {
             var requestId = getRequestId();
 
             conn.params({
-                action: 'devicetype/update',
+                action: 'devicetype/delete',
                 requestId: requestId,
                 deviceTypeId: utils.NON_EXISTING_ID,
                 deviceType: DEVICE_TYPE1
             })
-                .expectError(403, 'Access is denied')
+                .expectError(404, 'Device type with id = ' + utils.NON_EXISTING_ID + ' not found')
                 .send(done);
         });
 
