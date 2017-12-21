@@ -204,7 +204,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceIds: ['*']
+                    deviceTypeIds: ['*']
                 }
             }, function (err, result) {
                 if (err) {
@@ -232,9 +232,9 @@ describe('REST API JSON Web Tokens', function () {
                     return done(err);
                 }
 
-                assert.strictEqual(result.accessToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImUiOjE1MTQ3NjQ4MDAwMDAsInQiOjEsInUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdfX0.ztPbZex2ZXYHPetsz_zVimTfI3oy5xGbCBEgdcateCc'),
+                assert.strictEqual(result.accessToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImUiOjE1MTQ3NjQ4MDAwMDAsInQiOjEsInUiOjEsImEiOlswXSwibiI6WyIqIl0sImR0IjpbIioiXX19.AAbRCa3ZcewM_FBhmx3yn1XyPPhMJoFc3bUFrRzsMpY'),
                     true, 'Access token is not correct');
-                assert.strictEqual(result.refreshToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImUiOjE1MTQ3NjQ4MDAwMDAsInQiOjAsInUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdfX0.M-bMPxE6Powju-eKULkAIKhroWn88XeBrILrIFDOIxg'),
+                assert.strictEqual(result.refreshToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImUiOjE1MTQ3NjQ4MDAwMDAsInQiOjAsInUiOjEsImEiOlswXSwibiI6WyIqIl0sImR0IjpbIioiXX19.lNJI0LEK7j97Q5Essx4d2S5LQFo7XgtkrjR5i7qnBLc'),
                     true, 'Refresh token is not correct');
 
                 done();
@@ -247,7 +247,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceIds: ['*']
+                    deviceTypeIds: ['*']
                 }
             }, function (err, result) {
                 if (err) {
@@ -296,7 +296,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceIds: ['*']
+                    deviceTypeIds: ['*']
                 }
             }, function (err) {
                 assert.strictEqual(err.error, 'Unauthorized');
@@ -311,7 +311,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceIds: ['*']
+                    deviceTypeIds: ['*']
                 }
             }, function (err, result) {
                 if (err) {
@@ -331,7 +331,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceIds: ['*']
+                    deviceTypeIds: ['*']
                 }
             }, function (err, result) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -348,7 +348,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: invalidUserId,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceIds: ['*']
+                    deviceTypeIds: ['*']
                 }
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -364,7 +364,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: inactiveUser.id,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceIds: ['*']
+                    deviceTypeIds: ['*']
                 }
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
