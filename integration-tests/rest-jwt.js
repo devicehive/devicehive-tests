@@ -133,7 +133,7 @@ describe('REST API JSON Web Tokens', function () {
                 
                 jwtTokenVO.payload.a.should.containEql(0);
                 jwtTokenVO.payload.n.should.containEql('*');
-                jwtTokenVO.payload.d.should.containEql('*');
+                jwtTokenVO.payload.dt.should.containEql('*');
 
                 done();
             });
@@ -224,7 +224,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceIds: ['*'],
+                    deviceTypeIds: ['*'],
                     expiration: "2018-01-01T00:00:00.000Z"
                 }
             }, function (err, result) {

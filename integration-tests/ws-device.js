@@ -87,9 +87,10 @@ describe('WebSocket API Device', function () {
                         'ManageNetwork'
                     ],
                     deviceIds: deviceId,
-                    networkIds: void 0
+                    networkIds: void 0,
+                    deviceTypeIds: void 0
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -247,9 +248,10 @@ describe('WebSocket API Device', function () {
                         'ManageNetwork'
                     ],
                     deviceIds: [deviceId, deviceId2],
-                    networkIds: void 0
+                    networkIds: [networkId],
+                    deviceTypeIds: void 0
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -373,9 +375,10 @@ describe('WebSocket API Device', function () {
                         'RegisterDevice'
                     ],
                     deviceIds: void 0,
-                    networkIds: void 0
+                    networkIds: void 0,
+                    deviceTypeIds: ['*']
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.networkIds,  args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -545,9 +548,10 @@ describe('WebSocket API Device', function () {
                         'RegisterDevice'
                     ],
                     deviceIds: void 0,
-                    networkIds: void 0
+                    networkIds: void 0,
+                    deviceTypeIds: void 0
                 };
-                utils.jwt.create(utils.admin.id, args.actions, args.networkIds,  args.deviceIds, function (err, result) {
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
                         return callback(err);
                     }

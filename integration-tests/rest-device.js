@@ -193,23 +193,27 @@ describe('REST API Device Unit', function () {
                 {
                     user: user,
                     actions: 'GetDevice',
+                    deviceTypeIds: ['*'],
                     networkIds: [0]
                 },
                 {
                     user: user,
                     actions: 'GetDevice',
+                    deviceTypeIds: ['*'],
                     deviceIds: utils.NON_EXISTING_ID
                 },
                 {
                     user: user,
                     actions: 'GetDevice',
                     networkIds: [networkId],
+                    deviceTypeIds: ['*'],
                     deviceIds: ["*"]
                 },
                 {
                     user: user,
                     actions: 'GetDevice',
                     networkIds: [],
+                    deviceTypeIds: ['*'],
                     deviceIds: []
                 }
             ];
@@ -308,7 +312,6 @@ describe('REST API Device Unit', function () {
 
         var invalidJWT1 = null;
         var invalidJWT2 = null;
-        var invalidJWT3 = null;
         var invalidDeviceId = 'invalid-device-id';
 
         var jwt = null;
@@ -319,29 +322,27 @@ describe('REST API Device Unit', function () {
                 {
                     user: nonNetworkUser,
                     networkIds: [networkId],
+                    deviceTypeIds: ['*'],
                     actions: 'GetDevice'
                 },
                 {
                     user: user,
                     actions: 'GetDevice',
+                    deviceTypeIds: ['*'],
                     networkIds: [0]
                 },
                 {
                     user: user,
                     actions: 'GetDevice',
                     networkIds: [networkId],
-                    deviceIds: utils.NON_EXISTING_ID
-                },
-                {
-                    user: user,
-                    actions: 'GetDevice',
-                    networkIds: [networkId],
+                    deviceTypeIds: ['*'],
                     deviceIds: [DEVICE_ID]
                 },
                 {
                     user: user,
                     actions: 'GetDevice',
                     networkIds: ['*'],
+                    deviceTypeIds: ['*'],
                     deviceIds: [DEVICE_ID]
                 }
             ];
@@ -354,9 +355,8 @@ describe('REST API Device Unit', function () {
 
                     invalidJWT1 = result[0];
                     invalidJWT2 = result[1];
-                    invalidJWT3 = result[2];
-                    jwt = result[3];
-                    allNetworksJwt = result[4];
+                    jwt = result[2];
+                    allNetworksJwt = result[3];
 
                     callback();
                 })
@@ -380,16 +380,6 @@ describe('REST API Device Unit', function () {
 
         it('should fail with 403 #2', function (done) {
             var params = {jwt: invalidJWT2};
-            params.id = DEVICE_ID;
-            utils.get(path.current, params, function (err) {
-                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
-
-                done();
-            });
-        });
-
-        it('should fail with 403 #3', function (done) {
-            var params = {jwt: invalidJWT3};
             params.id = DEVICE_ID;
             utils.get(path.current, params, function (err) {
                 assert.strictEqual(err.httpStatus, status.FORBIDDEN);
@@ -449,7 +439,7 @@ describe('REST API Device Unit', function () {
             }
 
             function createJWT(callback) {
-                utils.jwt.create(user.id, 'GetDeviceNotification', networkId, NEW_DEVICE_ID, function (err, result) {
+                utils.jwt.create(user.id, 'GetDeviceNotification', networkId, ['*'], function (err, result) {
                     if (err) {
                         return callback(err);
                     }
@@ -505,7 +495,7 @@ describe('REST API Device Unit', function () {
 
         before(function (done) {
         	function createJWT(callback) {
-        		utils.jwt.create(user.id, ['*'], networkId, NEW_DEVICE_ID, function (err, result) {
+        		utils.jwt.create(user.id, ['*'], networkId, ['*'], function (err, result) {
         			if (err) {
         				return callback(err);
         			}
@@ -561,6 +551,7 @@ describe('REST API Device Unit', function () {
                 },
                 {
                     user: user,
+                    deviceTypeIds: ['*'],
                     actions: 'RegisterDevice'
                 }
             ];
@@ -701,20 +692,24 @@ describe('REST API Device Unit', function () {
             var params = [
                 {
                     user: otherNetworkUser,
-                    actions: 'RegisterDevice'
+                    actions: 'RegisterDevice',
+                    deviceTypeIds: ['*']
                 },
                 {
                     user: nonNetworkUser,
-                    actions: 'RegisterDevice'
+                    actions: 'RegisterDevice',
+                    deviceTypeIds: ['*']
                 },
                 {
                     user: user,
                     actions: 'RegisterDevice',
+                    deviceTypeIds: ['*'],
                     deviceIds: utils.NON_EXISTING_ID
                 },
                 {
                     user: user,
-                    actions: 'RegisterDevice'
+                    actions: 'RegisterDevice',
+                    deviceTypeIds: ['*']
                 }
             ];
 
@@ -839,6 +834,7 @@ describe('REST API Device Unit', function () {
                     user: user,
                     actions: 'RegisterDevice',
                     networkIds: [networkId],
+                    deviceTypeIds: ['*'],
                     deviceIds: [NEW_DEVICE_ID]
                 }
             ];
@@ -913,14 +909,14 @@ describe('REST API Device Unit', function () {
                 {
                     user: user,
                     actions: 'GetDevice',
+                    deviceTypeIds: ['*'],
                     networkIds: [networkId],
                     deviceIds: ['*'] // Allow all devices for user
                 },
                 {
                     user: user,
                     actions: 'GetDevice',
-                    networkIds: [networkId],
-                    deviceIds: ['999999999'] // Wrong device id
+                    networkIds: [networkId]
                 }
             ];
 

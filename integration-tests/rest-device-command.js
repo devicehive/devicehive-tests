@@ -44,7 +44,7 @@ describe('REST API Device Command', function () {
                 }
 
                 networkId = result.id;
-                callback()
+                callback();
             });
         }
 
@@ -69,12 +69,12 @@ describe('REST API Device Command', function () {
         }
 
         function createJWT(callback) {
-            utils.jwt.create(user.id, ['CreateDeviceCommand', 'GetDeviceCommand', 'UpdateDeviceCommand'], [networkId], [DEVICE_ID], function (err, result) {
+            utils.jwt.create(user.id, ['CreateDeviceCommand', 'GetDeviceCommand', 'UpdateDeviceCommand'], [networkId], ['*'], function (err, result) {
                 if (err) {
                     return callback(err);
                 }
                 jwt = result.accessToken;
-                callback()
+                callback();
             })
         }
 
@@ -224,6 +224,7 @@ describe('REST API Device Command', function () {
                     user: user,
                     actions: 'GetDeviceCommand',
                     deviceIds: DEVICE_ID,
+                    deviceTypeIds: ['*'],
                     networkIds: networkId
                 }
             ];
@@ -680,6 +681,7 @@ describe('REST API Device Command', function () {
                     user: user,
                     actions: 'CreateDeviceCommand',
                     networkIds: networkId,
+                    deviceTypeIds: ['*'],
                     deviceIds: DEVICE_ID
                 }
             ];
@@ -787,6 +789,7 @@ describe('REST API Device Command', function () {
                     user: user,
                     actions: 'UpdateDeviceCommand',
                     networkIds: networkId,
+                    deviceTypeIds: ['*'],
                     deviceIds: DEVICE_ID
                 }
             ];

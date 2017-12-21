@@ -6,13 +6,19 @@ var req = require('./common/request');
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
-describe('WebSocket API Network', function () {
+describe('WebSocket API Device Type', function () {
     this.timeout(90000);
     var url = null;
 
-    var NETWORK1 = utils.getName('ws-network-1');
-    var NETWORK2 = utils.getName('ws-network-2');
+    var DEVICE_TYPE1 = utils.getName('ws-device-type-1');
+    var DEVICE_TYPE2 = utils.getName('ws-device-type-2');
     var token = null;
+
+    var deviceTypeDefault = {
+        name: 'Default Device Type',
+        id: 1,
+        description: 'Default DeviceHive device type'
+    };
 
     before(function (done) {
         req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
@@ -24,25 +30,25 @@ describe('WebSocket API Network', function () {
         });
     });
 
-    describe('#network/get', function () {
+    describe('#devicetype/get', function () {
 
         var conn = null;
         var adminConn = null;
-        var networkId = null;
+        var deviceTypeId = null;
 
         before(function (done) {
-            function createNetwork(callback) {
+            function createDeviceType(callback) {
                 var params = {
                     jwt: utils.jwt.admin,
-                    data: { name: NETWORK1 }
+                    data: { name: DEVICE_TYPE1 }
                 };
 
-                utils.create(path.NETWORK, params, function (err, result) {
+                utils.create(path.DEVICE_TYPE, params, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
 
-                    networkId = result.id;
+                    deviceTypeId = result.id;
                     callback();
                 });
             }
@@ -60,10 +66,10 @@ describe('WebSocket API Network', function () {
             function createToken(callback) {
                 var args = {
                     actions: [
-                        'GetNetwork',
-                        'ManageNetwork'
+                        'GetDeviceType',
+                        'ManageDeviceType'
                     ],
-                    networkIds: networkId
+                    deviceTypeIds: deviceTypeId
                 };
                 utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
@@ -93,7 +99,7 @@ describe('WebSocket API Network', function () {
             }
 
             async.series([
-                createNetwork,
+                createDeviceType,
                 createToken,
                 createConn,
                 createAdminConn,
@@ -102,14 +108,14 @@ describe('WebSocket API Network', function () {
             ], done);
         });
 
-        it('should not get information about network without id', function (done) {
+        it('should not get information about device type without id', function (done) {
             var requestId = getRequestId();
 
             conn.params({
-                action: 'network/get',
+                action: 'devicetype/get',
                 requestId: requestId
             })
-                .expectError(400, 'Network id is wrong or empty')
+                .expectError(400, 'Device type id is wrong or empty')
                 .send(done);
         });
 
@@ -117,35 +123,35 @@ describe('WebSocket API Network', function () {
             var requestId = getRequestId();
 
             conn.params({
-                action: 'network/get',
+                action: 'devicetype/get',
                 requestId: requestId,
                 id: null
             })
-                .expectError(400, 'Network id is wrong or empty')
+                .expectError(400, 'Device type id is wrong or empty')
                 .send(done);
         });
 
-        it('should return 403 when no network exists with client token', function (done) {
+        it('should return 404 when no device type exists with client token', function (done) {
             var requestId = getRequestId();
 
             conn.params({
-                action: 'network/get',
-                networkId: utils.NON_EXISTING_ID,
+                action: 'devicetype/get',
+                deviceTypeId: utils.NON_EXISTING_ID,
                 requestId: requestId
             })
-                .expectError(403, 'Access is denied')
+                .expectError(404, 'Device type with id = ' + utils.NON_EXISTING_ID + ' not found')
                 .send(done);
         });
 
-        it('should return 404 when no network exists with admin token', function (done) {
+        it('should return 404 when no device type exists with admin token', function (done) {
             var requestId = getRequestId();
 
             adminConn.params({
-                action: 'network/get',
-                networkId: utils.NON_EXISTING_ID,
+                action: 'devicetype/get',
+                deviceTypeId: utils.NON_EXISTING_ID,
                 requestId: requestId
             })
-                .expectError(404, 'Network with id = ' + utils.NON_EXISTING_ID + ' not found')
+                .expectError(404, 'Device type with id = ' + utils.NON_EXISTING_ID + ' not found')
                 .send(done);
         });
 
@@ -155,41 +161,41 @@ describe('WebSocket API Network', function () {
         });
     });
 
-    describe('#network/list', function () {
+    describe('#devicetype/list', function () {
 
         var conn = null;
-        var networkId1 = null;
-        var networkId2 = null;
+        var deviceTypeId1 = null;
+        var deviceTypeId2 = null;
 
         before(function (done) {
-            function createNetwork1(callback) {
+            function createDeviceType1(callback) {
                 var params = {
                     jwt: utils.jwt.admin,
-                    data: { name: NETWORK1 }
+                    data: { name: DEVICE_TYPE1 }
                 };
 
-                utils.create(path.NETWORK, params, function (err, result) {
+                utils.create(path.DEVICE_TYPE, params, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
 
-                    networkId1 = result.id;
+                    deviceTypeId1 = result.id;
                     callback();
                 });
             }
 
-            function createNetwork2(callback) {
+            function createDeviceType2(callback) {
                 var params = {
                     jwt: utils.jwt.admin,
-                    data: { name: NETWORK2 }
+                    data: { name: DEVICE_TYPE2 }
                 };
 
-                utils.create(path.NETWORK, params, function (err, result) {
+                utils.create(path.DEVICE_TYPE, params, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
 
-                    networkId2 = result.id;
+                    deviceTypeId2 = result.id;
                     callback();
                 });
             }
@@ -202,10 +208,10 @@ describe('WebSocket API Network', function () {
             function createToken(callback) {
                 var args = {
                     actions: [
-                        'GetNetwork',
-                        'ManageNetwork'
+                        'GetDeviceType',
+                        'ManageDeviceType'
                     ],
-                    networkIds: [networkId1, networkId2]
+                    deviceTypeIds: [deviceTypeId1, deviceTypeId2]
                 };
                 utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
@@ -226,91 +232,91 @@ describe('WebSocket API Network', function () {
             }
 
             async.series([
-                createNetwork1,
-                createNetwork2,
+                createDeviceType1,
+                createDeviceType2,
                 createToken,
                 createConn,
                 authenticateConn
             ], done);
         });
 
-        it('should get the first network only', function (done) {
+        it('should get the first device type only', function (done) {
             var requestId = getRequestId();
 
-            var expectedNetwork = {
-                name: NETWORK1,
-                id: networkId1,
+            var expectedDeviceType = {
+                name: DEVICE_TYPE1,
+                id: deviceTypeId1,
                 description: null
             };
 
             conn.params({
-                action: 'network/list',
+                action: 'devicetype/list',
                 requestId: requestId,
-                namePattern: '%ws-network-1%'
+                namePattern: '%ws-device-type-1%'
             })
                 .expect({
-                    action: 'network/list',
+                    action: 'devicetype/list',
                     requestId: requestId,
                     status: 'success',
-                    networks: [expectedNetwork]
+                    deviceTypes: [expectedDeviceType]
                 })
                 .send(done);
         });
 
-        it('should get networks in correct ASC order', function (done) {
+        it('should get device types in correct ASC order', function (done) {
             var requestId = getRequestId();
 
-            var expectedNetwork1 = {
-                name: NETWORK1,
-                id: networkId1,
+            var expectedDeviceType1 = {
+                name: DEVICE_TYPE1,
+                id: deviceTypeId1,
                 description: null
             };
-            var expectedNetwork2 = {
-                name: NETWORK2,
-                id: networkId2,
+            var expectedDeviceType2 = {
+                name: DEVICE_TYPE2,
+                id: deviceTypeId2,
                 description: null
             };
 
             conn.params({
-                action: 'network/list',
+                action: 'devicetype/list',
                 requestId: requestId,
                 sortField: 'name',
                 sortOrder: 'ASC'
             })
                 .expect({
-                    action: 'network/list',
+                    action: 'devicetype/list',
                     requestId: requestId,
                     status: 'success',
-                    networks: [expectedNetwork1, expectedNetwork2]
+                    deviceTypes: [deviceTypeDefault, expectedDeviceType1, expectedDeviceType2]
                 })
                 .send(done);
         });
 
-        it('should get networks in correct DESC order', function (done) {
+        it('should get device types in correct DESC order', function (done) {
             var requestId = getRequestId();
 
-            var expectedNetwork1 = {
-                name: NETWORK1,
-                id: networkId1,
+            var expectedDeviceType1 = {
+                name: DEVICE_TYPE1,
+                id: deviceTypeId1,
                 description: null
             };
-            var expectedNetwork2 = {
-                name: NETWORK2,
-                id: networkId2,
+            var expectedDeviceType2 = {
+                name: DEVICE_TYPE2,
+                id: deviceTypeId2,
                 description: null
             };
 
             conn.params({
-                action: 'network/list',
+                action: 'devicetype/list',
                 requestId: requestId,
                 sortField: 'name',
                 sortOrder: 'DESC'
             })
                 .expect({
-                    action: 'network/list',
+                    action: 'devicetype/list',
                     requestId: requestId,
                     status: 'success',
-                    networks: [expectedNetwork2, expectedNetwork1]
+                    deviceTypes: [expectedDeviceType2, expectedDeviceType1, deviceTypeDefault]
                 })
                 .send(done);
         });
@@ -322,7 +328,7 @@ describe('WebSocket API Network', function () {
         });
     });
 
-    describe('#network/insert', function () {
+    describe('#devicetype/insert', function () {
 
         var conn = null;
 
@@ -335,8 +341,8 @@ describe('WebSocket API Network', function () {
             function createToken(callback) {
                 var args = {
                     actions: [
-                        'GetNetwork',
-                        'ManageNetwork'
+                        'GetDeviceType',
+                        'ManageDeviceType'
                     ]
                 };
                 utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
@@ -364,16 +370,16 @@ describe('WebSocket API Network', function () {
             ], done);
         });
 
-        it('should insert network', function (done) {
+        it('should insert device type', function (done) {
             var requestId = getRequestId();
 
             conn.params({
-                action: 'network/insert',
+                action: 'devicetype/insert',
                 requestId: requestId,
-                network: { name: NETWORK1 }
+                deviceType: { name: DEVICE_TYPE1 }
             })
                 .expect({
-                    action: 'network/insert',
+                    action: 'devicetype/insert',
                     requestId: requestId,
                     status: 'success'
                 })
@@ -386,7 +392,7 @@ describe('WebSocket API Network', function () {
         });
     });
 
-    describe('#network/update', function () {
+    describe('#devicetype/update', function () {
 
         var conn = null;
         var adminConn = null;
@@ -405,8 +411,8 @@ describe('WebSocket API Network', function () {
             function createToken(callback) {
                 var args = {
                     actions: [
-                        'GetNetwork',
-                        'ManageNetwork'
+                        'GetDeviceType',
+                        'ManageDeviceType'
                     ]
                 };
                 utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
@@ -445,83 +451,83 @@ describe('WebSocket API Network', function () {
             ], done);
         });
 
-        it('should return error for invalid network id with client token', function(done) {
+        it('should return error for invalid device type id with client token', function(done) {
             var requestId = getRequestId();
 
             conn.params({
-                action: 'network/update',
+                action: 'devicetype/delete',
                 requestId: requestId,
-                networkId: utils.NON_EXISTING_ID,
-                network: NETWORK1
+                deviceTypeId: utils.NON_EXISTING_ID,
+                deviceType: DEVICE_TYPE1
             })
-                .expectError(403, 'Access is denied')
+                .expectError(404, 'Device type with id = ' + utils.NON_EXISTING_ID + ' not found')
                 .send(done);
         });
 
-        it('should return error for invalid network id with admin token', function(done) {
+        it('should return error for invalid device type id with admin token', function(done) {
             var requestId = getRequestId();
-            var networkId = utils.NON_EXISTING_ID;
+            var deviceTypeId = utils.NON_EXISTING_ID;
 
             adminConn.params({
-                action: 'network/delete',
+                action: 'devicetype/delete',
                 requestId: requestId,
-                networkId: networkId,
-                network: NETWORK1
+                deviceTypeId: deviceTypeId,
+                deviceType: DEVICE_TYPE1
             })
-                .expectError(404, 'Network with id = ' + networkId + ' not found')
+                .expectError(404, 'Device type with id = ' + deviceTypeId + ' not found')
                 .send(done);
         });
 
-        it('should update network', function (done) {
+        it('should update device type', function (done) {
             var requestId = getRequestId();
 
             adminConn.params({
-                action: 'network/insert',
+                action: 'devicetype/insert',
                 requestId: requestId,
-                network: { name: NETWORK1 }
+                deviceType: { name: DEVICE_TYPE1 }
             })
                 .expect({
-                    action: 'network/insert',
+                    action: 'devicetype/insert',
                     requestId: requestId,
                     status: 'success'
                 })
-                .send(networkUpdate);
+                .send(deviceTypeUpdate);
 
-            function networkUpdate(err, result) {
+            function deviceTypeUpdate(err, result) {
                 if (err) {
                     return done(err);
                 }
 
                 var requestId = getRequestId();
-                this.networkId = result.network.id;
-                var NETWORK1_UPDATE = utils.getName('ws-network-1');
+                this.deviceTypeId = result.deviceType.id;
+                var DEVICE_TYPE1_UPDATE = utils.getName('ws-device-type-1');
                 adminConn.params({
-                    action: 'network/update',
+                    action: 'devicetype/update',
                     requestId: requestId,
-                    networkId: this.networkId,
-                    network: { name: NETWORK1_UPDATE }
+                    deviceTypeId: this.deviceTypeId,
+                    deviceType: { name: DEVICE_TYPE1_UPDATE }
                 })
                     .expect({
-                        action: 'network/update',
+                        action: 'devicetype/update',
                         status: 'success',
                         requestId: requestId
                     })
-                    .send(checkNetworkUpdate);
+                    .send(checkDeviceTypeUpdate);
             };
 
-            function checkNetworkUpdate(err, result) {
+            function checkDeviceTypeUpdate(err, result) {
                 if (err) {
                     return done(err);
                 }
 
                 var requestId = getRequestId();
                 adminConn.params({
-                    action: 'network/get',
+                    action: 'devicetype/get',
                     requestId: requestId,
-                    networkId: this.networkId
+                    deviceTypeId: this.deviceTypeId
                 })
                     .expect({
-                        action: 'network/get',
+                        action: 'devicetype/get',
                         status: 'success',
                         requestId: requestId
                     })
@@ -536,25 +542,25 @@ describe('WebSocket API Network', function () {
         });
     });
 
-    describe('#network/delete', function () {
+    describe('#devicetype/delete', function () {
 
         var conn = null;
         var adminConn = null;
-        var networkId = null;
+        var deviceTypeId = null;
 
         before(function (done) {
-            function createNetwork(callback) {
+            function createDeviceType(callback) {
                 var params = {
                     jwt: utils.jwt.admin,
-                    data: { name: NETWORK1 }
+                    data: { name: DEVICE_TYPE1 }
                 };
 
-                utils.create(path.NETWORK, params, function (err, result) {
+                utils.create(path.DEVICE_TYPE, params, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
 
-                    networkId = result.id;
+                    deviceTypeId = result.id;
                     callback();
                 });
             }
@@ -572,10 +578,10 @@ describe('WebSocket API Network', function () {
             function createToken(callback) {
                 var args = {
                     actions: [
-                        'GetNetwork',
-                        'ManageNetwork'
+                        'GetDeviceType',
+                        'ManageDeviceType'
                     ],
-                    networkIds: networkId
+                    deviceTypeIds: deviceTypeId
                 };
                 utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                     if (err) {
@@ -605,7 +611,7 @@ describe('WebSocket API Network', function () {
             }
 
             async.series([
-                createNetwork,
+                createDeviceType,
                 createToken,
                 createConn,
                 createAdminConn,
@@ -614,58 +620,58 @@ describe('WebSocket API Network', function () {
             ], done);
         });
 
-        it('should return error for invalid network id with client token', function(done) {
+        it('should return error for invalid device type id with client token', function(done) {
             var requestId = getRequestId();
 
             conn.params({
-                action: 'network/delete',
+                action: 'devicetype/delete',
                 requestId: requestId,
-                networkId: utils.NON_EXISTING_ID
+                deviceTypeId: utils.NON_EXISTING_ID
             })
-                .expectError(403, 'Access is denied')
+                .expectError(404, 'Device type with id = ' + utils.NON_EXISTING_ID + ' not found')
                 .send(done);
         });
 
-        it('should return error for invalid network id with admin token', function(done) {
+        it('should return error for invalid device type id with admin token', function(done) {
             var requestId = getRequestId();
-            var networkId = utils.NON_EXISTING_ID; 
+            var deviceTypeId = utils.NON_EXISTING_ID;
 
             adminConn.params({
-                action: 'network/delete',
+                action: 'devicetype/delete',
                 requestId: requestId,
-                networkId: networkId
+                deviceTypeId: deviceTypeId
             })
-                .expectError(404, 'Network with id = ' + networkId + ' not found')
+                .expectError(404, 'Device type with id = ' + deviceTypeId + ' not found')
                 .send(done);
         });
 
-        it('should delete network', function (done) {
+        it('should delete device type', function (done) {
 
-            function deleteNetwork(callback) {
+            function deleteDeviceType(callback) {
                 var requestId = getRequestId();
                 conn.params({
-                    action: 'network/delete',
+                    action: 'devicetype/delete',
                     requestId: requestId,
-                    networkId: networkId
+                    deviceTypeId: deviceTypeId
                 })
                     .expect({
-                        action: 'network/delete',
+                        action: 'devicetype/delete',
                         requestId: requestId,
                         status: 'success'
                     })
                     .send(callback);
             }
 
-            function checkNetwork(callback) {
-                req.get(path.NETWORK)
-                    .params({jwt: utils.jwt.admin, id: networkId})
-                    .expectError(404, 'Network with id = ' + networkId + ' not found')
+            function checkDeviceType(callback) {
+                req.get(path.DEVICE_TYPE)
+                    .params({jwt: utils.jwt.admin, id: deviceTypeId})
+                    .expectError(404, 'Device type with id = ' + deviceTypeId + ' not found')
                     .send(callback);
             }
 
             async.series([
-                deleteNetwork,
-                checkNetwork
+                deleteDeviceType,
+                checkDeviceType
             ], done);
         });
 
