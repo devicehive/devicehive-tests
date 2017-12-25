@@ -279,6 +279,7 @@ describe('WebSocket API Device Type', function () {
 
             conn.params({
                 action: 'devicetype/list',
+                namePattern: '%ws-device-type%',
                 requestId: requestId,
                 sortField: 'name',
                 sortOrder: 'ASC'
@@ -287,7 +288,7 @@ describe('WebSocket API Device Type', function () {
                     action: 'devicetype/list',
                     requestId: requestId,
                     status: 'success',
-                    deviceTypes: [deviceTypeDefault, expectedDeviceType1, expectedDeviceType2]
+                    deviceTypes: [expectedDeviceType1, expectedDeviceType2]
                 })
                 .send(done);
         });
@@ -308,6 +309,7 @@ describe('WebSocket API Device Type', function () {
 
             conn.params({
                 action: 'devicetype/list',
+                namePattern: '%ws-device-type%',
                 requestId: requestId,
                 sortField: 'name',
                 sortOrder: 'DESC'
@@ -316,7 +318,7 @@ describe('WebSocket API Device Type', function () {
                     action: 'devicetype/list',
                     requestId: requestId,
                     status: 'success',
-                    deviceTypes: [expectedDeviceType2, expectedDeviceType1, deviceTypeDefault]
+                    deviceTypes: [expectedDeviceType2, expectedDeviceType1]
                 })
                 .send(done);
         });
