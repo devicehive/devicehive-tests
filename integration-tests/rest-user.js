@@ -9,8 +9,50 @@ var assert = require('assert');
 describe('REST API User', function () {
     this.timeout(90000);
 
-    before(function () {
+    var DEVICE_TYPE_1 = utils.getName('deviceType-1');
+    var DEVICE_TYPE_2 = utils.getName('deviceType-2');
+    var deviceTypeId1 = null;
+    var deviceTypeId2 = null;
+
+    before(function (done) {
         path.current = path.USER;
+
+        function createDeviceType1(callback) {
+            var params = {
+                jwt: utils.jwt.admin,
+                data: { name: DEVICE_TYPE_1 }
+            };
+
+            utils.create(path.DEVICE_TYPE, params, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                deviceTypeId1 = result.id;
+                callback();
+            });
+        }
+
+        function createDeviceType2(callback) {
+            var params = {
+                jwt: utils.jwt.admin,
+                data: { name: DEVICE_TYPE_2 }
+            };
+
+            utils.create(path.DEVICE_TYPE, params, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                deviceTypeId2 = result.id;
+                callback();
+            });
+        }
+
+        async.series([
+            createDeviceType1,
+            createDeviceType2
+        ], done);
     });
 
     describe('#Get All', function () {
@@ -893,6 +935,85 @@ describe('REST API User', function () {
                     assert(result.lastLogin !== null);
                     done();
                 }))}, 400);
+        });
+    });
+
+    describe('#Get Device Types for specific user', function () {
+
+        it('should return an empty list of DeviceTypes when allDeviceTypesAvailable = false', function (done) {
+            var user = {
+                login: utils.getName('usr-1'),
+                password: utils.NEW_USER_PASSWORD
+            };
+            var params = {jwt: utils.jwt.admin};
+
+            utils.createUser(user.login, user.password, 0, 0,
+                function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    user.id = result.id;
+                });
+
+            setTimeout(function() {
+                (utils.get(path.combine(path.USER, user.id, path.DEVICE_TYPE), params, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    assert(result.length === 0);
+                    done();
+                }))}, 200);
+        });
+
+        it('should return an empty list of DeviceTypes when allDeviceTypesAvailable = false', function (done) {
+            var user = {
+                login: utils.getName('usr-1'),
+                password: utils.NEW_USER_PASSWORD
+            };
+            var params = {jwt: utils.jwt.admin};
+
+            utils.createAllDTAvailableUser(user.login, user.password, 0, 0,
+                function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    user.id = result.id;
+                });
+
+            setTimeout(function() {
+                (utils.get(path.combine(path.USER, user.id, path.DEVICE_TYPE), params, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    assert(result.length > 2);
+                    done();
+                }))}, 200);
+        });
+
+        it('should return only assigned DeviceType when allDeviceTypesAvailable = false', function (done) {
+            var user = {
+                login: utils.getName('usr-1'),
+                password: utils.NEW_USER_PASSWORD
+            };
+            var params = {jwt: utils.jwt.admin};
+
+            utils.createUser4(1, 1,
+                function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    user.id = result.user.id;
+                });
+
+            setTimeout(function() {
+                (utils.get(path.combine(path.USER, user.id, path.DEVICE_TYPE), params, function (err, result) {
+                    if (err) {
+                        return done(err);
+                    }
+                    console.log(result);
+                    assert(result.length === 1);
+                    done();
+                }))}, 200);
         });
     });
 
