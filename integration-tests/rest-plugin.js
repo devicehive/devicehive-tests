@@ -20,7 +20,6 @@ describe('REST API Plugin', function () {
     var jwtWithoutPermissions = null;
     var commandId = null;
     var networkId = null;
-    var timestamp = new Date().getTime();
 
     before(function (done) {
         if (!utils.pluginUrl) {
@@ -68,7 +67,7 @@ describe('REST API Plugin', function () {
         }
 
         function createJWTWithoutPermissions(callback) {
-            utils.jwt.create(user.id, ['CreateDeviceCommand', 'GetDeviceCommand', 'UpdateDeviceCommand'], [networkId], [DEVICE_ID], function (err, result) {
+            utils.jwt.create(user.id, ['CreateDeviceCommand', 'GetDeviceCommand', 'UpdateDeviceCommand'], [networkId], null, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -111,7 +110,7 @@ describe('REST API Plugin', function () {
                 jwt: jwtWithoutPermissions,
                 data: { name: PLUGIN }
             };
-            params.query = path.query('deviceIds', DEVICE_ID, 'pollType', 'Command', 'timestamp', timestamp);
+            params.query = path.query('deviceIds', DEVICE_ID, 'pollType', 'Command');
             
             utils.createPlugin(path.current, params, function (err, result) {
                 assert.strictEqual(err.error, 'Access is denied');
@@ -138,10 +137,9 @@ describe('REST API Plugin', function () {
                 }
             };
             params.query = path.query(
-                'deviceIds', DEVICE_ID,
+                'deviceId', DEVICE_ID,
                 'networkIds', networkId,
                 'names', '',
-                'timestamp', timestamp,
                 'returnCommands', true,
                 'returnUpdatedCommands', true,
                 'returnNotifications', true
