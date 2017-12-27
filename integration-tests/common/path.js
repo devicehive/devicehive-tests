@@ -33,6 +33,7 @@ var path = {
         }
     },
     POLL: '/poll',
+    COUNT: '/count',
 
     get: function (path, id, query) {
 

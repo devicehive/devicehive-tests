@@ -16,6 +16,7 @@ describe('REST API Device Unit', function () {
     var DEVICE = utils.getName('device');
     var DEVICE_ID = utils.getName('id-111');
     var NETWORK_FOR_ADMIN = utils.getName('admin-with-network');
+    var DEVICE_COUNT_PATH = path.combine(path.DEVICE, path.COUNT);
 
     var adminNetworkId = null;
     var networkId = null;
@@ -239,6 +240,16 @@ describe('REST API Device Unit', function () {
 
         });
 
+        it('should count devices by name', function (done) {
+            var params = {jwt: utils.jwt.admin};
+            params.query = path.query('name', DEVICE);
+            utils.get(DEVICE_COUNT_PATH, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.count > 0, true);
+                done();
+            });
+        });
+
         it('should get device by name', function (done) {
             var params = {jwt: utils.jwt.admin};
             params.query = path.query('name', DEVICE);
@@ -265,6 +276,14 @@ describe('REST API Device Unit', function () {
 
                 done();
             })
+        });
+
+        it('should count all devices', function (done) {
+            utils.get(DEVICE_COUNT_PATH, {jwt: jwt3},function (err, result){
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.count > 0, true);
+                done();
+            });
         });
 
         it('should get all devices', function (done) {

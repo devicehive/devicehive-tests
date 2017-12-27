@@ -13,6 +13,7 @@ describe('REST API User', function () {
     var DEVICE_TYPE_2 = utils.getName('deviceType-2');
     var deviceTypeId1 = null;
     var deviceTypeId2 = null;
+    var USER_COUNT_PATH = path.combine(path.USER, path.COUNT);
 
     before(function (done) {
         path.current = path.USER;
@@ -69,6 +70,17 @@ describe('REST API User', function () {
             })
         });
 
+        it('should count all users when using admin credentials', function (done) {
+            req.get(USER_COUNT_PATH)
+                .params({
+                    jwt: utils.jwt.admin
+                })
+                .expectTrue(function (result) {
+                    return result.count > 0;
+                })
+                .send(done);
+        });
+
         it('should return all users when using admin credentials', function (done) {
             req.get(path.current)
                 .params({
@@ -82,6 +94,18 @@ describe('REST API User', function () {
                     return result.some(function (item) {
                         return item.id === user.id && item.login === user.login;
                     });
+                })
+                .send(done);
+        });
+
+        it('should count all users by login', function (done) {
+            req.get(USER_COUNT_PATH)
+                .params({
+                    jwt: utils.jwt.admin
+                })
+                .query('login', user.login)
+                .expectTrue(function (result) {
+                    return result.count > 0;
                 })
                 .send(done);
         });

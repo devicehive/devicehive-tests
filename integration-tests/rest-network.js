@@ -1,3 +1,4 @@
+var assert = require('assert');
 var async = require('async');
 var format = require('util').format;
 var utils = require('./common/utils');
@@ -14,6 +15,7 @@ describe('REST API Network', function () {
     var networkId2 = null;
     var user = null;
     var nonNetworkUser = null;
+    var NETWORK_COUNT_PATH = path.combine(path.NETWORK, path.COUNT);
 
     before(function (done) {
         path.current = path.NETWORK;
@@ -147,12 +149,31 @@ describe('REST API Network', function () {
                 .send(done);
         });
 
+        it('should count networks by name for admin jwt', function (done) {
+            var params = {jwt: jwt1};
+            params.query = path.query('name', NETWORK_1);
+            utils.get(NETWORK_COUNT_PATH, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.count > 0, true);
+                done();
+            });
+        });
+
         it('should get network by name for admin jwt', function (done) {
             req.get(path.current)
                 .params({jwt: utils.jwt.admin})
                 .query('name', NETWORK_1)
                 .expect([{id: networkId1, name: NETWORK_1}])
                 .send(done);
+        });
+
+        it('should count all networks', function (done) {
+            var params = {jwt: jwt1};
+            utils.get(NETWORK_COUNT_PATH, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.count > 0, true);
+                done();
+            });
         });
 
         it('should get all networks', function (done) {
