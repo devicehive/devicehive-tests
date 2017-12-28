@@ -282,9 +282,6 @@ describe('WebSocket API Device', function () {
         it('should count devices based on the name pattern', function (done) {
             var requestId = getRequestId();
 
-            var expectedDevice = utils.core.clone(device);
-            delete expectedDevice.key;
-
             conn.params({
                 action: 'device/count',
                 requestId: requestId,
@@ -323,11 +320,6 @@ describe('WebSocket API Device', function () {
 
         it('should get device count', function (done) {
             var requestId = getRequestId();
-
-            var expectedDevice = utils.core.clone(device);
-            var expectedDevice2 = utils.core.clone(device2);
-            delete expectedDevice.key;
-            delete expectedDevice2.key;
 
             conn.params({
                 action: 'device/count',
