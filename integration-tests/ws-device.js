@@ -279,6 +279,28 @@ describe('WebSocket API Device', function () {
             ], done);
         });
 
+        it('should count devices based on the name pattern', function (done) {
+            var requestId = getRequestId();
+
+            var expectedDevice = utils.core.clone(device);
+            delete expectedDevice.key;
+
+            conn.params({
+                action: 'device/count',
+                requestId: requestId,
+                namePattern: '%ws-device-1%'
+            })
+                .expect({
+                    action: 'device/count',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .assert(function (result) {
+                    assert.strictEqual(result.count, 1);
+                })
+                .send(done);
+        });
+
         it('should get the first device only', function (done) {
             var requestId = getRequestId();
 
@@ -295,6 +317,29 @@ describe('WebSocket API Device', function () {
                     requestId: requestId,
                     status: 'success',
                     devices: [expectedDevice]
+                })
+                .send(done);
+        });
+
+        it('should get device count', function (done) {
+            var requestId = getRequestId();
+
+            var expectedDevice = utils.core.clone(device);
+            var expectedDevice2 = utils.core.clone(device2);
+            delete expectedDevice.key;
+            delete expectedDevice2.key;
+
+            conn.params({
+                action: 'device/count',
+                requestId: requestId
+            })
+                .expect({
+                    action: 'device/count',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .assert(function (result) {
+                    assert.strictEqual(result.count > 0, true);
                 })
                 .send(done);
         });

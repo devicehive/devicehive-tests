@@ -105,7 +105,7 @@ describe('REST API User', function () {
                 })
                 .query('login', user.login)
                 .expectTrue(function (result) {
-                    return result.count > 0;
+                    return result.count === 1;
                 })
                 .send(done);
         });

@@ -154,7 +154,7 @@ describe('REST API Device Type', function () {
             params.query = path.query('name', DEVICE_TYPE_1);
             utils.get(DEVICETYPE_COUNT_PATH, params, function (err, result){
                 assert.strictEqual(!(!err), false, 'No error');
-                assert.strictEqual(result.count > 0, true);
+                assert.strictEqual(result.count, 1);
                 done();
             });
         });

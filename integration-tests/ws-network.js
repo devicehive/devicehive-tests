@@ -234,6 +234,25 @@ describe('WebSocket API Network', function () {
             ], done);
         });
 
+        it('should count networks based on the name pattern', function (done) {
+            var requestId = getRequestId();
+
+            conn.params({
+                action: 'network/count',
+                requestId: requestId,
+                namePattern: '%ws-network-1%'
+            })
+                .expect({
+                    action: 'network/count',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .assert(function (result) {
+                    assert.strictEqual(result.count, 1);
+                })
+                .send(done);
+        });
+
         it('should get the first network only', function (done) {
             var requestId = getRequestId();
 
@@ -253,6 +272,24 @@ describe('WebSocket API Network', function () {
                     requestId: requestId,
                     status: 'success',
                     networks: [expectedNetwork]
+                })
+                .send(done);
+        });
+
+        it('should get network count', function (done) {
+            var requestId = getRequestId();
+
+            conn.params({
+                action: 'network/count',
+                requestId: requestId
+            })
+                .expect({
+                    action: 'network/count',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .assert(function (result) {
+                    assert.strictEqual(result.count > 0, true);
                 })
                 .send(done);
         });

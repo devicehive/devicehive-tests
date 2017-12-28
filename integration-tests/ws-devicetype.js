@@ -234,6 +234,25 @@ describe('WebSocket API Device Type', function () {
             ], done);
         });
 
+        it('should count device types based on the name pattern', function (done) {
+            var requestId = getRequestId();
+
+            conn.params({
+                action: 'devicetype/count',
+                requestId: requestId,
+                namePattern: '%ws-device-type-1%'
+            })
+                .expect({
+                    action: 'devicetype/count',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .assert(function (result) {
+                    assert.strictEqual(result.count, 1);
+                })
+                .send(done);
+        });
+
         it('should get the first device type only', function (done) {
             var requestId = getRequestId();
 
@@ -253,6 +272,27 @@ describe('WebSocket API Device Type', function () {
                     requestId: requestId,
                     status: 'success',
                     deviceTypes: [expectedDeviceType]
+                })
+                .send(done);
+        });
+
+        it('should get device type count', function (done) {
+            var requestId = getRequestId();
+
+            conn.params({
+                action: 'devicetype/count',
+                namePattern: '%ws-device-type%',
+                requestId: requestId,
+                sortField: 'name',
+                sortOrder: 'ASC'
+            })
+                .expect({
+                    action: 'devicetype/count',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .assert(function (result) {
+                    assert.strictEqual(result.count > 0, true);
                 })
                 .send(done);
         });

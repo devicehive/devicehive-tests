@@ -149,6 +149,24 @@ describe('WebSocket API User', function () {
 
     describe('#Get All', function () {
 
+        it('should count all users', function (done) {
+            var requestId = getRequestId();
+
+            conn.params({
+                action: 'user/count',
+                requestId: requestId
+            })
+                .expect({
+                    action: 'user/count',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .assert(function (result) {
+                    assert.strictEqual(result.count > 0, true);
+                })
+                .send(done);
+        });
+
         it('should return all users', function (done) {
             var requestId = getRequestId();
 
@@ -169,6 +187,25 @@ describe('WebSocket API User', function () {
                     return result.users.some(function (item) {
                         return item.id === user.id && item.login === user.login;
                     });
+                })
+                .send(done);
+        });
+
+        it('should count users by login', function (done) {
+            var requestId = getRequestId();
+
+            conn.params({
+                action: 'user/count',
+                requestId: requestId,
+                login: user.login
+            })
+                .expect({
+                    action: 'user/count',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .assert(function (result) {
+                    assert.equal(result.count, 1);
                 })
                 .send(done);
         });

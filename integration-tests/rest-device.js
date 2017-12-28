@@ -245,7 +245,7 @@ describe('REST API Device Unit', function () {
             params.query = path.query('name', DEVICE);
             utils.get(DEVICE_COUNT_PATH, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
-                assert.strictEqual(result.count > 0, true);
+                assert.strictEqual(result.count, 1);
                 done();
             });
         });
