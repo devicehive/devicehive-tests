@@ -230,9 +230,9 @@ describe('REST API JSON Web Tokens', function () {
                     return done(err);
                 }
 
-                assert.strictEqual(result.accessToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImUiOjE1MTQ3NjQ4MDAwMDAsInQiOjEsInUiOjEsImEiOlswXSwibiI6WyIqIl0sImR0IjpbIioiXX19.AAbRCa3ZcewM_FBhmx3yn1XyPPhMJoFc3bUFrRzsMpY'),
+                assert.strictEqual(result.accessToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImEiOlswXSwiZSI6MTUxNDc2NDgwMDAwMCwidCI6MSwidSI6MSwibiI6WyIqIl0sImR0IjpbIioiXX19'),
                     true, 'Access token is not correct');
-                assert.strictEqual(result.refreshToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImUiOjE1MTQ3NjQ4MDAwMDAsInQiOjAsInUiOjEsImEiOlswXSwibiI6WyIqIl0sImR0IjpbIioiXX19.lNJI0LEK7j97Q5Essx4d2S5LQFo7XgtkrjR5i7qnBLc'),
+                assert.strictEqual(result.refreshToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImEiOlswXSwiZSI6MTUxNDc2NDgwMDAwMCwidCI6MCwidSI6MSwibiI6WyIqIl0sImR0IjpbIioiXX19'),
                     true, 'Refresh token is not correct');
 
                 done();
@@ -496,8 +496,8 @@ describe('REST API JSON Web Tokens', function () {
                 if (err) {
                     done(err);
                 }
-                utils.hasPropsWithValues(result, ['tpc', 'e', 't']);
-                assert.strictEqual(result.t, 1, "Wrong token type!")
+                utils.hasPropsWithValues(result, ['tpc', 'e', 't', 'a']);
+                assert.strictEqual(result.t, 1, "Wrong token type!");
 
                 done();
             });
