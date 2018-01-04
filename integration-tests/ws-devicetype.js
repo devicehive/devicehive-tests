@@ -3,6 +3,7 @@ var assert = require('assert');
 var utils = require('./common/utils');
 var path = require('./common/path');
 var req = require('./common/request');
+var status = require('./common/http').status;
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
@@ -13,6 +14,7 @@ describe('WebSocket API Device Type', function () {
     var DEVICE_TYPE1 = utils.getName('ws-device-type-1');
     var DEVICE_TYPE2 = utils.getName('ws-device-type-2');
     var token = null;
+    var noActionsToken = null;
 
     before(function (done) {
         req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
@@ -160,6 +162,7 @@ describe('WebSocket API Device Type', function () {
         var conn = null;
         var deviceTypeId1 = null;
         var deviceTypeId2 = null;
+        var noActionsConnection = null;
 
         before(function (done) {
             function createDeviceType1(callback) {
@@ -199,6 +202,11 @@ describe('WebSocket API Device Type', function () {
                 conn.connect(callback);
             }
 
+            function createNoActionsConnection(callback) {
+                noActionsConnection = new Websocket(url);
+                noActionsConnection.connect(callback);
+            }
+
             function createToken(callback) {
                 var args = {
                     actions: [
@@ -216,6 +224,23 @@ describe('WebSocket API Device Type', function () {
                 })
             }
 
+
+            function createNoActionsToken(callback) {
+                var args = {
+                    actions: void 0,
+                    networkIds: void 0,
+                    deviceTypeIds: [deviceTypeId1, deviceTypeId2]
+                };
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    noActionsToken = result.accessToken;
+                    callback()
+                })
+            }
+
             function authenticateConn(callback) {
                 conn.params({
                     action: 'authenticate',
@@ -225,12 +250,24 @@ describe('WebSocket API Device Type', function () {
                     .send(callback);
             }
 
+            function authenticateNoActionsConnection(callback) {
+                noActionsConnection.params({
+                    action: 'authenticate',
+                    requestId: getRequestId(),
+                    token: noActionsToken
+                })
+                    .send(callback);
+            }
+
             async.series([
                 createDeviceType1,
                 createDeviceType2,
                 createToken,
+                createNoActionsToken,
                 createConn,
-                authenticateConn
+                createNoActionsConnection,
+                authenticateConn,
+                authenticateNoActionsConnection
             ], done);
         });
 
@@ -282,9 +319,7 @@ describe('WebSocket API Device Type', function () {
             conn.params({
                 action: 'devicetype/count',
                 namePattern: '%ws-device-type%',
-                requestId: requestId,
-                sortField: 'name',
-                sortOrder: 'ASC'
+                requestId: requestId
             })
                 .expect({
                     action: 'devicetype/count',
@@ -295,6 +330,17 @@ describe('WebSocket API Device Type', function () {
                     assert.strictEqual(result.count > 0, true);
                 })
                 .send(done);
+        });
+
+        it('should fail with 403 on count all device types', function (done) {
+            var requestId = getRequestId();
+
+            noActionsConnection.params({
+                action: 'devicetype/count',
+                requestId: requestId
+            })
+                .expectError(status.FORBIDDEN)
+                .send(done)
         });
 
         it('should get device types in correct ASC order', function (done) {
@@ -360,6 +406,7 @@ describe('WebSocket API Device Type', function () {
 
         after(function (done) {
             conn.close();
+            noActionsConnection.close();
             utils.clearDataJWT(done);
         });
     });

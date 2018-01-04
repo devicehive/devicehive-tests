@@ -3,6 +3,7 @@ var assert = require('assert');
 var utils = require('./common/utils');
 var path = require('./common/path');
 var req = require('./common/request');
+var status = require('./common/http').status;
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
@@ -13,6 +14,7 @@ describe('WebSocket API Network', function () {
     var NETWORK1 = utils.getName('ws-network-1');
     var NETWORK2 = utils.getName('ws-network-2');
     var token = null;
+    var noActionsToken = null;
 
     before(function (done) {
         req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
@@ -160,6 +162,7 @@ describe('WebSocket API Network', function () {
         var conn = null;
         var networkId1 = null;
         var networkId2 = null;
+        var noActionsConnection = null;
 
         before(function (done) {
             function createNetwork1(callback) {
@@ -199,6 +202,11 @@ describe('WebSocket API Network', function () {
                 conn.connect(callback);
             }
 
+            function createNoActionsConnection(callback) {
+                noActionsConnection = new Websocket(url);
+                noActionsConnection.connect(callback);
+            }
+
             function createToken(callback) {
                 var args = {
                     actions: [
@@ -216,6 +224,21 @@ describe('WebSocket API Network', function () {
                 })
             }
 
+            function createNoActionsToken(callback) {
+                var args = {
+                    actions: void 0,
+                    networkIds: [networkId1, networkId2],
+                    deviceTypeIds: void 0
+                };
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    noActionsToken = result.accessToken;
+                    callback()
+                })
+            }
+
             function authenticateConn(callback) {
                 conn.params({
                     action: 'authenticate',
@@ -225,12 +248,24 @@ describe('WebSocket API Network', function () {
                     .send(callback);
             }
 
+            function authenticateNoActionsConnection(callback) {
+                noActionsConnection.params({
+                    action: 'authenticate',
+                    requestId: getRequestId(),
+                    token: noActionsToken
+                })
+                    .send(callback);
+            }
+
             async.series([
                 createNetwork1,
                 createNetwork2,
                 createToken,
+                createNoActionsToken,
                 createConn,
-                authenticateConn
+                createNoActionsConnection,
+                authenticateConn,
+                authenticateNoActionsConnection
             ], done);
         });
 
@@ -291,6 +326,17 @@ describe('WebSocket API Network', function () {
                 .assert(function (result) {
                     assert.strictEqual(result.count > 0, true);
                 })
+                .send(done);
+        });
+
+        it('should fail with 403 on count all networks', function (done) {
+            var requestId = getRequestId();
+
+            noActionsConnection.params({
+                action: 'network/count',
+                requestId: requestId
+            })
+                .expectError(status.FORBIDDEN)
                 .send(done);
         });
 
@@ -355,6 +401,7 @@ describe('WebSocket API Network', function () {
 
         after(function (done) {
             conn.close();
+            noActionsConnection.close();
             utils.clearDataJWT(done);
         });
     });

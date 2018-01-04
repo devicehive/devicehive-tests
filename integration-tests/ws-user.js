@@ -13,11 +13,13 @@ describe('WebSocket API User', function () {
     var url = null;
     var token = null;
     var adminToken = null;
+    var noActionsToken = null;
     var user = null;
     var adminUser = null;
     var conn = null;
     var adminConn = null;
     var noTokenConn = null;
+    var noActionsConnection = null;
     var deviceId = utils.getName('ws-device-id');
 
     var DEVICE_TYPE1 = utils.getName('ws-device-type-1');
@@ -71,6 +73,11 @@ describe('WebSocket API User', function () {
             noTokenConn.connect(callback);
         }
 
+        function createNoActionsConnection(callback) {
+            noActionsConnection = new Websocket(url);
+            noActionsConnection.connect(callback);
+        }
+
         function createToken(callback) {
             var args = {
                 actions: [
@@ -115,6 +122,21 @@ describe('WebSocket API User', function () {
             })
         }
 
+        function createNoActionsToken(callback) {
+            var args = {
+                actions: void 0,
+                networkIds: void 0,
+                deviceTypeIds: void 0
+            };
+            utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+                noActionsToken = result.accessToken;
+                callback()
+            })
+        }
+
         function authenticateConn(callback) {
             conn.params({
                 action: 'authenticate',
@@ -133,17 +155,29 @@ describe('WebSocket API User', function () {
                 .send(callback);
         }
 
+        function authenticateNoActionsConnection(callback) {
+            noActionsConnection.params({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: noActionsToken
+            })
+                .send(callback);
+        }
+
         async.series([
             createUrl,
             createUser,
             createAdmin,
             createToken,
             createAdminToken,
+            createNoActionsToken,
             createConn,
             createAdminConn,
             createNoTokenConn,
+            createNoActionsConnection,
             authenticateConn,
-            authenticateAdminConn
+            authenticateAdminConn,
+            authenticateNoActionsConnection
         ], done);
     });
 
@@ -165,6 +199,17 @@ describe('WebSocket API User', function () {
                     assert.strictEqual(result.count > 0, true);
                 })
                 .send(done);
+        });
+
+        it('should fail with 403 on count all users', function (done) {
+            var requestId = getRequestId();
+
+            noActionsConnection.params({
+                action: 'user/count',
+                requestId: requestId
+            })
+                .expectError(status.FORBIDDEN)
+                .send(done)
         });
 
         it('should return all users', function (done) {
@@ -1374,6 +1419,7 @@ describe('WebSocket API User', function () {
     after(function (done) {
         adminConn.close();
         noTokenConn.close();
+        noActionsConnection.close();
         utils.clearDataJWT(done);
     });
 });

@@ -3,6 +3,7 @@ var assert = require('assert');
 var utils = require('./common/utils');
 var path = require('./common/path');
 var req = require('./common/request');
+var status = require('./common/http').status;
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
@@ -15,6 +16,7 @@ describe('WebSocket API Device', function () {
     var NETWORK = utils.getName('ws-cmd-network');
     var NETWORK_KEY = utils.getName('ws-cmd-network-key');
     var token = null;
+    var noActionsToken = null;
 
     var device = {
         name: DEVICE,
@@ -201,6 +203,7 @@ describe('WebSocket API Device', function () {
     describe('#device/list', function () {
 
         var conn = null;
+        var noActionsConnection = null;
         var networkId = null;
 
         before(function (done) {
@@ -239,6 +242,11 @@ describe('WebSocket API Device', function () {
                 conn.connect(callback);
             }
 
+            function createNoActionsConnection(callback) {
+                noActionsConnection = new Websocket(url);
+                noActionsConnection.connect(callback);
+            }
+
             function createToken(callback) {
                 var args = {
                     actions: [
@@ -260,6 +268,21 @@ describe('WebSocket API Device', function () {
                 })
             }
 
+            function createNoActionsToken(callback) {
+                var args = {
+                    actions: void 0,
+                    networkIds: [networkId],
+                    deviceTypeIds: void 0
+                };
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    noActionsToken = result.accessToken;
+                    callback()
+                })
+            }
+
             function authenticateConn(callback) {
                 conn.params({
                     action: 'authenticate',
@@ -269,13 +292,25 @@ describe('WebSocket API Device', function () {
                     .send(callback);
             }
 
+            function authenticateNoActionsConnection(callback) {
+                noActionsConnection.params({
+                    action: 'authenticate',
+                    requestId: getRequestId(),
+                    token: noActionsToken
+                })
+                    .send(callback);
+            }
+
             async.series([
                 createNetwork,
                 createDevice,
                 createDevice2,
                 createToken,
+                createNoActionsToken,
                 createConn,
-                authenticateConn
+                createNoActionsConnection,
+                authenticateConn,
+                authenticateNoActionsConnection
             ], done);
         });
 
@@ -336,6 +371,17 @@ describe('WebSocket API Device', function () {
                 .send(done);
         });
 
+        it('should fail with 403 on count all devices', function (done) {
+            var requestId = getRequestId();
+
+            noActionsConnection.params({
+                action: 'device/count',
+                requestId: requestId
+            })
+                .expectError(status.FORBIDDEN)
+                .send(done)
+        });
+
         it('should get devices in correct order', function (done) {
             var requestId = getRequestId();
 
@@ -361,6 +407,7 @@ describe('WebSocket API Device', function () {
 
         after(function (done) {
             conn.close();
+            noActionsConnection.close();
             utils.clearDataJWT(done);
         });
     });

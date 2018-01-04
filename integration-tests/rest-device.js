@@ -188,6 +188,7 @@ describe('REST API Device Unit', function () {
         var jwt2 = null;
         var jwt3 = null;
         var jwt4 = null;
+        var jwt5 = null;
 
         before(function (done) {
             var params = [
@@ -216,6 +217,13 @@ describe('REST API Device Unit', function () {
                     networkIds: [],
                     deviceTypeIds: ['*'],
                     deviceIds: []
+                },
+                {
+                    user: user,
+                    actions: null,
+                    networkIds: [networkId],
+                    deviceTypeIds: ['*'],
+                    deviceIds: ["*"]
                 }
             ];
 
@@ -229,6 +237,7 @@ describe('REST API Device Unit', function () {
                     jwt2 = result[1];
                     jwt3 = result[2];
                     jwt4 = result[3];
+                    jwt5 = result[4];
 
                     callback();
                 })
@@ -282,6 +291,13 @@ describe('REST API Device Unit', function () {
             utils.get(DEVICE_COUNT_PATH, {jwt: jwt3},function (err, result){
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.count > 0, true);
+                done();
+            });
+        });
+
+        it('should fail with 403 on count all devices', function (done) {
+            utils.get(DEVICE_COUNT_PATH, {jwt: jwt5},function (err, result){
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
                 done();
             });
         });

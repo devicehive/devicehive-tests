@@ -88,6 +88,7 @@ describe('REST API Network', function () {
         var jwt2 = null;
         var jwt3 = null;
         var jwt4 = null;
+        var jwt5 = null;
 
         before(function (done) {
             var params = [
@@ -109,6 +110,11 @@ describe('REST API Network', function () {
                 {
                     user: user,
                     actions: 'GetNetwork'
+                },
+                {
+                    user: user,
+                    actions: null,
+                    networkIds: ['*']
                 }
             ];
 
@@ -121,6 +127,7 @@ describe('REST API Network', function () {
                     jwt2 = result[1];
                     jwt3 = result[2];
                     jwt4 = result[3];
+                    jwt5 = result[4];
                     callback();
                 });
             }
@@ -172,6 +179,14 @@ describe('REST API Network', function () {
             utils.get(NETWORK_COUNT_PATH, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.count > 0, true);
+                done();
+            });
+        });
+
+        it('should fail with 403 on count all networks', function (done) {
+            var params = {jwt: jwt5};
+            utils.get(NETWORK_COUNT_PATH, params, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
                 done();
             });
         });

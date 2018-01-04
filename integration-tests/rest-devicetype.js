@@ -88,6 +88,7 @@ describe('REST API Device Type', function () {
         var jwt2 = null;
         var jwt3 = null;
         var jwt4 = null;
+        var jwt5 = null;
 
         before(function (done) {
             var params = [
@@ -109,6 +110,11 @@ describe('REST API Device Type', function () {
                 {
                     user: user,
                     actions: 'GetDeviceType'
+                },
+                {
+                    user: user,
+                    actions: null,
+                    deviceTypeIds: ['*']
                 }
             ];
 
@@ -121,6 +127,7 @@ describe('REST API Device Type', function () {
                     jwt2 = result[1];
                     jwt3 = result[2];
                     jwt4 = result[3];
+                    jwt5 = result[4];
                     callback();
                 });
             }
@@ -171,6 +178,13 @@ describe('REST API Device Type', function () {
             utils.get(DEVICETYPE_COUNT_PATH, {jwt: jwt1}, function (err, result){
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.count > 0, true);
+                done();
+            });
+        });
+
+        it('should fail with 403 on count all device types', function (done) {
+            utils.get(DEVICETYPE_COUNT_PATH, {jwt: jwt5}, function (err, result){
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
                 done();
             });
         });
