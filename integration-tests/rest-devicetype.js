@@ -1,3 +1,4 @@
+var assert = require('assert');
 var async = require('async');
 var format = require('util').format;
 var utils = require('./common/utils');
@@ -14,6 +15,7 @@ describe('REST API Device Type', function () {
     var deviceTypeId2 = null;
     var user = null;
     var nonTypeUser = null;
+    var DEVICETYPE_COUNT_PATH = path.combine(path.DEVICE_TYPE, path.COUNT);
 
     before(function (done) {
         path.current = path.DEVICE_TYPE;
@@ -86,6 +88,7 @@ describe('REST API Device Type', function () {
         var jwt2 = null;
         var jwt3 = null;
         var jwt4 = null;
+        var jwt5 = null;
 
         before(function (done) {
             var params = [
@@ -107,6 +110,11 @@ describe('REST API Device Type', function () {
                 {
                     user: user,
                     actions: 'GetDeviceType'
+                },
+                {
+                    user: user,
+                    actions: null,
+                    deviceTypeIds: ['*']
                 }
             ];
 
@@ -119,6 +127,7 @@ describe('REST API Device Type', function () {
                     jwt2 = result[1];
                     jwt3 = result[2];
                     jwt4 = result[3];
+                    jwt5 = result[4];
                     callback();
                 });
             }
@@ -147,12 +156,37 @@ describe('REST API Device Type', function () {
                 .send(done);
         });
 
+        it('should count device types by name for admin jwt', function (done) {
+            var params = {jwt: utils.jwt.admin};
+            params.query = path.query('name', DEVICE_TYPE_1);
+            utils.get(DEVICETYPE_COUNT_PATH, params, function (err, result){
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.count, 1);
+                done();
+            });
+        });
+
         it('should get device type by name for admin jwt', function (done) {
             req.get(path.current)
                 .params({jwt: utils.jwt.admin})
                 .query('name', DEVICE_TYPE_1)
                 .expect([{id: deviceTypeId1, name: DEVICE_TYPE_1}])
                 .send(done);
+        });
+
+        it('should count all device types', function (done) {
+            utils.get(DEVICETYPE_COUNT_PATH, {jwt: jwt1}, function (err, result){
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.count > 0, true);
+                done();
+            });
+        });
+
+        it('should fail with 403 on count all device types', function (done) {
+            utils.get(DEVICETYPE_COUNT_PATH, {jwt: jwt5}, function (err, result){
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+                done();
+            });
         });
 
         it('should get all device types', function (done) {

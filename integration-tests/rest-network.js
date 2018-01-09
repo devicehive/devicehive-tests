@@ -1,3 +1,4 @@
+var assert = require('assert');
 var async = require('async');
 var format = require('util').format;
 var utils = require('./common/utils');
@@ -14,6 +15,7 @@ describe('REST API Network', function () {
     var networkId2 = null;
     var user = null;
     var nonNetworkUser = null;
+    var NETWORK_COUNT_PATH = path.combine(path.NETWORK, path.COUNT);
 
     before(function (done) {
         path.current = path.NETWORK;
@@ -86,6 +88,7 @@ describe('REST API Network', function () {
         var jwt2 = null;
         var jwt3 = null;
         var jwt4 = null;
+        var jwt5 = null;
 
         before(function (done) {
             var params = [
@@ -107,6 +110,11 @@ describe('REST API Network', function () {
                 {
                     user: user,
                     actions: 'GetNetwork'
+                },
+                {
+                    user: user,
+                    actions: null,
+                    networkIds: ['*']
                 }
             ];
 
@@ -119,6 +127,7 @@ describe('REST API Network', function () {
                     jwt2 = result[1];
                     jwt3 = result[2];
                     jwt4 = result[3];
+                    jwt5 = result[4];
                     callback();
                 });
             }
@@ -147,12 +156,39 @@ describe('REST API Network', function () {
                 .send(done);
         });
 
+        it('should count networks by name for admin jwt', function (done) {
+            var params = {jwt: jwt1};
+            params.query = path.query('name', NETWORK_1);
+            utils.get(NETWORK_COUNT_PATH, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.count, 1);
+                done();
+            });
+        });
+
         it('should get network by name for admin jwt', function (done) {
             req.get(path.current)
                 .params({jwt: utils.jwt.admin})
                 .query('name', NETWORK_1)
                 .expect([{id: networkId1, name: NETWORK_1}])
                 .send(done);
+        });
+
+        it('should count all networks', function (done) {
+            var params = {jwt: jwt1};
+            utils.get(NETWORK_COUNT_PATH, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.count > 0, true);
+                done();
+            });
+        });
+
+        it('should fail with 403 on count all networks', function (done) {
+            var params = {jwt: jwt5};
+            utils.get(NETWORK_COUNT_PATH, params, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+                done();
+            });
         });
 
         it('should get all networks', function (done) {
