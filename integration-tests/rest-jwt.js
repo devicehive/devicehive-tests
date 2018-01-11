@@ -564,7 +564,7 @@ describe('REST API JSON Web Tokens', function () {
         });
 
         it('should create plugin token with custom expiration date', function (done) {
-            var expiration = "2018-01-01T00:00:00.000";
+            var expiration = "2218-01-01T00:00:00.000";
             utils.createAuth(path.JWT + '/plugin/create', {jwt: utils.jwt.admin,
                 data: {
                     tpc: payload.tpc,
@@ -657,19 +657,6 @@ describe('REST API JSON Web Tokens', function () {
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, 'Invalid token type');
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
-                done();
-            });
-        });
-
-        it('should not refresh token with error plugin refresh token', function (done) {
-            utils.createAuth(path.JWT + '/refresh', {
-                data: {
-                    refreshToken: utils.jwt.plugin_refresh_invalid
-                }
-            }, function (err) {
-                assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'Plugin is not found');
                 assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                 done();
             });

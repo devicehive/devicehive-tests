@@ -45,7 +45,6 @@ var utils = {
         admin_refresh: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImR0IjpbIioiXSwiZSI6MTU1OTM0NzIwMDAwMCwidCI6MH19.FhgGiIFMl7PSiaHMXGFlJTMKUyjA_JXjU_Qk2pjGna4',
         admin_refresh_exp: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImR0IjpbIioiXSwiZSI6MTQ2NDc5MzI5MDU2NCwidCI6MH19.NdKR2zLvBeMuvGEDf4BC7a8YxqdvdKjnqIKdFn2KpJU',
         admin_refresh_invalid: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTE0NzY0ODAwMDAwLCJ0IjoxfX0.dkA2H1MGmJHdAT382tqt-xhcmwwlTimGwnabS5HdfJc',
-        plugin_refresh_invalid: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InRwYyI6Im5vX3RvcGljIiwiZSI6MTUxNDc2NDgwMDAwMCwidCI6MH19.xEza6bwewFj5pAwRa0tujlg-xKbnCPHfUQWEAnsb0vw',
         admin_refresh_invalid_signature: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTU5MzQ3MjAwMDAwLCJ0IjowfX0.lo2T-wbXe1J9DvVyxJtFkNlo76uH_kSVwVY-FxLZRkk',
         createMany: function (params, done) {
             var paramsCopy = params.slice(0);
