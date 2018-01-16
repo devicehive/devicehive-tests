@@ -394,7 +394,7 @@ var utils = {
             networkIds = [networkIds];
         }
 
-        this.createUser(user.login, user.password, role, 0, function (err, result) {
+        this.createAllDTAvailableUser(user.login, user.password, role, 0, function (err, result) {
             if (err) {
                 return callback(err);
             }

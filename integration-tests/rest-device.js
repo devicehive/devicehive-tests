@@ -945,13 +945,11 @@ describe('REST API Device Unit', function () {
                     user: user,
                     actions: 'GetDevice',
                     deviceTypeIds: ['*'],
-                    networkIds: [networkId],
-                    deviceIds: ['*'] // Allow all devices for user
+                    networkIds: [networkId]
                 },
                 {
                     user: user,
-                    actions: 'GetDevice',
-                    networkIds: [networkId]
+                    actions: 'GetDevice'
                 }
             ];
 
