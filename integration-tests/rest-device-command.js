@@ -433,7 +433,7 @@ describe('REST API Device Command', function () {
     describe('#Poll Many', function () {
         it('should return result with deviceId', function (done) {
             var params = {jwt: jwt};
-            params.query = path.query('names', COMMAND, 'deviceIds', DEVICE_ID);
+            params.query = path.query('names', COMMAND, 'deviceId', DEVICE_ID);
             utils.get(path.COMMAND.poll(), params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
@@ -458,7 +458,7 @@ describe('REST API Device Command', function () {
 
             function pollWithoutTimestamp(callback){
                 var params = {jwt: jwt};
-                params.query = path.query('names', COMMAND, 'deviceIds', DEVICE_ID, "waitTimeout", 5);
+                params.query = path.query('names', COMMAND, 'deviceId', DEVICE_ID, "waitTimeout", 5);
                 utils.get(path.COMMAND.poll(), params, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
                     assert.strictEqual(utils.core.isArrayOfLength(result, 1), true);
@@ -512,12 +512,12 @@ describe('REST API Device Command', function () {
 
         it('should return an error when polling for the non existent device with admin jwt', function (done) {
             var params = {jwt: utils.jwt.admin};
-            var deviceList = path.COMMAND.get(DEVICE_ID + "%2C" + utils.NON_EXISTING_ID);
+            var deviceList = path.COMMAND.get(utils.NON_EXISTING_ID);
             var $path = path.combine(deviceList, path.POLL);
             params.query = path.query('waitTimeout', 3);
             utils.get($path, params, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, format('Devices with such deviceIds wasn\'t found: {[%d]}',
+                assert.strictEqual(err.error, format('Device with such deviceId = %d not found',
                     utils.NON_EXISTING_ID));
                 assert.strictEqual(err.httpStatus, status.NOT_FOUND);
                 done();
