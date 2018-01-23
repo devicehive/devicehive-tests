@@ -269,6 +269,21 @@ var utils = {
             });
     },
 
+    getPlugin: function ($path, params, cb, responseStatus) {
+        if(!responseStatus){responseStatus = status.EXPECTED_READ}
+        new Http(getParam("pluginRestUrl"), path.get($path, params.id, params.query), this.loggingOff)
+            .get(params, function (err, result, xhr) {
+                if (err) {
+                    err.httpStatus = xhr.status;
+                    return cb(err);
+                }
+
+                assert.strictEqual(xhr.status, responseStatus);
+
+                cb(null, result);
+            });
+    },
+
     getBackend: function ($path, params, cb, responseStatus) {
         if(!responseStatus){responseStatus = status.EXPECTED_READ}
         new Http(getParam("backendRestUrl"), path.get($path, params.id, params.query), this.loggingOff)
