@@ -10,6 +10,7 @@ function Websocket(url) {
     this.socket = new WebSocket(url);
     this.context = null;
     this.waitTimeoutId = null;
+    this.waitResponseTimeoutId = null;
 }
 
 Websocket.prototype = {
@@ -91,14 +92,14 @@ Websocket.prototype = {
         console.log('-> %s', params);
         this.socket.send(params);
 
-        this.waitTimeoutId = setTimeout(function () {
+        this.waitResponseTimeoutId = setTimeout(function () {
             if (self.context.handled) {
                 return;
             }
 
             self.context.handled = true;
             done(new Error('send() timeout: hasn\'t got message \'' + self.context.params.action + '\''));
-        }, 60000);
+        }, 10000);
     },
 
     waitFor: function (action, timeout, callback) {
@@ -145,6 +146,11 @@ Websocket.prototype = {
                     clearTimeout(this.waitTimeoutId);
                     this.waitTimeoutId = null;
                 }
+
+                if (this.waitResponseTimeoutId) {
+                    clearTimeout(this.waitResponseTimeoutId);
+                    this.waitResponseTimeoutId = null;
+                }
                 done = this.context.waitFor.callback;
                 this.context.waitFor = null;
             } else {
@@ -161,6 +167,11 @@ Websocket.prototype = {
         if (this.waitTimeoutId) {
             clearTimeout(this.waitTimeoutId);
             this.waitTimeoutId = null;
+        }
+
+        if (this.waitResponseTimeoutId) {
+            clearTimeout(this.waitResponseTimeoutId);
+            this.waitResponseTimeoutId = null;
         }
 
         if (this.context.expectError) {
