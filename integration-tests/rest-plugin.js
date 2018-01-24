@@ -123,8 +123,6 @@ describe('REST API Plugin', function () {
         it('should register plugin with admin token', function (done) {
             var description = 'Plugin Description';
             var paramObject = JSON.stringify({"asd": "asd"});
-            var proxyEndpointLocal = 'localhost:3000';
-            var proxyEndpointDocker = 'kafkaproxy:3000';
             
             var params = {
                 jwt: utils.jwt.admin,
@@ -148,10 +146,8 @@ describe('REST API Plugin', function () {
 
             utils.createPlugin(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
-                
-                var isCorrectProxyEndpoint = result.proxyEndpoint === proxyEndpointLocal
-                    || result.proxyEndpoint === proxyEndpointDocker; 
-                assert.equal(isCorrectProxyEndpoint, true, 'Wrong proxy endpoint');
+
+                assert.equal(result.proxyEndpoint !==  null, true, 'Proxy endpoint is required');
                 assert.equal(result.accessToken !== null, true, 'Access token is not returned');
                 assert.equal(result.refreshToken !== null, true, 'Refresh token is not returned');
                 
