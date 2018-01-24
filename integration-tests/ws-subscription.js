@@ -6,7 +6,7 @@ var req = require('./common/request');
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
-describe.skip('WebSocket API Subscription', function () { // fixme: DEV-338
+describe('WebSocket API Subscription', function () {
     this.timeout(90000);
     var url = null;
 
@@ -24,7 +24,6 @@ describe.skip('WebSocket API Subscription', function () { // fixme: DEV-338
     var clientInvalidToken = null;
 
     before(function (done) {
-        this.skip(); // fixme: DEV-338
 
         function getWsUrl(callback) {
             req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
@@ -214,8 +213,8 @@ describe.skip('WebSocket API Subscription', function () { // fixme: DEV-338
                         requestId: requestId
                     })
                     .assert(function (result) {
-                        assert.deepEqual(result.subscriptions[subscriptionId].deviceIds, [deviceId]);
-                        assert.equal(result.subscriptions[subscriptionId].eventName, "COMMAND_EVENT");
+                        assert.equal(result.subscriptions[0].subscriptionId, subscriptionId);
+                        assert.equal(result.subscriptions[0].type, "command");
                     })
                     .send(cleanUp);
 
@@ -264,8 +263,8 @@ describe.skip('WebSocket API Subscription', function () { // fixme: DEV-338
                         requestId: requestId
                     })
                     .assert(function (result) {
-                        assert.deepEqual(result.subscriptions[subscriptionId].deviceIds, [deviceId]);
-                        assert.equal(result.subscriptions[subscriptionId].eventName, "NOTIFICATION_EVENT");
+                        assert.equal(result.subscriptions[0].subscriptionId, subscriptionId);
+                        assert.equal(result.subscriptions[0].type, "notification");
                     })
                     .send(cleanUp);
 
@@ -314,7 +313,7 @@ describe.skip('WebSocket API Subscription', function () { // fixme: DEV-338
                         requestId: requestId
                     })
                     .assert(function (result) {
-                        assert.deepEqual(result.subscriptions, {}, "Subscriptions list should be empty");
+                        assert.deepEqual(result.subscriptions, [], "Subscriptions list should be empty");
                     })
                     .send(cleanUp);
 
@@ -346,7 +345,6 @@ describe.skip('WebSocket API Subscription', function () { // fixme: DEV-338
     });
 
     after(function (done) {
-        this.skip(); // fixme: DEV-338
         device.close();
         clientToken.close();
         clientInvalidToken.close();
