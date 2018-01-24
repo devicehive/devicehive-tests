@@ -236,7 +236,7 @@ describe('REST API Plugin', function () {
             })
         });
 
-        it('should fail with 403 on list all plugins', function (done) {
+        it('should fail with 403 on list all plugins for token without permission', function (done) {
             utils.getPlugin(path.current, {jwt: jwtWithoutPermissions}, function (err, result) {
                 assert.strictEqual(err.httpStatus, status.FORBIDDEN);
 
@@ -244,13 +244,11 @@ describe('REST API Plugin', function () {
             })
         });
 
-        it('should get empty list of plugins for user requesting other users\' plugins', function (done) {
+        it('should fail with 403 on user requesting other users\' plugins', function (done) {
             var params = {jwt: jwtWithPermissions};
             params.query = path.query('userId', 1);
             utils.getPlugin(path.current, params, function (err, result) {
-                assert.strictEqual(!(!err), false, 'No error');
-                console.log(result);
-                assert.strictEqual(utils.core.isArrayOfLength(result, 0), true, 'Empty array');
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
 
                 done();
             })
