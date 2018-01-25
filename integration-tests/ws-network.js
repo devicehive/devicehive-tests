@@ -535,8 +535,7 @@ describe('WebSocket API Network', function () {
             conn.params({
                 action: 'network/update',
                 requestId: requestId,
-                networkId: utils.NON_EXISTING_ID,
-                network: NETWORK1
+                networkId: utils.NON_EXISTING_ID
             })
                 .expectError(403, 'Access is denied')
                 .send(done);
@@ -547,10 +546,9 @@ describe('WebSocket API Network', function () {
             var networkId = utils.NON_EXISTING_ID;
 
             adminConn.params({
-                action: 'network/delete',
+                action: 'network/update',
                 requestId: requestId,
-                networkId: networkId,
-                network: NETWORK1
+                networkId: networkId
             })
                 .expectError(404, 'Network with id = ' + networkId + ' not found')
                 .send(done);

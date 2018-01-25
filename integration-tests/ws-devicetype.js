@@ -538,10 +538,9 @@ describe('WebSocket API Device Type', function () {
             var requestId = getRequestId();
 
             conn.params({
-                action: 'devicetype/delete',
+                action: 'devicetype/update',
                 requestId: requestId,
-                deviceTypeId: utils.NON_EXISTING_ID,
-                deviceType: DEVICE_TYPE1
+                deviceTypeId: utils.NON_EXISTING_ID
             })
                 .expectError(404, 'Device type with id = ' + utils.NON_EXISTING_ID + ' not found')
                 .send(done);
@@ -552,10 +551,9 @@ describe('WebSocket API Device Type', function () {
             var deviceTypeId = utils.NON_EXISTING_ID;
 
             adminConn.params({
-                action: 'devicetype/delete',
+                action: 'devicetype/update',
                 requestId: requestId,
-                deviceTypeId: deviceTypeId,
-                deviceType: DEVICE_TYPE1
+                deviceTypeId: deviceTypeId
             })
                 .expectError(404, 'Device type with id = ' + deviceTypeId + ' not found')
                 .send(done);
