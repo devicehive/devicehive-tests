@@ -138,8 +138,6 @@ describe('REST API Plugin', function () {
         });
 
         it('should register plugin with admin token', function (done) {
-            var proxyEndpointLocal = 'localhost:3000';
-            var proxyEndpointDocker = 'kafkaproxy:3000';
 
             var params = {
                 jwt: utils.jwt.admin,
@@ -159,7 +157,7 @@ describe('REST API Plugin', function () {
                 'returnUpdatedCommands', true,
                 'returnNotifications', true
             );
-            
+
 
             utils.createPlugin(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
