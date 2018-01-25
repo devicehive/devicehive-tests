@@ -16,6 +16,7 @@ describe('REST API Plugin', function () {
     var PLUGIN1 = utils.getName('plugin');
     var DEVICE_ID = utils.getName('device-id');
     var COMMAND = utils.getName('cmd');
+    var PLUGIN_COUNT_PATH = path.combine(path.PLUGIN_REGISTER, path.COUNT);
     
     var user = null;
     var jwtWithoutPermissions = null;
@@ -213,6 +214,15 @@ describe('REST API Plugin', function () {
             ], done);
         });
 
+        it('should count all user plugins', function (done) {
+            utils.getPlugin(PLUGIN_COUNT_PATH, {jwt: jwtWithPermissions}, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.count, 1);
+
+                done();
+            })
+        });
+
         it('should get all user plugins', function (done) {
             utils.getPlugin(path.current, {jwt: jwtWithPermissions}, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
@@ -221,6 +231,15 @@ describe('REST API Plugin', function () {
                 utils.matches(result[0], {
                     name: PLUGIN1
                 });
+
+                done();
+            })
+        });
+
+        it('should count all plugins with admin token', function (done) {
+            utils.getPlugin(PLUGIN_COUNT_PATH, {jwt: utils.jwt.admin}, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.count > 0, true);
 
                 done();
             })
@@ -236,8 +255,26 @@ describe('REST API Plugin', function () {
             })
         });
 
+        it('should fail with 403 on count all plugins for token without permission', function (done) {
+            utils.getPlugin(PLUGIN_COUNT_PATH, {jwt: jwtWithoutPermissions}, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+
+                done();
+            })
+        });
+
         it('should fail with 403 on list all plugins for token without permission', function (done) {
             utils.getPlugin(path.current, {jwt: jwtWithoutPermissions}, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+
+                done();
+            })
+        });
+
+        it('should fail with 403 on user counting other users\' plugins', function (done) {
+            var params = {jwt: jwtWithPermissions};
+            params.query = path.query('userId', 1);
+            utils.getPlugin(PLUGIN_COUNT_PATH, params, function (err, result) {
                 assert.strictEqual(err.httpStatus, status.FORBIDDEN);
 
                 done();
