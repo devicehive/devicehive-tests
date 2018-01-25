@@ -13,13 +13,19 @@ describe('REST API Plugin', function () {
     var NETWORK = utils.getName('network');
     var DEVICE = utils.getName('device');
     var PLUGIN = utils.getName('plugin');
+    var PLUGIN1 = utils.getName('plugin');
     var DEVICE_ID = utils.getName('device-id');
     var COMMAND = utils.getName('cmd');
+    var PLUGIN_COUNT_PATH = path.combine(path.PLUGIN_REGISTER, path.COUNT);
     
     var user = null;
     var jwtWithoutPermissions = null;
+    var jwtWithPermissions = null;
     var commandId = null;
     var networkId = null;
+
+    var description = 'Plugin Description';
+    var paramObject = JSON.stringify({"asd": "asd"});
 
     before(function (done) {
         if (!utils.pluginUrl) {
@@ -76,6 +82,16 @@ describe('REST API Plugin', function () {
             })
         }
 
+        function createJWTWithPermissions(callback) {
+            utils.jwt.create(user.id, ['*'], [networkId], null, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+                jwtWithPermissions = result.accessToken;
+                callback()
+            })
+        }
+
         function createCommand(callback) {
             var params = helper.getParamsObj(COMMAND, utils.jwt.admin);
             utils.create(path.COMMAND.get(DEVICE_ID), params, function (err, result) {
@@ -94,6 +110,7 @@ describe('REST API Plugin', function () {
             createDevice,
             createUser,
             createJWTWithoutPermissions,
+            createJWTWithPermissions,
             createCommand
         ], done);
     });
@@ -121,11 +138,9 @@ describe('REST API Plugin', function () {
         });
 
         it('should register plugin with admin token', function (done) {
-            var description = 'Plugin Description';
-            var paramObject = JSON.stringify({"asd": "asd"});
             var proxyEndpointLocal = 'localhost:3000';
             var proxyEndpointDocker = 'kafkaproxy:3000';
-            
+
             var params = {
                 jwt: utils.jwt.admin,
                 data: {
@@ -148,10 +163,8 @@ describe('REST API Plugin', function () {
 
             utils.createPlugin(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
-                
-                var isCorrectProxyEndpoint = result.proxyEndpoint === proxyEndpointLocal
-                    || result.proxyEndpoint === proxyEndpointDocker; 
-                assert.equal(isCorrectProxyEndpoint, true, 'Wrong proxy endpoint');
+
+                assert.equal(result.proxyEndpoint !==  null, true, 'Proxy endpoint is required');
                 assert.equal(result.accessToken !== null, true, 'Access token is not returned');
                 assert.equal(result.refreshToken !== null, true, 'Refresh token is not returned');
                 
@@ -161,6 +174,123 @@ describe('REST API Plugin', function () {
 
     });
 
+    describe('#Plugin List', function () {
+        before(function (done) {
+            if (!utils.pluginUrl) {
+                this.skip();
+            }
+
+            function createPlugin(callback) {
+
+                var params = {
+                    jwt: jwtWithPermissions,
+                    data: {
+                        name: PLUGIN1,
+                        description: description,
+                        parameters: {
+                            jsonString: paramObject
+                        }
+                    }
+                };
+
+                params.query = path.query(
+                    'deviceId', DEVICE_ID,
+                    'networkIds', networkId,
+                    'names', '',
+                    'returnCommands', true,
+                    'returnUpdatedCommands', true,
+                    'returnNotifications', true
+                );
+
+                utils.createPlugin(path.current, params, function (err, result) {
+                    callback();
+                })
+            }
+
+            async.series([
+                createPlugin
+            ], done);
+        });
+
+        it('should count all user plugins', function (done) {
+            utils.getPlugin(PLUGIN_COUNT_PATH, {jwt: jwtWithPermissions}, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.count, 1);
+
+                done();
+            })
+        });
+
+        it('should get all user plugins', function (done) {
+            utils.getPlugin(path.current, {jwt: jwtWithPermissions}, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                console.log(result);
+                assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
+                utils.matches(result[0], {
+                    name: PLUGIN1
+                });
+
+                done();
+            })
+        });
+
+        it('should count all plugins with admin token', function (done) {
+            utils.getPlugin(PLUGIN_COUNT_PATH, {jwt: utils.jwt.admin}, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(result.count > 0, true);
+
+                done();
+            })
+        });
+
+        it('should get all plugins with admin token', function (done) {
+            utils.getPlugin(path.current, {jwt: utils.jwt.admin}, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                console.log(result);
+                assert.strictEqual(result.length > 0, true);
+
+                done();
+            })
+        });
+
+        it('should fail with 403 on count all plugins for token without permission', function (done) {
+            utils.getPlugin(PLUGIN_COUNT_PATH, {jwt: jwtWithoutPermissions}, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+
+                done();
+            })
+        });
+
+        it('should fail with 403 on list all plugins for token without permission', function (done) {
+            utils.getPlugin(path.current, {jwt: jwtWithoutPermissions}, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+
+                done();
+            })
+        });
+
+        it('should fail with 403 on user counting other users\' plugins', function (done) {
+            var params = {jwt: jwtWithPermissions};
+            params.query = path.query('userId', 1);
+            utils.getPlugin(PLUGIN_COUNT_PATH, params, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+
+                done();
+            })
+        });
+
+        it('should fail with 403 on user requesting other users\' plugins', function (done) {
+            var params = {jwt: jwtWithPermissions};
+            params.query = path.query('userId', 1);
+            utils.getPlugin(path.current, params, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+
+                done();
+            })
+        });
+
+
+    });
     
     after(function (done) {
         utils.clearDataJWT(done);
