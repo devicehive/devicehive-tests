@@ -14,15 +14,19 @@ describe('REST API Plugin', function () {
     var DEVICE = utils.getName('device');
     var PLUGIN = utils.getName('plugin');
     var PLUGIN1 = utils.getName('plugin');
+    var PLUGIN2 = utils.getName('plugin');
     var DEVICE_ID = utils.getName('device-id');
     var COMMAND = utils.getName('cmd');
+    var ACTIVE_STATUS = 'ACTIVE';
     var PLUGIN_COUNT_PATH = path.combine(path.PLUGIN_REGISTER, path.COUNT);
-    
+
     var user = null;
     var jwtWithoutPermissions = null;
     var jwtWithPermissions = null;
     var commandId = null;
     var networkId = null;
+
+    var pluginTopicName = null;
 
     var description = 'Plugin Description';
     var paramObject = JSON.stringify({"asd": "asd"});
@@ -31,7 +35,7 @@ describe('REST API Plugin', function () {
         if (!utils.pluginUrl) {
             this.skip();
         }
-        
+
         path.current = path.PLUGIN_REGISTER;
 
         function createNetwork(callback) {
@@ -98,7 +102,7 @@ describe('REST API Plugin', function () {
                 if (err) {
                     return callback(err);
                 }
-                
+
                 commandId = result.id;
 
                 callback();
@@ -116,7 +120,7 @@ describe('REST API Plugin', function () {
     });
 
     describe('#Plugin Register', function () {
-        before(function() {
+        before(function () {
             if (!utils.pluginUrl) {
                 this.skip();
             }
@@ -125,10 +129,10 @@ describe('REST API Plugin', function () {
         it('should not register plugin without ManagePlugin permission', function (done) {
             var params = {
                 jwt: jwtWithoutPermissions,
-                data: { name: PLUGIN }
+                data: {name: PLUGIN}
             };
             params.query = path.query('deviceIds', DEVICE_ID, 'pollType', 'Command');
-            
+
             utils.createPlugin(path.current, params, function (err, result) {
                 assert.strictEqual(err.error, 'Access is denied');
                 assert.strictEqual(err.httpStatus, status.FORBIDDEN);
@@ -162,14 +166,149 @@ describe('REST API Plugin', function () {
             utils.createPlugin(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
 
-                assert.equal(result.proxyEndpoint !==  null, true, 'Proxy endpoint is required');
+                assert.equal(result.proxyEndpoint !== null, true, 'Proxy endpoint is required');
                 assert.equal(result.accessToken !== null, true, 'Access token is not returned');
                 assert.equal(result.refreshToken !== null, true, 'Refresh token is not returned');
-                
+
                 done();
             })
         });
 
+    });
+
+    describe('#Plugin Update', function () {
+        before(function (done) {
+            if (!utils.pluginUrl) {
+                this.skip();
+            }
+
+            function createPlugin(callback) {
+
+                var params = {
+                    jwt: jwtWithPermissions,
+                    data: {
+                        name: PLUGIN1,
+                        description: description,
+                        parameters: {
+                            jsonString: paramObject
+                        }
+                    }
+                };
+
+                params.query = path.query(
+                    'deviceId', DEVICE_ID,
+                    'networkIds', networkId,
+                    'returnCommands', true,
+                    'returnUpdatedCommands', true,
+                    'returnNotifications', true
+                );
+
+                utils.createPlugin(path.current, params, function (err, result) {
+                    pluginTopicName = result.topicName;
+
+                    callback();
+                })
+            }
+
+            async.series([
+                createPlugin
+            ], done);
+        });
+
+        it('should update plugin', function (done) {
+            var params = {
+                jwt: jwtWithPermissions
+            };
+
+            params.query = path.query(
+                'topicName', pluginTopicName,
+                'status', ACTIVE_STATUS
+            );
+
+            utils.updatePlugin(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+
+                params.query = path.query(
+                    'topicName', pluginTopicName
+                );
+
+                utils.getPlugin(path.current, params, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
+
+                    utils.matches(result[0], {
+                        status: ACTIVE_STATUS
+                    });
+                });
+
+                done();
+            })
+        });
+    });
+
+    describe('#Plugin Delete', function () {
+        before(function (done) {
+            if (!utils.pluginUrl) {
+                this.skip();
+            }
+
+            function createPlugin(callback) {
+
+                var params = {
+                    jwt: jwtWithPermissions,
+                    data: {
+                        name: PLUGIN2,
+                        description: description,
+                        parameters: {
+                            jsonString: paramObject
+                        }
+                    }
+                };
+
+                params.query = path.query(
+                    'deviceId', DEVICE_ID,
+                    'networkIds', networkId,
+                    'returnCommands', true,
+                    'returnUpdatedCommands', true,
+                    'returnNotifications', true
+                );
+
+                utils.createPlugin(path.current, params, function (err, result) {
+                    pluginTopicName = result.topicName;
+
+                    callback();
+                })
+            }
+
+            async.series([
+                createPlugin
+            ], done);
+        });
+
+        it('should delete plugin', function (done) {
+            var params = {
+                jwt: jwtWithPermissions
+            };
+
+            params.query = path.query(
+                'topicName', pluginTopicName
+            );
+
+            utils.deletePlugin(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+
+                params.query = path.query(
+                    'topicName', pluginTopicName
+                );
+
+                utils.getPlugin(path.current, params, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    assert.strictEqual(utils.core.isArrayOfLength(result, 0), true, 'Is array of 0 objects');
+                });
+
+                done();
+            })
+        });
     });
 
     describe('#Plugin List', function () {
@@ -289,8 +428,9 @@ describe('REST API Plugin', function () {
 
 
     });
-    
+
     after(function (done) {
+
         utils.clearDataJWT(done);
     });
 });

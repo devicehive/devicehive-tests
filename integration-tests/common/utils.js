@@ -239,6 +239,34 @@ var utils = {
             });
     },
 
+    updatePlugin: function ($path, params, cb) {
+        new Http(this.pluginUrl, path.get($path, null, params.query), this.loggingOff)
+            .put(params, function (err, result, xhr) {
+                if (err) {
+                    err.httpStatus = xhr.status;
+                    return cb(err);
+                }
+
+                assert.strictEqual(xhr.status, status.EXPECTED_UPDATED);
+
+                cb(null, result);
+            });
+    },
+
+    deletePlugin: function ($path, params, cb) {
+        new Http(this.pluginUrl, path.get($path, params.id, params.query), this.loggingOff)
+            .delete(params, function (err, result, xhr) {
+                if (err) {
+                    err.httpStatus = xhr.status;
+                    return cb(err);
+                }
+
+                assert.strictEqual(xhr.status, status.EXPECTED_DELETED);
+
+                cb(null);
+            });
+    },
+
     get: function ($path, params, cb, responseStatus) {
         if(!responseStatus){responseStatus = status.EXPECTED_READ}
         new Http(this.url, path.get($path, params.id, params.query), this.loggingOff)
