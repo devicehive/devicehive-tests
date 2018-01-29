@@ -215,7 +215,7 @@ describe('REST API Plugin', function () {
             ], done);
         });
 
-        it('should update plugin', function (done) {
+        it('should update plugin status', function (done) {
             var params = {
                 jwt: jwtWithPermissions
             };
@@ -239,6 +239,37 @@ describe('REST API Plugin', function () {
                     utils.matches(result[0], {
                         status: ACTIVE_STATUS
                     });
+                });
+
+                done();
+            })
+        });
+
+        it('should update plugin filter', function (done) {
+            var params = {
+                jwt: jwtWithPermissions
+            };
+
+            params.query = path.query(
+                'topicName', pluginTopicName,
+                'returnCommands', false,
+                'returnUpdatedCommands', true,
+                'returnNotifications', false
+            );
+
+            utils.updatePlugin(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+
+                params.query = path.query(
+                    'topicName', pluginTopicName
+                );
+
+                utils.getPlugin(path.current, params, function (err, result) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
+
+                    var filter = result[0].filter;
+                    assert(filter.startsWith('command_update'))
                 });
 
                 done();
