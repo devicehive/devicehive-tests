@@ -77,7 +77,7 @@ describe('REST API JSON Web Tokens', function () {
             );
 
 
-            utils.createPlugin(path.PLUGIN_REGISTER, params, function (err, result) {
+            utils.createPlugin(path.PLUGIN, params, function (err, result) {
                 if (err) {
                     return callback(err);
                 }

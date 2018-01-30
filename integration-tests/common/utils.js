@@ -282,6 +282,21 @@ var utils = {
             });
     },
 
+    getFullPath: function (fullUrl, $path, params, cb, responseStatus) {
+        if(!responseStatus){responseStatus = status.EXPECTED_READ}
+        new Http(fullUrl, path.get($path, params.id, params.query), this.loggingOff)
+            .get(params, function (err, result, xhr) {
+                if (err) {
+                    err.httpStatus = xhr.status;
+                    return cb(err);
+                }
+
+                assert.strictEqual(xhr.status, responseStatus);
+
+                cb(null, result);
+            });
+    },
+
     getAuth: function ($path, params, cb, responseStatus) {
         if(!responseStatus){responseStatus = status.EXPECTED_READ}
         new Http(getParam("authRestUrl"), path.get($path, params.id, params.query), this.loggingOff)
@@ -348,6 +363,20 @@ var utils = {
 
     delete: function ($path, params, cb) {
         new Http(this.url, path.get($path, params.id, params.query), this.loggingOff)
+            .delete(params, function (err, result, xhr) {
+                if (err) {
+                    err.httpStatus = xhr.status;
+                    return cb(err);
+                }
+
+                assert.strictEqual(xhr.status, status.EXPECTED_DELETED);
+
+                cb(null);
+            });
+    },
+
+    deleteFullPath: function (fullUrl, $path, params, cb) {
+        new Http(fullUrl, path.get($path, params.id, params.query), this.loggingOff)
             .delete(params, function (err, result, xhr) {
                 if (err) {
                     err.httpStatus = xhr.status;
@@ -606,8 +635,8 @@ var utils = {
     clearDataJWT: function (done) {
 
         var self = this;
-        function clearEntities(path, name, callback) {
-            utils.get(path, {jwt: utils.jwt.admin}, function (err, result) {
+        function clearEntities(fullUrl, pathCurrent, name, callback) {
+            utils.getFullPath(fullUrl, pathCurrent, {jwt: utils.jwt.admin}, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -617,25 +646,39 @@ var utils = {
                         return cb();
                     }
 
-                    utils.delete(path, {jwt: utils.jwt.admin, id: item.id}, cb);
+                    if (fullUrl === utils.pluginUrl) {
+                        var params = {
+                            jwt: utils.jwt.admin
+                        };
+                        params.query = path.query(
+                            'topicName', item.topicName
+                        );
+                        utils.deletePlugin(pathCurrent, params, cb);
+                    } else {
+                        utils.deleteFullPath(fullUrl, pathCurrent, {jwt: utils.jwt.admin, id: item.id}, cb);
+                    }
                 }, callback)
             });
         }
 
         function clearUsers(callback) {
-            clearEntities(path.USER, 'login', callback);
+            clearEntities(utils.url, path.USER, 'login', callback);
         }
 
         function clearDevices(callback) {
-            clearEntities(path.DEVICE, 'name', callback);
+            clearEntities(utils.url, path.DEVICE, 'name', callback);
         }
 
         function clearNetworks(callback) {
-            clearEntities(path.NETWORK, 'name', callback);
+            clearEntities(utils.url, path.NETWORK, 'name', callback);
         }
 
         function clearDeviceTypes(callback) {
-            clearEntities(path.DEVICE_TYPE, 'name', callback);
+            clearEntities(utils.url, path.DEVICE_TYPE, 'name', callback);
+        }
+
+        function clearPlugins(callback) {
+            clearEntities(utils.pluginUrl, path.PLUGIN, 'name', callback);
         }
 
         self.loggingOff = true;
@@ -643,7 +686,8 @@ var utils = {
             clearUsers,
             clearDevices,
             clearNetworks,
-            clearDeviceTypes
+            clearDeviceTypes,
+            clearPlugins
         ], function (err) {
             if (err) {
                 done(err);

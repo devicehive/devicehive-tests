@@ -18,11 +18,13 @@ describe('REST API Plugin', function () {
     var DEVICE_ID = utils.getName('device-id');
     var COMMAND = utils.getName('cmd');
     var ACTIVE_STATUS = 'ACTIVE';
-    var PLUGIN_COUNT_PATH = path.combine(path.PLUGIN_REGISTER, path.COUNT);
+    var PLUGIN_COUNT_PATH = path.combine(path.PLUGIN, path.COUNT);
 
     var user = null;
+    var user2 = null;
     var jwtWithoutPermissions = null;
     var jwtWithPermissions = null;
+    var jwtWithPermissions2 = null;
     var commandId = null;
     var networkId = null;
 
@@ -36,7 +38,7 @@ describe('REST API Plugin', function () {
             this.skip();
         }
 
-        path.current = path.PLUGIN_REGISTER;
+        path.current = path.PLUGIN;
 
         function createNetwork(callback) {
             var params = {
@@ -76,6 +78,17 @@ describe('REST API Plugin', function () {
             });
         }
 
+        function createUser2(callback) {
+            utils.createUser2(1, networkId, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+
+                user2 = result.user;
+                callback();
+            });
+        }
+
         function createJWTWithoutPermissions(callback) {
             utils.jwt.create(user.id, ['CreateDeviceCommand', 'GetDeviceCommand', 'UpdateDeviceCommand'], [networkId], null, function (err, result) {
                 if (err) {
@@ -92,6 +105,16 @@ describe('REST API Plugin', function () {
                     return callback(err);
                 }
                 jwtWithPermissions = result.accessToken;
+                callback()
+            })
+        }
+
+        function createJWTWithPermissions2(callback) {
+            utils.jwt.create(user2.id, ['*'], [networkId], null, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+                jwtWithPermissions2 = result.accessToken;
                 callback()
             })
         }
@@ -113,8 +136,10 @@ describe('REST API Plugin', function () {
             createNetwork,
             createDevice,
             createUser,
+            createUser2,
             createJWTWithoutPermissions,
             createJWTWithPermissions,
+            createJWTWithPermissions2,
             createCommand
         ], done);
     });
@@ -213,6 +238,40 @@ describe('REST API Plugin', function () {
             async.series([
                 createPlugin
             ], done);
+        });
+
+        it('should fail with 403 on update plugin for token without permission', function (done) {
+            var params = {
+                jwt: jwtWithoutPermissions
+            };
+
+            params.query = path.query(
+                'topicName', pluginTopicName,
+                'status', ACTIVE_STATUS
+            );
+
+            utils.updatePlugin(path.current, params, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+
+                done();
+            })
+        });
+
+        it('should fail with 403 on updating other users\' plugins', function (done) {
+            var params = {
+                jwt: jwtWithPermissions2
+            };
+
+            params.query = path.query(
+                'topicName', pluginTopicName,
+                'status', ACTIVE_STATUS
+            );
+
+            utils.updatePlugin(path.current, params, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+
+                done();
+            })
         });
 
         it('should update plugin status', function (done) {
@@ -314,6 +373,38 @@ describe('REST API Plugin', function () {
             async.series([
                 createPlugin
             ], done);
+        });
+
+        it('should fail with 403 on delete plugin for token without permission', function (done) {
+            var params = {
+                jwt: jwtWithoutPermissions
+            };
+
+            params.query = path.query(
+                'topicName', pluginTopicName
+            );
+
+            utils.deletePlugin(path.current, params, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+
+                done();
+            })
+        });
+
+        it('should fail with 403 on deleting other users\' plugins', function (done) {
+            var params = {
+                jwt: jwtWithPermissions2
+            };
+
+            params.query = path.query(
+                'topicName', pluginTopicName
+            );
+
+            utils.deletePlugin(path.current, params, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+
+                done();
+            })
         });
 
         it('should delete plugin', function (done) {
