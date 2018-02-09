@@ -15,9 +15,11 @@ describe('REST API Plugin', function () {
     var PLUGIN = utils.getName('plugin');
     var PLUGIN1 = utils.getName('plugin');
     var PLUGIN2 = utils.getName('plugin');
+    var PLUGIN3 = utils.getName('plugin');
     var DEVICE_ID = utils.getName('device-id');
     var COMMAND = utils.getName('cmd');
     var ACTIVE_STATUS = 'ACTIVE';
+    var INACTIVE_STATUS = 'INACTIVE';
     var PLUGIN_COUNT_PATH = path.combine(path.PLUGIN, path.COUNT);
 
     var user = null;
@@ -334,6 +336,137 @@ describe('REST API Plugin', function () {
                 done();
             })
         });
+    });
+
+    describe('#Plugin Subscription', function () {
+        before(function (done) {
+            if (!utils.pluginUrl) {
+                this.skip();
+            }
+
+            function createPlugin(callback) {
+
+                var params = {
+                    jwt: utils.jwt.admin,
+                    data: {
+                        name: PLUGIN3,
+                        description: description,
+                        parameters: {
+                            jsonString: paramObject
+                        }
+                    }
+                };
+
+                params.query = path.query(
+                    'deviceId', DEVICE_ID,
+                    'networkIds', networkId,
+                    'names', '',
+                    'returnCommands', true,
+                    'returnUpdatedCommands', true,
+                    'returnNotifications', true
+                );
+
+                utils.createPlugin(path.current, params, function (err, result) {
+                    pluginTopicName = result.topicName;
+
+                    callback();
+                })
+            }
+
+            async.series([
+                createPlugin
+            ], done);
+        });
+
+        it('registered plugin should not have a subscription', function (done) {
+
+            var params = {
+                jwt: utils.jwt.admin
+            };
+
+            params.query = path.query(
+                'topicName', pluginTopicName
+            );
+
+            utils.getPlugin(path.current, params, function (err, getResult) {
+                assert.strictEqual(!(!err), false, 'No error');
+                console.log(getResult);
+                assert.strictEqual(utils.core.isArrayOfLength(getResult, 1), true, 'Is array of 1 object');
+
+                utils.matches(getResult[0], {
+                    name: PLUGIN3,
+                    subscriptionId: null
+                });
+
+                done();
+            });
+        });
+
+        it('activated plugin should have a subscription', function (done) {
+
+            var params = {
+                jwt: utils.jwt.admin
+            };
+
+            params.query = path.query(
+                'topicName', pluginTopicName,
+                'status', ACTIVE_STATUS
+            );
+
+            utils.updatePlugin(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+
+                params.query = path.query(
+                    'topicName', pluginTopicName
+                );
+
+                utils.getPlugin(path.current, params, function (err, getResult) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    console.log(getResult);
+                    assert.strictEqual(utils.core.isArrayOfLength(getResult, 1), true, 'Is array of 1 object');
+
+                    var updatedPlugin = getResult[0];
+                    assert.strictEqual(updatedPlugin.name === PLUGIN3, true);
+                    assert.strictEqual(updatedPlugin.subscriptionId !== null, true);
+
+                    done();
+                });
+            })
+        });
+
+        it('deactivated plugin should not have a subscription', function (done) {
+
+            var params = {
+                jwt: utils.jwt.admin
+            };
+
+            params.query = path.query(
+                'topicName', pluginTopicName,
+                'status', INACTIVE_STATUS
+            );
+
+            utils.updatePlugin(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+
+                params.query = path.query(
+                    'topicName', pluginTopicName
+                );
+
+                utils.getPlugin(path.current, params, function (err, getResult) {
+                    assert.strictEqual(!(!err), false, 'No error');
+                    console.log(getResult);
+                    assert.strictEqual(utils.core.isArrayOfLength(getResult, 1), true, 'Is array of 1 object');
+
+                    utils.matches(getResult[0], {
+                        name: PLUGIN3,
+                        subscriptionId: null
+                    });
+
+                    done();
+                });
+            })
+        });
+
     });
 
     describe('#Plugin Delete', function () {
