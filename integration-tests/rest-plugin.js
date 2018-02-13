@@ -298,9 +298,9 @@ describe('REST API Plugin', function () {
                     utils.matches(result[0], {
                         status: ACTIVE_STATUS
                     });
-                });
 
-                done();
+                    done();
+                });
             })
         });
 
@@ -328,10 +328,10 @@ describe('REST API Plugin', function () {
                     assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
 
                     var filter = result[0].filter;
-                    assert(filter.startsWith('command_update'))
-                });
+                    assert(filter.startsWith('command_update'));
 
-                done();
+                    done();
+                });
             })
         });
     });
@@ -426,9 +426,9 @@ describe('REST API Plugin', function () {
                 utils.getPlugin(path.current, params, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
                     assert.strictEqual(utils.core.isArrayOfLength(result, 0), true, 'Is array of 0 objects');
-                });
 
-                done();
+                    done();
+                });
             })
         });
     });
