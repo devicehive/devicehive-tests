@@ -678,6 +678,9 @@ var utils = {
         }
 
         function clearPlugins(callback) {
+            if (!utils.pluginUrl) {
+                return callback();
+            }
             clearEntities(utils.pluginUrl, path.PLUGIN, 'name', callback);
         }
 

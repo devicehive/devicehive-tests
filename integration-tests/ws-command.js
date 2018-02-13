@@ -1457,8 +1457,13 @@ describe('WebSocket API Command', function () {
 
             var update = {
                 command: COMMAND + '-UPD',
-                parameters: {a: '1', b: '2'},
-                lifetime: 100500,
+                status: 'Updated',
+                result: {done: 'yes'}
+            };
+
+            var expectedUpdate = {
+                command: COMMAND,
+                lifetime: 500,
                 status: 'Updated',
                 result: {done: 'yes'}
             };
@@ -1505,7 +1510,7 @@ describe('WebSocket API Command', function () {
                 req.get(path.COMMAND.get(deviceId))
                     .params({jwt: utils.jwt.admin, id: commandId})
                     .expect({id: commandId})
-                    .expect(update)
+                    .expect(expectedUpdate)
                     .send(done);
             }
         }
@@ -1646,7 +1651,6 @@ describe('WebSocket API Command', function () {
             var update = {
                 command: COMMAND + '-UPD',
                 parameters: {a: '1', b: '2'},
-                lifetime: 100500,
                 status: 'Updated',
                 result: {done: 'yes'}
             };
