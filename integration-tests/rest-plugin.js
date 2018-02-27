@@ -319,21 +319,9 @@ describe('REST API Plugin', function () {
             );
 
             utils.updatePlugin(path.current, params, function (err, result) {
-                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(err.error, 'Plugin\'s subscription filter can\'t be updated if plugin is ACTIVE');
 
-                params.query = path.query(
-                    'topicName', pluginTopicName
-                );
-
-                utils.getPlugin(path.current, params, function (err, result) {
-                    assert.strictEqual(!(!err), false, 'No error');
-                    assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
-
-                    var filter = result[0].filter;
-                    assert(filter.startsWith('command_update'));
-
-                    done();
-                });
+                done();
             })
         });
     });
