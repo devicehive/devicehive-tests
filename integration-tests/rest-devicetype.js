@@ -6,54 +6,54 @@ var path = require('./common/path');
 var status = require('./common/http').status;
 var req = require('./common/request');
 
-describe('REST API Network', function () {
+describe('REST API Device Type', function () {
     this.timeout(90000);
 
-    var NETWORK_1 = utils.getName('network-1');
-    var NETWORK_2 = utils.getName('network-2');
-    var networkId1 = null;
-    var networkId2 = null;
+    var DEVICE_TYPE_1 = utils.getName('deviceType-1');
+    var DEVICE_TYPE_2 = utils.getName('deviceType-2');
+    var deviceTypeId1 = null;
+    var deviceTypeId2 = null;
     var user = null;
-    var nonNetworkUser = null;
-    var NETWORK_COUNT_PATH = path.combine(path.NETWORK, path.COUNT);
+    var nonTypeUser = null;
+    var DEVICETYPE_COUNT_PATH = path.combine(path.DEVICE_TYPE, path.COUNT);
 
     before(function (done) {
-        path.current = path.NETWORK;
+        path.current = path.DEVICE_TYPE;
 
-        function createNetwork1(callback) {
+        function createDeviceType1(callback) {
             var params = {
                 jwt: utils.jwt.admin,
-                data: { name: NETWORK_1 }
+                data: { name: DEVICE_TYPE_1 }
             };
 
-            utils.create(path.NETWORK, params, function (err, result) {
+            utils.create(path.DEVICE_TYPE, params, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
 
-                networkId1 = result.id;
+                deviceTypeId1 = result.id;
                 callback();
             });
         }
 
-        function createNetwork2(callback) {
+        function createDeviceType2(callback) {
             var params = {
                 jwt: utils.jwt.admin,
-                data: { name: NETWORK_2 }
+                data: { name: DEVICE_TYPE_2 }
             };
 
-            utils.create(path.NETWORK, params, function (err, result) {
+            utils.create(path.DEVICE_TYPE, params, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
 
-                networkId2 = result.id;
+                deviceTypeId2 = result.id;
                 callback();
             });
         }
 
         function createUser(callback) {
-            utils.createUser2(1, networkId1, function (err, result) {
+            utils.createUser4(1, deviceTypeId1, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -63,22 +63,22 @@ describe('REST API Network', function () {
             });
         }
 
-        function createNonNetworkUser(callback) {
-            utils.createUser2(1, void 0, function (err, result) {
+        function createNonTypeUser(callback) {
+            utils.createUser4(1, void 0, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
 
-                nonNetworkUser = result.user;
+                nonTypeUser = result.user;
                 callback();
             });
         }
 
         async.series([
-            createNetwork1,
-            createNetwork2,
+            createDeviceType1,
+            createDeviceType2,
             createUser,
-            createNonNetworkUser
+            createNonTypeUser
         ], done);
     });
 
@@ -94,27 +94,27 @@ describe('REST API Network', function () {
             var params = [
                 {
                     user: user,
-                    actions: 'GetNetwork',
-                    networkIds: ['*']
+                    actions: 'GetDeviceType',
+                    deviceTypeIds: ['*']
                 },
                 {
                     user: user,
-                    actions: 'GetNetwork',
-                    networkIds: [0]
+                    actions: 'GetDeviceType',
+                    deviceTypeIds: [0]
                 },
                 {
                     user: user,
-                    actions: 'GetNetwork',
-                    networkIds: [networkId1]
+                    actions: 'GetDeviceType',
+                    deviceTypeIds: [deviceTypeId1]
                 },
                 {
                     user: user,
-                    actions: 'GetNetwork'
+                    actions: 'GetDeviceType'
                 },
                 {
                     user: user,
                     actions: null,
-                    networkIds: ['*']
+                    deviceTypeIds: ['*']
                 }
             ];
 
@@ -137,7 +137,7 @@ describe('REST API Network', function () {
             ], done);
         });
 
-        it('should get all networks for admin jwt', function (done) {
+        it('should get all device types for admin jwt', function (done) {
             req.get(path.current)
                 .params({jwt: utils.jwt.admin})
                 .expectTrue(function (result) {
@@ -145,60 +145,58 @@ describe('REST API Network', function () {
                 })
                 .expectTrue(function (result) {
                     return result.some(function (item) {
-                        return item.id === networkId1;
+                        return item.id === deviceTypeId1;
                     });
                 })
                 .expectTrue(function (result) {
                     return result.some(function (item) {
-                        return item.id === networkId2;
+                        return item.id === deviceTypeId2;
                     });
                 })
                 .send(done);
         });
 
-        it('should count networks by name for admin jwt', function (done) {
-            var params = {jwt: jwt1};
-            params.query = path.query('name', NETWORK_1);
-            utils.get(NETWORK_COUNT_PATH, params, function (err, result) {
+        it('should count device types by name for admin jwt', function (done) {
+            var params = {jwt: utils.jwt.admin};
+            params.query = path.query('name', DEVICE_TYPE_1);
+            utils.get(DEVICETYPE_COUNT_PATH, params, function (err, result){
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.count, 1);
                 done();
             });
         });
 
-        it('should get network by name for admin jwt', function (done) {
+        it('should get device type by name for admin jwt', function (done) {
             req.get(path.current)
                 .params({jwt: utils.jwt.admin})
-                .query('name', NETWORK_1)
-                .expect([{id: networkId1, name: NETWORK_1}])
+                .query('name', DEVICE_TYPE_1)
+                .expect([{id: deviceTypeId1, name: DEVICE_TYPE_1}])
                 .send(done);
         });
 
-        it('should count all networks', function (done) {
-            var params = {jwt: jwt1};
-            utils.get(NETWORK_COUNT_PATH, params, function (err, result) {
+        it('should count all device types', function (done) {
+            utils.get(DEVICETYPE_COUNT_PATH, {jwt: jwt1}, function (err, result){
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.count > 0, true);
                 done();
             });
         });
 
-        it('should fail with 403 on count all networks', function (done) {
-            var params = {jwt: jwt5};
-            utils.get(NETWORK_COUNT_PATH, params, function (err, result) {
+        it('should fail with 403 on count all device types', function (done) {
+            utils.get(DEVICETYPE_COUNT_PATH, {jwt: jwt5}, function (err, result){
                 assert.strictEqual(err.httpStatus, status.FORBIDDEN);
                 done();
             });
         });
 
-        it('should get all networks', function (done) {
+        it('should get all device types', function (done) {
             req.get(path.current)
                 .params({jwt: jwt1})
-                .expect([{id: networkId1, name: NETWORK_1}])
+                .expect([{id: deviceTypeId1, name: DEVICE_TYPE_1}])
                 .send(done);
         });
 
-        it('should get none of networks #1', function (done) {
+        it('should get none of device types #1', function (done) {
             req.get(path.current)
                 .params({jwt: jwt2})
                 .expectTrue(function (result) {
@@ -207,7 +205,7 @@ describe('REST API Network', function () {
                 .send(done);
         });
 
-        it('should get none of networks #2', function (done) {
+        it('should get none of device types #2', function (done) {
             req.get(path.current)
                 .params({jwt: jwt4})
                 .expectTrue(function (result) {
@@ -216,10 +214,10 @@ describe('REST API Network', function () {
                 .send(done);
         });
 
-        it('should get network', function (done) {
+        it('should get device type', function (done) {
             req.get(path.current)
                 .params({jwt: jwt3})
-                .expect([{id: networkId1, name: NETWORK_1}])
+                .expect([{id: deviceTypeId1, name: DEVICE_TYPE_1}])
                 .send(done);
         });
     });
@@ -234,22 +232,22 @@ describe('REST API Network', function () {
         before(function (done) {
             var params = [
                 {
-                    user: nonNetworkUser,
-                    actions: 'GetNetwork'
+                    user: nonTypeUser,
+                    actions: 'GetDeviceType'
                 },
                 {
                     user: user,
-                    actions: 'GetNetwork',
-                    networkIds: [0]
+                    actions: 'GetDeviceType',
+                    deviceTypeIds: [0]
                 },
                 {
                     user: user,
-                    actions: 'GetNetwork'
+                    actions: 'GetDeviceType'
                 },
                 {
                     user: user,
-                    actions: 'GetNetwork',
-                    networkIds: [networkId1]
+                    actions: 'GetDeviceType',
+                    deviceTypeIds: [deviceTypeId1]
                 }
             ];
 
@@ -271,42 +269,42 @@ describe('REST API Network', function () {
             ], done);
         });
 
-        it('should fail with 403 when getting with non-network user', function (done) {
+        it('should fail with 403 when getting with non-device type user', function (done) {
             req.get(path.current)
-                .params({jwt: jwt1, id: networkId1})
+                .params({jwt: jwt1, id: deviceTypeId1})
                 .expectError(status.FORBIDDEN, 'Access is denied')
                 .send(done);
         });
 
         it('should fail with 403 #1', function (done) {
             req.get(path.current)
-                .params({jwt: jwt1, id: networkId1})
+                .params({jwt: jwt1, id: deviceTypeId1})
                 .expectError(status.FORBIDDEN, 'Access is denied')
                 .send(done);
         });
 
         it('should fail with 403 #2', function (done) {
             req.get(path.current)
-                .params({jwt: jwt2, id: networkId1})
+                .params({jwt: jwt2, id: deviceTypeId1})
                 .expectError(status.FORBIDDEN, 'Access is denied')
                 .send(done);
         });
 
-        it('should succeed when getting network using valid jwt', function (done) {
+        it('should succeed when getting device type using valid jwt', function (done) {
             req.get(path.current)
-                .params({jwt: jwt4, id: networkId1})
-                .expect({id: networkId1, name: NETWORK_1})
+                .params({jwt: jwt4, id: deviceTypeId1})
+                .expect({id: deviceTypeId1, name: DEVICE_TYPE_1})
                 .send(done);
         });
     });
 
     describe('#Create', function () {
 
-        it('should create network using admin jwt', function (done) {
-            var network = {name: utils.getName('network-3')};
+        it('should create device type using admin jwt', function (done) {
+            var deviceType = {name: utils.getName('deviceType-3')};
 
             req.create(path.current)
-                .params({jwt: utils.jwt.admin, data: network})
+                .params({jwt: utils.jwt.admin, data: deviceType})
                 .send(function (err, result) {
                     if (err) {
                         done(err);
@@ -314,7 +312,7 @@ describe('REST API Network', function () {
 
                     req.get(path.current)
                         .params({jwt: utils.jwt.admin, id: result.id})
-                        .expect(network)
+                        .expect(deviceType)
                         .send(done);
                 });
         });
@@ -322,18 +320,18 @@ describe('REST API Network', function () {
 
     describe('#Create Existing', function () {
 
-        it('should fail with 403 when trying to create existing network', function (done) {
+        it('should fail with 403 when trying to create existing deviceType', function (done) {
             req.create(path.current)
-                .params({jwt: utils.jwt.admin, data: {name: NETWORK_1}})
-                .expectError(status.FORBIDDEN, 'Network cannot be created. Network with such name already exists')
+                .params({jwt: utils.jwt.admin, data: {name: DEVICE_TYPE_1}})
+                .expectError(status.FORBIDDEN, 'Device type cannot be created. Device type with such name already exists')
                 .send(done);
         });
     });
 
-    describe('#Create Devices', function () {
+    describe('#List Devices', function () {
 
-        var DEVICE = utils.getName('network-device');
-        var DEVICE_ID = utils.getName('network-id');
+        var DEVICE = utils.getName('deviceType-device');
+        var DEVICE_ID = utils.getName('deviceType-id');
 
         var jwt1 = null;
         var jwt2 = null;
@@ -344,21 +342,21 @@ describe('REST API Network', function () {
             var params = [
                 {
                     user: user,
-                    actions: 'GetNetwork'
+                    actions: 'GetDeviceType'
                 },
                 {
                     user: user,
-                    actions: ['GetNetwork', 'GetDevice'],
+                    actions: ['GetDeviceType', 'GetDevice'],
                     deviceIds: utils.NON_EXISTING_ID
                 },
                 {
                     user: user,
-                    actions: ['GetNetwork', 'GetDevice']
+                    actions: ['GetDeviceType', 'GetDevice']
                 },
                 {
                     user: user,
-                    actions: ['GetNetwork', 'GetDevice'],
-                    networkIds: [networkId1]
+                    actions: ['GetDeviceType', 'GetDevice'],
+                    deviceTypeIds: [deviceTypeId1]
                 }
             ];
 
@@ -376,9 +374,10 @@ describe('REST API Network', function () {
             }
 
             function createDevice(callback) {
+                var params = utils.device.getParamsObj(DEVICE, utils.jwt.admin, null, {name: DEVICE, version: '1'});
+                params.data.deviceTypeId = deviceTypeId1;
                 req.update(path.get(path.DEVICE, DEVICE_ID))
-                    .params(utils.device.getParamsObj(DEVICE, utils.jwt.admin,
-                        networkId1, {name: DEVICE, version: '1'}))
+                    .params(params)
                     .send(function (err) {
                         if (err) {
                             return callback(err);
@@ -394,10 +393,10 @@ describe('REST API Network', function () {
         });
 
         it('should include the list of devices', function (done) {
-            req.get(path.get(path.NETWORK, networkId1))
+            req.get(path.get(path.DEVICE_TYPE, deviceTypeId1))
                 .params({jwt: utils.jwt.admin})
                 .expect({
-                    name: NETWORK_1,
+                    name: DEVICE_TYPE_1,
                     description: null,
                     devices: [{
                         id: DEVICE_ID,
@@ -408,21 +407,21 @@ describe('REST API Network', function () {
         });
 
         it('should return empty devices list result when using jwt1', function (done) {
-            req.get(path.get(path.NETWORK, networkId1))
+            req.get(path.get(path.DEVICE_TYPE, deviceTypeId1))
                 .params({jwt: jwt1})
                 .expectError(status.FORBIDDEN, 'Access is denied')
                 .send(done);
         });
 
         it('should return empty devices list when using jwt2', function (done) {
-            req.get(path.get(path.NETWORK, networkId1))
+            req.get(path.get(path.DEVICE_TYPE, deviceTypeId1))
                 .params({jwt: jwt2})
                 .expectError(status.FORBIDDEN, 'Access is denied')
                 .send(done);
         });
 
         it('should return non-empty devices list when using jwt3', function (done) {
-            req.get(path.get(path.NETWORK, networkId1))
+            req.get(path.get(path.DEVICE_TYPE, deviceTypeId1))
                 .params({jwt: jwt4})
                 .expectTrue(function (result) {
                     return utils.core.isArrayOfLength(result.devices, 1);
@@ -433,38 +432,38 @@ describe('REST API Network', function () {
 
     describe('#Update', function () {
 
-        var networkId = null;
+        var deviceTypeId = null;
 
         before(function (done) {
             req.create(path.current)
                 .params({
                     jwt: utils.jwt.admin,
-                    data: { name: utils.getName('network-4')}
+                    data: { name: utils.getName('deviceType-4')}
                 })
                 .send(function (err, result) {
                     if (err) {
                         return done(err);
                     }
 
-                    networkId = result.id;
+                    deviceTypeId = result.id;
                     done();
                 });
         });
 
         it('should update with admin jwt', function (done) {
             var update = {
-                name:utils.getName('network-4-update'),
+                name:utils.getName('deviceType-4-update'),
                 description: 'lorem ipsum dolor sit amet'
             };
             req.update(path.current)
-                .params({jwt: utils.jwt.admin, id: networkId, data: update})
+                .params({jwt: utils.jwt.admin, id: deviceTypeId, data: update})
                 .send(function (err) {
                     if (err) {
                         done(err);
                     }
 
                     req.get(path.current)
-                        .params({jwt: utils.jwt.admin, id: networkId})
+                        .params({jwt: utils.jwt.admin, id: deviceTypeId})
                         .expect(update)
                         .send(done);
                 });
@@ -475,16 +474,16 @@ describe('REST API Network', function () {
 
         it('should update description with admin jwt', function (done) {
             req.update(path.current)
-                .params({jwt: utils.jwt.admin, id: networkId1, data: {description: 'lorem ipsum dolor sit amet'}})
+                .params({jwt: utils.jwt.admin, id: deviceTypeId1, data: {description: 'lorem ipsum dolor sit amet'}})
                 .send(function (err) {
                     if (err) {
                         done(err);
                     }
 
                     req.get(path.current)
-                        .params({jwt: utils.jwt.admin, id: networkId1})
+                        .params({jwt: utils.jwt.admin, id: deviceTypeId1})
                         .expect({
-                            name: NETWORK_1,
+                            name: DEVICE_TYPE_1,
                             description: 'lorem ipsum dolor sit amet'
                         })
                         .send(done);
@@ -494,36 +493,36 @@ describe('REST API Network', function () {
 
     describe('#Delete', function () {
 
-        var networkId = null;
+        var deviceTypeId = null;
 
         before(function (done) {
             req.create(path.current)
                 .params({
                     jwt: utils.jwt.admin,
-                    data: {name: utils.getName('network-5')}
+                    data: {name: utils.getName('deviceType-5')}
                 })
                 .send(function (err, result) {
                     if (err) {
                         return done(err);
                     }
 
-                    networkId = result.id;
+                    deviceTypeId = result.id;
                     done();
                 });
         });
 
-        it('should fail get with 404 after we deleted network', function (done) {
+        it('should fail get with 404 after we deleted deviceType', function (done) {
             req.delete(path.current)
-                .params({jwt: utils.jwt.admin, id: networkId})
+                .params({jwt: utils.jwt.admin, id: deviceTypeId})
                 .send(function (err) {
                     if (err) {
                         return done(err);
                     }
 
                     req.get(path.current)
-                        .params({jwt: utils.jwt.admin, id: networkId})
+                        .params({jwt: utils.jwt.admin, id: deviceTypeId})
                         .expectError(status.NOT_FOUND,
-                            format('Network with id = %s not found', networkId))
+                            format('Device type with id = %s not found', deviceTypeId))
                         .send(done);
                 });
         });
@@ -534,7 +533,7 @@ describe('REST API Network', function () {
             req.create(path.current)
                 .params({
                     jwt: utils.jwt.admin,
-                    data: {users: 'invalid', invalidProp: utils.getName('network-invalid')}
+                    data: {users: 'invalid', invalidProp: utils.getName('deviceType-invalid')}
                 })
                 .expectError(status.BAD_REQUEST)
                 .send(done);
@@ -557,28 +556,28 @@ describe('REST API Network', function () {
                     .send(done);
             });
 
-            it('should fail with 401 when selecting network by id, auth parameters omitted', function (done) {
+            it('should fail with 401 when selecting device type by id, auth parameters omitted', function (done) {
                 req.get(path.current)
                     .params({jwt: null, id: utils.NON_EXISTING_ID})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
-            it('should fail with 401 when creating network with no auth parameters', function (done) {
+            it('should fail with 401 when creating device type with no auth parameters', function (done) {
                 req.create(path.current)
                     .params({jwt: null, data: {name: 'not-authorized'}})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
-            it('should fail with 401 when updating network with no auth parameters', function (done) {
+            it('should fail with 401 when updating device type with no auth parameters', function (done) {
                 req.update(path.current)
                     .params({jwt: null, id: utils.NON_EXISTING_ID, data: {name: 'not-authorized'}})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
                     .send(done);
             });
 
-            it('should fail with 401 when deleting network with no auth parameters', function (done) {
+            it('should fail with 401 when deleting device type with no auth parameters', function (done) {
                 req.delete(path.current)
                     .params({jwt: null, id: utils.NON_EXISTING_ID})
                     .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
@@ -591,7 +590,7 @@ describe('REST API Network', function () {
             var jwt = null;
 
             before(function (done) {
-                utils.jwt.create(user.id, user.actions, void 0, void 0, function (err, result) {
+                utils.jwt.create(user.id, user.actions, null, null, function (err, result) {
                     if (err) {
                         return done(err);
                     }
@@ -607,28 +606,28 @@ describe('REST API Network', function () {
                     .send(done);
             });
 
-            it('should fail with 403 when selecting network by id using invalid access key', function (done) {
+            it('should fail with 403 when selecting device type by id using invalid access key', function (done) {
                 req.get(path.current)
                     .params({jwt: jwt, id: utils.NON_EXISTING_ID})
                     .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
-            it('should fail with 403 when creating network using invalid access key', function (done) {
+            it('should fail with 403 when creating device type using invalid access key', function (done) {
                 req.create(path.current)
                     .params({jwt: jwt, data: {name: 'not-authorized'}})
                     .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
-            it('should fail with 403 when updating network using invalid access key', function (done) {
+            it('should fail with 403 when updating device type using invalid access key', function (done) {
                 req.update(path.current)
                     .params({jwt: jwt, id: utils.NON_EXISTING_ID, data: {name: 'not-authorized'}})
                     .expectError(status.FORBIDDEN, 'Access is denied')
                     .send(done);
             });
 
-            it('should fail with 403 when deleting network with no auth parameters', function (done) {
+            it('should fail with 403 when deleting device type with no auth parameters', function (done) {
                 req.delete(path.current)
                     .params({jwt: jwt, id: utils.NON_EXISTING_ID})
                     .expectError(status.FORBIDDEN, 'Access is denied')
@@ -639,24 +638,24 @@ describe('REST API Network', function () {
 
     describe('#Not Found', function () {
 
-        it('should fail with 404 when selecting network by non-existing id', function (done) {
+        it('should fail with 404 when selecting device type by non-existing id', function (done) {
             req.get(path.current)
                 .params({jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID})
-                .expectError(status.NOT_FOUND, format('Network with id = %s not found', utils.NON_EXISTING_ID))
+                .expectError(status.NOT_FOUND, format('Device type with id = %s not found', utils.NON_EXISTING_ID))
                 .send(done);
         });
 
-        it('should fail with 404 when updating network by non-existing id', function (done) {
+        it('should fail with 404 when updating device type by non-existing id', function (done) {
             req.update(path.current)
                 .params({jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID})
-                .expectError(status.NOT_FOUND, format('Network with id = %s not found', utils.NON_EXISTING_ID))
+                .expectError(status.NOT_FOUND, format('Device type with id = %s not found', utils.NON_EXISTING_ID))
                 .send(done);
         });
 
-        it('should fail with 404 when deleting network by non-existing id', function (done) {
+        it('should fail with 404 when deleting device type by non-existing id', function (done) {
             req.delete(path.current)
                 .params({jwt: utils.jwt.admin, id: utils.NON_EXISTING_ID})
-                .expectError(status.NOT_FOUND, format('Network with id = %s not found', utils.NON_EXISTING_ID))
+                .expectError(status.NOT_FOUND, format('Device type with id = %s not found', utils.NON_EXISTING_ID))
                 .send(done);
         });
     });

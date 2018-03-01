@@ -62,14 +62,12 @@ describe('REST API JSON Web Tokens', function () {
                 return callback();
             }
             var description = 'Plugin Description';
-            var healthCheckUrl = utils.pluginUrl + '/info';
             
             var params = {
                 jwt: utils.jwt.admin,
                 data: {
                     name: PLUGIN,
-                    description: description,
-                    healthCheckUrl: healthCheckUrl
+                    description: description
                 }
             };
             params.query = path.query(
@@ -79,7 +77,7 @@ describe('REST API JSON Web Tokens', function () {
             );
 
 
-            utils.createPlugin(path.PLUGIN_REGISTER, params, function (err, result) {
+            utils.createPlugin(path.PLUGIN, params, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -133,7 +131,7 @@ describe('REST API JSON Web Tokens', function () {
                 
                 jwtTokenVO.payload.a.should.containEql(0);
                 jwtTokenVO.payload.n.should.containEql('*');
-                jwtTokenVO.payload.d.should.containEql('*');
+                jwtTokenVO.payload.dt.should.containEql('*');
 
                 done();
             });
@@ -204,7 +202,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceIds: ['*']
+                    deviceTypeIds: ['*']
                 }
             }, function (err, result) {
                 if (err) {
@@ -224,7 +222,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceIds: ['*'],
+                    deviceTypeIds: ['*'],
                     expiration: "2018-01-01T00:00:00.000Z"
                 }
             }, function (err, result) {
@@ -232,9 +230,9 @@ describe('REST API JSON Web Tokens', function () {
                     return done(err);
                 }
 
-                assert.strictEqual(result.accessToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImUiOjE1MTQ3NjQ4MDAwMDAsInQiOjEsInUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdfX0.ztPbZex2ZXYHPetsz_zVimTfI3oy5xGbCBEgdcateCc'),
+                assert.strictEqual(result.accessToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImEiOlswXSwiZSI6MTUxNDc2NDgwMDAwMCwidCI6MSwidSI6MSwibiI6WyIqIl0sImR0IjpbIioiXX19'),
                     true, 'Access token is not correct');
-                assert.strictEqual(result.refreshToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImUiOjE1MTQ3NjQ4MDAwMDAsInQiOjAsInUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdfX0.M-bMPxE6Powju-eKULkAIKhroWn88XeBrILrIFDOIxg'),
+                assert.strictEqual(result.refreshToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImEiOlswXSwiZSI6MTUxNDc2NDgwMDAwMCwidCI6MCwidSI6MSwibiI6WyIqIl0sImR0IjpbIioiXX19'),
                     true, 'Refresh token is not correct');
 
                 done();
@@ -247,7 +245,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceIds: ['*']
+                    deviceTypeIds: ['*']
                 }
             }, function (err, result) {
                 if (err) {
@@ -296,7 +294,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceIds: ['*']
+                    deviceTypeIds: ['*']
                 }
             }, function (err) {
                 assert.strictEqual(err.error, 'Unauthorized');
@@ -311,7 +309,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceIds: ['*']
+                    deviceTypeIds: ['*']
                 }
             }, function (err, result) {
                 if (err) {
@@ -331,7 +329,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceIds: ['*']
+                    deviceTypeIds: ['*']
                 }
             }, function (err, result) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -348,7 +346,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: invalidUserId,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceIds: ['*']
+                    deviceTypeIds: ['*']
                 }
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -364,7 +362,7 @@ describe('REST API JSON Web Tokens', function () {
                     userId: inactiveUser.id,
                     actions: ['*'],
                     networkIds: ['*'],
-                    deviceIds: ['*']
+                    deviceTypeIds: ['*']
                 }
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
@@ -498,8 +496,8 @@ describe('REST API JSON Web Tokens', function () {
                 if (err) {
                     done(err);
                 }
-                utils.hasPropsWithValues(result, ['tpc', 'e', 't']);
-                assert.strictEqual(result.t, 1, "Wrong token type!")
+                utils.hasPropsWithValues(result, ['tpc', 'e', 't', 'a']);
+                assert.strictEqual(result.t, 1, "Wrong token type!");
 
                 done();
             });
@@ -566,7 +564,7 @@ describe('REST API JSON Web Tokens', function () {
         });
 
         it('should create plugin token with custom expiration date', function (done) {
-            var expiration = "2018-01-01T00:00:00.000";
+            var expiration = "2218-01-01T00:00:00.000";
             utils.createAuth(path.JWT + '/plugin/create', {jwt: utils.jwt.admin,
                 data: {
                     tpc: payload.tpc,
@@ -659,19 +657,6 @@ describe('REST API JSON Web Tokens', function () {
             }, function (err) {
                 assert.strictEqual(!(!err), true, 'Error object created');
                 assert.strictEqual(err.error, 'Invalid token type');
-                assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
-                done();
-            });
-        });
-
-        it('should not refresh token with error plugin refresh token', function (done) {
-            utils.createAuth(path.JWT + '/refresh', {
-                data: {
-                    refreshToken: utils.jwt.plugin_refresh_invalid
-                }
-            }, function (err) {
-                assert.strictEqual(!(!err), true, 'Error object created');
-                assert.strictEqual(err.error, 'Plugin is not found');
                 assert.strictEqual(err.httpStatus, status.NOT_AUTHORIZED);
                 done();
             });

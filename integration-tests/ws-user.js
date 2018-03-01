@@ -13,12 +13,17 @@ describe('WebSocket API User', function () {
     var url = null;
     var token = null;
     var adminToken = null;
+    var noActionsToken = null;
     var user = null;
     var adminUser = null;
     var conn = null;
     var adminConn = null;
     var noTokenConn = null;
+    var noActionsConnection = null;
     var deviceId = utils.getName('ws-device-id');
+
+    var DEVICE_TYPE1 = utils.getName('ws-device-type-1');
+    var DEVICE_TYPE2 = utils.getName('ws-device-type-2');
 
     before(function (done) {
         function createUrl(callback) {
@@ -68,6 +73,11 @@ describe('WebSocket API User', function () {
             noTokenConn.connect(callback);
         }
 
+        function createNoActionsConnection(callback) {
+            noActionsConnection = new Websocket(url);
+            noActionsConnection.connect(callback);
+        }
+
         function createToken(callback) {
             var args = {
                 actions: [
@@ -78,9 +88,10 @@ describe('WebSocket API User', function () {
                     'ManageNetwork'
                 ],
                 deviceIds: deviceId,
-                networkIds: void 0
+                networkIds: void 0,
+                deviceTypeIds: void 0
             };
-            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceIds, function (err, result) {
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -99,13 +110,29 @@ describe('WebSocket API User', function () {
                     'ManageNetwork'
                 ],
                 deviceIds: deviceId,
-                networkIds: void 0
+                networkIds: void 0,
+                deviceTypeIds: void 0
             };
-            utils.jwt.create(adminUser.id, args.actions, args.networkIds, args.deviceIds, function (err, result) {
+            utils.jwt.create(adminUser.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
                 adminToken = result.accessToken;
+                callback()
+            })
+        }
+
+        function createNoActionsToken(callback) {
+            var args = {
+                actions: void 0,
+                networkIds: void 0,
+                deviceTypeIds: void 0
+            };
+            utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+                noActionsToken = result.accessToken;
                 callback()
             })
         }
@@ -128,21 +155,62 @@ describe('WebSocket API User', function () {
                 .send(callback);
         }
 
+        function authenticateNoActionsConnection(callback) {
+            noActionsConnection.params({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: noActionsToken
+            })
+                .send(callback);
+        }
+
         async.series([
             createUrl,
             createUser,
             createAdmin,
             createToken,
             createAdminToken,
+            createNoActionsToken,
             createConn,
             createAdminConn,
             createNoTokenConn,
+            createNoActionsConnection,
             authenticateConn,
-            authenticateAdminConn
+            authenticateAdminConn,
+            authenticateNoActionsConnection
         ], done);
     });
 
     describe('#Get All', function () {
+
+        it('should count all users', function (done) {
+            var requestId = getRequestId();
+
+            conn.params({
+                action: 'user/count',
+                requestId: requestId
+            })
+                .expect({
+                    action: 'user/count',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .assert(function (result) {
+                    assert.strictEqual(result.count > 0, true);
+                })
+                .send(done);
+        });
+
+        it('should fail with 403 on count all users', function (done) {
+            var requestId = getRequestId();
+
+            noActionsConnection.params({
+                action: 'user/count',
+                requestId: requestId
+            })
+                .expectError(status.FORBIDDEN)
+                .send(done)
+        });
 
         it('should return all users', function (done) {
             var requestId = getRequestId();
@@ -164,6 +232,25 @@ describe('WebSocket API User', function () {
                     return result.users.some(function (item) {
                         return item.id === user.id && item.login === user.login;
                     });
+                })
+                .send(done);
+        });
+
+        it('should count users by login', function (done) {
+            var requestId = getRequestId();
+
+            conn.params({
+                action: 'user/count',
+                requestId: requestId,
+                login: user.login
+            })
+                .expect({
+                    action: 'user/count',
+                    requestId: requestId,
+                    status: 'success'
+                })
+                .assert(function (result) {
+                    assert.equal(result.count, 1);
                 })
                 .send(done);
         });
@@ -1139,9 +1226,200 @@ describe('WebSocket API User', function () {
         });
     });
 
+    describe('#user/getDeviceTypes', function () {
+        var conn = null;
+        var deviceTypeId1 = null;
+        var deviceTypeId2 = null;
+        var userId1 = null;
+        var userId2 = null;
+        var userId3 = null;
+
+        before(function (done) {
+            function createDeviceType1(callback) {
+                var params = {
+                    jwt: utils.jwt.admin,
+                    data: { name: DEVICE_TYPE1 }
+                };
+
+                utils.create(path.DEVICE_TYPE, params, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    deviceTypeId1 = result.id;
+                    callback();
+                });
+            }
+
+            function createDeviceType2(callback) {
+                var params = {
+                    jwt: utils.jwt.admin,
+                    data: { name: DEVICE_TYPE2 }
+                };
+
+                utils.create(path.DEVICE_TYPE, params, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    deviceTypeId2 = result.id;
+                    callback();
+                });
+            }
+
+            function createUser1(callback) {
+                utils.createUser(utils.getName("current_admin_user"), utils.NEW_USER_PASSWORD, 0, 0, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    userId1 = result.id;
+                    callback();
+                })
+            }
+
+            function createUser2(callback) {
+                utils.createUser4(1, deviceTypeId2, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    userId2 = result.user.id;
+                    callback();
+                });
+            }
+
+            function createUser3(callback) {
+                utils.createAllDTAvailableUser(utils.getName("current_admin_user"), utils.NEW_USER_PASSWORD, 0, 0, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    userId3 = result.id;
+                    callback();
+                })
+            }
+
+            function createConn(callback) {
+                conn = new Websocket(url);
+                conn.connect(callback);
+            }
+
+            function createToken(callback) {
+                var args = {
+                    actions: [
+                        'GetDeviceType',
+                        'ManageDeviceType',
+                        'ManageUser'
+                    ],
+                    deviceTypeIds: [deviceTypeId1, deviceTypeId2]
+                };
+                utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    token = result.accessToken;
+                    callback()
+                })
+            }
+
+            function authenticateConn(callback) {
+                conn.params({
+                    action: 'authenticate',
+                    requestId: getRequestId(),
+                    token: token
+                })
+                    .send(callback);
+            }
+
+            async.series([
+                createDeviceType1,
+                createDeviceType2,
+                createUser1,
+                createUser2,
+                createUser3,
+                createToken,
+                createConn,
+                authenticateConn
+            ], done);
+        });
+
+        it('should not get any device types for user created with allDeviceTypesAvailable = false', function (done) {
+            var requestId = getRequestId();
+
+            conn.params({
+                action: 'user/getDeviceTypes',
+                userId: userId1,
+                requestId: requestId
+            })
+                .expect({
+                    action: 'user/getDeviceTypes',
+                    requestId: requestId,
+                    status: 'success',
+                    deviceTypes: []
+                })
+                .send(done);
+        });
+
+        it('should get only available device types for user', function (done) {
+            var requestId = getRequestId();
+
+            var expectedDeviceType2 = {
+                name: DEVICE_TYPE2,
+                id: deviceTypeId2,
+                description: null
+            };
+
+            conn.params({
+                action: 'user/getDeviceTypes',
+                userId: userId2,
+                requestId: requestId
+            })
+                .expect({
+                    action: 'user/getDeviceTypes',
+                    requestId: requestId,
+                    status: 'success',
+                    deviceTypes: [expectedDeviceType2]
+                })
+                .send(done);
+        });
+
+        it('should get all available device types for user created with default allDeviceTypesAvailable', function (done) {
+            var requestId = getRequestId();
+
+            conn.params({
+                action: 'user/getDeviceTypes',
+                userId: userId3,
+                requestId: requestId
+            })
+                .expectTrue(function (result) {
+                    return result.deviceTypes.length > 2;
+                })
+                .send(done);
+        });
+
+        it('should return error for invalid user id', function(done) {
+            var requestId = getRequestId();
+
+            conn.params({
+                action: 'user/getDeviceTypes',
+                requestId: requestId,
+                deviceTypeId: utils.NON_EXISTING_ID
+            })
+                .expectError(400, 'User id is wrong or empty')
+                .send(done);
+        });
+
+        after(function (done) {
+            conn.close();
+            utils.clearDataJWT(done);
+        });
+    });
+
     after(function (done) {
         adminConn.close();
         noTokenConn.close();
+        noActionsConnection.close();
         utils.clearDataJWT(done);
     });
 });

@@ -9,12 +9,13 @@ var path = {
     CURRENT_ACCESS_KEY: '/user/current/accesskey',
     JWT: '/token',
     NETWORK: '/network',
+    DEVICE_TYPE: '/devicetype',
     INFO: '/info',
     INFO_CACHE: '/info/cache',
     HEALTH: '/health',
     DEVICE: '/device',
     CONFIGURATION: '/configuration',
-    PLUGIN_REGISTER: '/plugin/register',
+    PLUGIN: '/plugin',
     NOTIFICATION: {
         get: function (deviceId) {
             return path.combine(path.DEVICE, deviceId, 'notification');
@@ -32,6 +33,7 @@ var path = {
         }
     },
     POLL: '/poll',
+    COUNT: '/count',
 
     get: function (path, id, query) {
 

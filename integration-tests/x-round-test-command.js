@@ -114,9 +114,9 @@ describe('Round tests for command', function () {
                     'UpdateDeviceCommand'
                 ],
                 networkIds: networkId,
-                deviceIds: deviceId
+                deviceTypeIds: [1]
             };
-            utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceIds,
+            utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds,
                 function (err, result) {
                     if (err) {
                         return callback(err);
@@ -211,7 +211,6 @@ describe('Round tests for command', function () {
 
                 var update = {
                     command: COMMAND,
-                    lifetime: 100500,
                     status: 'updated',
                     result: {done: 'yes'}
                 };
@@ -297,7 +296,6 @@ describe('Round tests for command', function () {
 
                 var update = {
                     command: COMMAND,
-                    lifetime: 100500,
                     status: 'updated',
                     result: {done: 'yes'}
                 };
@@ -305,7 +303,6 @@ describe('Round tests for command', function () {
                 utils.get(waitPath, {jwt: jwt}, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
                     assert.strictEqual(result.command, update.command);
-                    assert.strictEqual(result.lifetime, update.lifetime);
                     assert.strictEqual(result.status, update.status);
 
                     callback();
@@ -392,7 +389,6 @@ describe('Round tests for command', function () {
                 var cmnd = commands[0];
                 var update = {
                     command: COMMAND,
-                    lifetime: 100500,
                     status: 'updated',
                     result: {done: 'yes'}
                 };
@@ -479,7 +475,6 @@ describe('Round tests for command', function () {
 
                 var update = {
                     command: COMMAND,
-                    lifetime: 100500,
                     status: 'updated',
                     result: {done: 'yes'}
                 };
@@ -489,7 +484,6 @@ describe('Round tests for command', function () {
                         utils.get(waitPath, utils.core.clone(clientAuth), function (err, result) {
                             assert.strictEqual(!(!err), false, 'No error');
                             assert.strictEqual(result.command, update.command);
-                            assert.strictEqual(result.lifetime, update.lifetime);
                             assert.strictEqual(result.status, update.status);
 
                             cb();

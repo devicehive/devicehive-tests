@@ -25,6 +25,7 @@ describe('Round tests for notification', function () {
     };
     var deviceId = utils.getName('round-notif-device-id');
     var networkId = null;
+    var deviceTypeId = 1;
 
     var user = null;
     var jwt = null;
@@ -113,9 +114,9 @@ describe('Round tests for notification', function () {
                     'CreateDeviceNotification'
                 ],
                 networkIds: networkId,
-                deviceIds: deviceId
+                deviceTypeIds: [1]
             };
-            utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceIds,
+            utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds,
                 function (err, result) {
                     if (err) {
                         return callback(err);
@@ -333,6 +334,7 @@ describe('Round tests for notification', function () {
         function runTest(notification, done) {
 
             var expectedNotif = utils.core.clone(notification);
+            expectedNotif.deviceTypeId = deviceTypeId;
             expectedNotif.deviceId = deviceId;
             expectedNotif.networkId = networkId;
             

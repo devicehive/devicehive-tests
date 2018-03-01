@@ -50,9 +50,10 @@ describe('WebSocket API Configuration', function () {
                     'ManageConfiguration'
                 ],
                 deviceIds: void 0,
-                networkIds: void 0
+                networkIds: void 0,
+                deviceTypeIds: void 0
             };
-            utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceIds,
+            utils.jwt.create(utils.admin.id, args.actions, args.networkIds, args.deviceTypeIds,
                 function (err, result) {
                     if (err) {
                         return callback(err);
@@ -69,10 +70,11 @@ describe('WebSocket API Configuration', function () {
                     'GetNetwork'
                 ],
                 deviceIds: void 0,
-                networkIds: void 0
+                networkIds: void 0,
+                deviceTypeIds: void 0
             };
             
-            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceIds,
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds,
                 function (err, result) {
                     if (err) {
                         return callback(err);

@@ -24,6 +24,7 @@ describe('WebSocket API Subscription', function () {
     var clientInvalidToken = null;
 
     before(function (done) {
+
         function getWsUrl(callback) {
             req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
                 if (err) {
@@ -75,9 +76,10 @@ describe('WebSocket API Subscription', function () {
                     'GetDeviceNotification'
                 ],
                 deviceIds: ['*'],
-                networkIds: ['*']
+                networkIds: ['*'],
+                deviceTypeIds: ['*']
             };
-            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceIds, function (err, result) {
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -90,9 +92,10 @@ describe('WebSocket API Subscription', function () {
             var args = {
                 actions: [ 'GetNetwork' ],
                 deviceIds: [deviceId],
-                networkIds: [networkId]
+                networkIds: [networkId],
+                deviceTypeIds: ['*']
             };
-            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceIds, function (err, result) {
+            utils.jwt.create(user.id, args.actions, args.networkIds, args.deviceTypeIds, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -210,8 +213,8 @@ describe('WebSocket API Subscription', function () {
                         requestId: requestId
                     })
                     .assert(function (result) {
-                        assert.deepEqual(result.subscriptions[subscriptionId].deviceIds, [deviceId]);
-                        assert.equal(result.subscriptions[subscriptionId].eventName, "COMMAND_EVENT");
+                        assert.equal(result.subscriptions[0].subscriptionId, subscriptionId);
+                        assert.equal(result.subscriptions[0].type, "command");
                     })
                     .send(cleanUp);
 
@@ -260,8 +263,8 @@ describe('WebSocket API Subscription', function () {
                         requestId: requestId
                     })
                     .assert(function (result) {
-                        assert.deepEqual(result.subscriptions[subscriptionId].deviceIds, [deviceId]);
-                        assert.equal(result.subscriptions[subscriptionId].eventName, "NOTIFICATION_EVENT");
+                        assert.equal(result.subscriptions[0].subscriptionId, subscriptionId);
+                        assert.equal(result.subscriptions[0].type, "notification");
                     })
                     .send(cleanUp);
 
@@ -310,7 +313,7 @@ describe('WebSocket API Subscription', function () {
                         requestId: requestId
                     })
                     .assert(function (result) {
-                        assert.deepEqual(result.subscriptions, {}, "Subscriptions list should be empty");
+                        assert.deepEqual(result.subscriptions, [], "Subscriptions list should be empty");
                     })
                     .send(cleanUp);
 

@@ -41,17 +41,16 @@ var utils = {
     loggingOff: false,
 
     jwt: {
-        admin: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTU5MzQ3MjAwMDAwLCJ0IjoxfX0.pBjhmAQ31t5Y1AogEau8m8nCDjRCCndBLtQ3f6R-IBw',
-        admin_refresh: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTU5MzQ3MjAwMDAwLCJ0IjowfX0.ocTz-0FY_I0QY3TqIqyCBKBNX4xN-N7IdHWqUY865Hw',
-        admin_refresh_exp: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNDY0NzkzMjkwNTY0LCJ0IjowfX0.njLWzNksQ29hwT0hvxZVxQY0MQA5JHrZHPv6x6YEaqI',
+        admin: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImR0IjpbIioiXSwiZSI6MTU1OTM0NzIwMDAwMCwidCI6MX19.0i1MaUBtgfDPG4_cvSjEVO11FZy7o_L_6uRCR5NR3v4',
+        admin_refresh: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImR0IjpbIioiXSwiZSI6MTU1OTM0NzIwMDAwMCwidCI6MH19.FhgGiIFMl7PSiaHMXGFlJTMKUyjA_JXjU_Qk2pjGna4',
+        admin_refresh_exp: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImR0IjpbIioiXSwiZSI6MTQ2NDc5MzI5MDU2NCwidCI6MH19.NdKR2zLvBeMuvGEDf4BC7a8YxqdvdKjnqIKdFn2KpJU',
         admin_refresh_invalid: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTE0NzY0ODAwMDAwLCJ0IjoxfX0.dkA2H1MGmJHdAT382tqt-xhcmwwlTimGwnabS5HdfJc',
-        plugin_refresh_invalid: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InRwYyI6Im5vX3RvcGljIiwiZSI6MTUxNDc2NDgwMDAwMCwidCI6MH19.xEza6bwewFj5pAwRa0tujlg-xKbnCPHfUQWEAnsb0vw',
         admin_refresh_invalid_signature: 'eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTU5MzQ3MjAwMDAwLCJ0IjowfX0.lo2T-wbXe1J9DvVyxJtFkNlo76uH_kSVwVY-FxLZRkk',
         createMany: function (params, done) {
             var paramsCopy = params.slice(0);
             function createJWT(callback) {
                 var p = paramsCopy.shift();
-                utils.jwt.create(p.user.id, p.actions, p.networkIds, p.deviceIds,
+                utils.jwt.create(p.user.id, p.actions, p.networkIds, p.deviceTypeIds,
                     function (err, result) {
                         if (err) {
                             callback(err);
@@ -73,7 +72,7 @@ var utils = {
             var paramsCopy = params.slice(0);
             function createJWT(callback) {
                 var p = paramsCopy.shift();
-                utils.jwt.create(p.user.id, p.actions, p.networkIds, p.deviceIds,
+                utils.jwt.create(p.user.id, p.actions, p.networkIds, p.deviceTypeIds,
                     function (err, result) {
                         if (err) {
                             callback(err);
@@ -91,7 +90,7 @@ var utils = {
             async.series(callbacks, done);
         },
 
-        create: function (userId, actions, networkIds, deviceIds, callback) {
+        create: function (userId, actions, networkIds, deviceTypeIds, callback) {
 
             if (actions && !Array.isArray(actions)) {
                 actions = [actions];
@@ -101,14 +100,14 @@ var utils = {
                 networkIds = [networkIds];
             }
 
-            if (deviceIds && !Array.isArray(deviceIds)) {
-                deviceIds = [deviceIds];
+            if (deviceTypeIds && !Array.isArray(deviceTypeIds)) {
+                deviceTypeIds = [deviceTypeIds];
             }
 
             var expDate = new Date();
             expDate.setFullYear(expDate.getFullYear() + 10);
 
-            utils.createAuth(path.JWT + '/create', {jwt: utils.jwt.admin, data: {userId: userId, actions: actions, networkIds: networkIds, deviceIds: deviceIds, expiration: expDate }}, callback);
+            utils.createAuth(path.JWT + '/create', {jwt: utils.jwt.admin, data: {userId: userId, actions: actions, networkIds: networkIds, deviceTypeIds: deviceTypeIds, expiration: expDate }}, callback);
         }
     },
     
@@ -128,7 +127,9 @@ var utils = {
         ManageUser: 12,
         ManageConfiguration: 13,
         ManageNetwork: 14,
-        ManageToken: 15
+        ManageToken: 15,
+        GetDeviceType: 16,
+        ManageDeviceType: 17
     },
 
     device: {
@@ -238,6 +239,34 @@ var utils = {
             });
     },
 
+    updatePlugin: function ($path, params, cb) {
+        new Http(this.pluginUrl, path.get($path, null, params.query), this.loggingOff)
+            .put(params, function (err, result, xhr) {
+                if (err) {
+                    err.httpStatus = xhr.status;
+                    return cb(err);
+                }
+
+                assert.strictEqual(xhr.status, status.EXPECTED_UPDATED);
+
+                cb(null, result);
+            });
+    },
+
+    deletePlugin: function ($path, params, cb) {
+        new Http(this.pluginUrl, path.get($path, params.id, params.query), this.loggingOff)
+            .delete(params, function (err, result, xhr) {
+                if (err) {
+                    err.httpStatus = xhr.status;
+                    return cb(err);
+                }
+
+                assert.strictEqual(xhr.status, status.EXPECTED_DELETED);
+
+                cb(null);
+            });
+    },
+
     get: function ($path, params, cb, responseStatus) {
         if(!responseStatus){responseStatus = status.EXPECTED_READ}
         new Http(this.url, path.get($path, params.id, params.query), this.loggingOff)
@@ -253,9 +282,39 @@ var utils = {
             });
     },
 
+    getFullPath: function (fullUrl, $path, params, cb, responseStatus) {
+        if(!responseStatus){responseStatus = status.EXPECTED_READ}
+        new Http(fullUrl, path.get($path, params.id, params.query), this.loggingOff)
+            .get(params, function (err, result, xhr) {
+                if (err) {
+                    err.httpStatus = xhr.status;
+                    return cb(err);
+                }
+
+                assert.strictEqual(xhr.status, responseStatus);
+
+                cb(null, result);
+            });
+    },
+
     getAuth: function ($path, params, cb, responseStatus) {
         if(!responseStatus){responseStatus = status.EXPECTED_READ}
         new Http(getParam("authRestUrl"), path.get($path, params.id, params.query), this.loggingOff)
+            .get(params, function (err, result, xhr) {
+                if (err) {
+                    err.httpStatus = xhr.status;
+                    return cb(err);
+                }
+
+                assert.strictEqual(xhr.status, responseStatus);
+
+                cb(null, result);
+            });
+    },
+
+    getPlugin: function ($path, params, cb, responseStatus) {
+        if(!responseStatus){responseStatus = status.EXPECTED_READ}
+        new Http(getParam("pluginRestUrl"), path.get($path, params.id, params.query), this.loggingOff)
             .get(params, function (err, result, xhr) {
                 if (err) {
                     err.httpStatus = xhr.status;
@@ -316,6 +375,20 @@ var utils = {
             });
     },
 
+    deleteFullPath: function (fullUrl, $path, params, cb) {
+        new Http(fullUrl, path.get($path, params.id, params.query), this.loggingOff)
+            .delete(params, function (err, result, xhr) {
+                if (err) {
+                    err.httpStatus = xhr.status;
+                    return cb(err);
+                }
+
+                assert.strictEqual(xhr.status, status.EXPECTED_DELETED);
+
+                cb(null);
+            });
+    },
+
     createUser: function (login, password, role, status, callback) {
 
         var params = {
@@ -324,7 +397,8 @@ var utils = {
                 login: login,
                 password: password,
                 role: role,
-                status: status
+                status: status,
+                allDeviceTypesAvailable: false
             }
         };
 
@@ -343,6 +417,24 @@ var utils = {
                 role: role,
                 status: status,
                 introReviewed: true
+            }
+        };
+
+        this.create(path.USER, params, function (err, result) {
+            callback(err, result)
+        });
+    },
+
+    createAllDTAvailableUser: function (login, password, role, status, callback) {
+
+        var params = {
+            jwt: this.jwt.admin,
+            data: {
+                login: login,
+                password: password,
+                role: role,
+                status: status,
+                allDeviceTypesAvailable: true
             }
         };
 
@@ -374,7 +466,7 @@ var utils = {
             networkIds = [networkIds];
         }
 
-        this.createUser(user.login, user.password, role, 0, function (err, result) {
+        this.createAllDTAvailableUser(user.login, user.password, role, 0, function (err, result) {
             if (err) {
                 return callback(err);
             }
@@ -446,6 +538,50 @@ var utils = {
         });
     },
 
+    createUser4: function (role, deviceTypeIds, callback) {
+
+        var self = this;
+
+        var user = {
+            login: this.getName('user'),
+            password: this.NEW_USER_PASSWORD
+        };
+
+        deviceTypeIds || (deviceTypeIds = []);
+        if (!Array.isArray(deviceTypeIds)) {
+            deviceTypeIds = [deviceTypeIds];
+        }
+
+        this.createUser(user.login, user.password, role, 0, function (err, result) {
+            if (err) {
+                return callback(err);
+            }
+
+            user.id = result.id;
+            async.eachSeries(deviceTypeIds,
+                function (deviceTypeId, cb) {
+                    var params = { jwt: self.jwt.admin };
+                    var $path = path.combine(path.USER, user.id, path.DEVICE_TYPE, deviceTypeId);
+                    new Http(self.url, $path)
+                        .put(params, function (err, result, xhr) {
+                            if (err) {
+                                return cb(err);
+                            }
+
+                            assert.strictEqual(xhr.status, status.EXPECTED_UPDATED);
+                            cb();
+                        })
+                },
+                function (err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    callback(null, {user: user});
+                })
+        });
+    },
+
     clearData: function (done) {
 
         var self = this;
@@ -499,8 +635,8 @@ var utils = {
     clearDataJWT: function (done) {
 
         var self = this;
-        function clearEntities(path, name, callback) {
-            utils.get(path, {jwt: utils.jwt.admin}, function (err, result) {
+        function clearEntities(fullUrl, pathCurrent, name, callback) {
+            utils.getFullPath(fullUrl, pathCurrent, {jwt: utils.jwt.admin}, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -510,28 +646,51 @@ var utils = {
                         return cb();
                     }
 
-                    utils.delete(path, {jwt: utils.jwt.admin, id: item.id}, cb);
+                    if (fullUrl === utils.pluginUrl) {
+                        var params = {
+                            jwt: utils.jwt.admin
+                        };
+                        params.query = path.query(
+                            'topicName', item.topicName
+                        );
+                        utils.deletePlugin(pathCurrent, params, cb);
+                    } else {
+                        utils.deleteFullPath(fullUrl, pathCurrent, {jwt: utils.jwt.admin, id: item.id}, cb);
+                    }
                 }, callback)
             });
         }
 
         function clearUsers(callback) {
-            clearEntities(path.USER, 'login', callback);
+            clearEntities(utils.url, path.USER, 'login', callback);
         }
 
         function clearDevices(callback) {
-            clearEntities(path.DEVICE, 'name', callback);
+            clearEntities(utils.url, path.DEVICE, 'name', callback);
         }
 
         function clearNetworks(callback) {
-            clearEntities(path.NETWORK, 'name', callback);
+            clearEntities(utils.url, path.NETWORK, 'name', callback);
+        }
+
+        function clearDeviceTypes(callback) {
+            clearEntities(utils.url, path.DEVICE_TYPE, 'name', callback);
+        }
+
+        function clearPlugins(callback) {
+            if (!utils.pluginUrl) {
+                return callback();
+            }
+            clearEntities(utils.pluginUrl, path.PLUGIN, 'name', callback);
         }
 
         self.loggingOff = true;
         async.series([
             clearUsers,
             clearDevices,
-            clearNetworks
+            clearNetworks,
+            clearDeviceTypes,
+            clearPlugins
         ], function (err) {
             if (err) {
                 done(err);
