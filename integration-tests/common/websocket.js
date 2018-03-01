@@ -102,21 +102,28 @@ Websocket.prototype = {
         }, 10000);
     },
 
-    waitFor: function (action, timeout, callback) {
+    waitFor: function (action, callback, typeAction, timeout) {
 
-        if (typeof (timeout) === 'function') {
-            callback = timeout;
-            timeout = null;
+        if ( typeof typeAction === 'number'){
+            timeout = typeAction;
+            typeAction = null;
         }
+
+        var waitFor = {};
+
+        if (typeAction) {
+            waitFor[typeAction] = action;
+        } else {
+            waitFor.action = action;
+        }
+
+        waitFor.callback = callback;
 
         timeout || (timeout = utils.WEBSOCKET_TIMEOUT);
 
         var self = this;
         this.context = {
-            waitFor: {
-                action: action,
-                callback: callback
-            },
+            waitFor: waitFor,
             assertions: [],
             expectations: [],
             trueExpectations: [],
@@ -140,7 +147,7 @@ Websocket.prototype = {
         var data = JSON.parse(message.data);
         var done = this.context.done;
 
-        if (this.context.waitFor){
+        if (this.context.waitFor) {
             if (this.context.waitFor.action === data.action) {
                 if (this.waitTimeoutId) {
                     clearTimeout(this.waitTimeoutId);
