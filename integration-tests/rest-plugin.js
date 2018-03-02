@@ -417,524 +417,67 @@ describe('REST API Plugin', function () {
         });
     });
 
-    describe.only('#Plugin Subscription Device', function () {
+    //fix command_update subscriptions
+    //sometimes it fails due to incoming message, which includes Updated: false
+    //also add deep equality
+    describe.only('#Plugin Subscription block', function () {
 
-        var DEVICE = utils.getName('device');
-        var DEVICE_ID = utils.getName('device-id');
-        var NOTIFICATION = utils.getName('ws-notification');
-        var COMMAND = utils.getName('ws-command');
-        var PLUGIN = utils.getName('plugin');
-        var pluginCreds;
-        var testPlugin;
-        var conn = null;
-
-        before(function (done) {
-            if (!utils.pluginUrl) {
-                this.skip();
-            }
-
-            function createDevice(callback) {
-                var params = utils.device.getParamsObj(DEVICE, utils.jwt.admin,
-                    networkId, { name: DEVICE, version: '1' });
-                params.id = DEVICE_ID;
-                utils.update(path.DEVICE, params, function (err) {
-                    callback(err);
-                });
-            }
-
-            function createPlugin(callback) {
-
-                var params = {
-                    jwt: utils.jwt.admin,
-                    data: {
-                        name: PLUGIN,
-                        description: description,
-                        parameters: {
-                            jsonString: paramObject
-                        }
-                    }
-                };
-
-                params.query = path.query(
-                    'returnCommands', true,
-                    'returnUpdatedCommands', true,
-                    'returnNotifications', true
-                );
-
-                utils.createPlugin(path.current, params, function (err, result) {
-                    pluginCreds = result;
-                    utils.getPlugin(path.PLUGIN, params, function (err, result) {
-                        testPlugin = result[0];
-                        callback();
-                    });
-
-                })
-            }
-
-            function updatePlugin(callback) {
-                var params = {
-                    jwt: utils.jwt.admin
-                };
-
-                params.query = path.query(
-                    'topicName', pluginCreds.topicName,
-                    'status', ACTIVE_STATUS
-                );
-
-                utils.updatePlugin(path.current, params, function (err, result) {
-                    assert.strictEqual(!(!err), false, 'No error');
-
-                    params.query = path.query(
-                        'topicName', pluginCreds.topicName
-                    );
-
-                    utils.getPlugin(path.current, params, function (err, result) {
-                        testPlugin = result[0];
-                        callback();
-                    });
-                })
-            }
-
-            function getWsUrl(callback) {
-                url = pluginCreds.proxyEndpoint;
-                callback();
-            }
-
-            function createConn(callback) {
-                conn = new Websocket(url);
-                conn.connect(callback);
-            }
-
-            function authenticateConn(callback) {
-                conn.params({
-                    t: 'plugin',
-                    a: 'authenticate',
-                    p: {
-                        token: pluginCreds.accessToken
-                    }
-                })
-                    .send(callback);
-            }
-
-            async.series([
-                createDevice,
-                createPlugin,
-                updatePlugin,
-                getWsUrl,
-                createConn,
-                authenticateConn
-            ], done);
-        });
-
-        // block receving from all devices
-
-        //add deep equality with commands through JSON.parse
-        function runTest(client, done) {
-
-            var requestId = getRequestId();
-            var subscriptionId = null;
-            client.params({
-                t: 'topic',
-                a: 'subscribe',
-                p: {
-                    sg: "",
-                    t: [pluginCreds.topicName]
-                }
-            })
-                .send(onSubscribed);
-
-            function onSubscribed(err, result) {
-                if (err) {
-                    return done(err);
-                }
-
-                subscriptionId = result.subscriptionId;
-                client.waitFor('notif', cleanUp, 't')
-                    .expect({
-                        t: 'notif',
-                        s: 0
-                    });
-
-                req.create(path.NOTIFICATION.get(DEVICE_ID))
-                    .params({
-                        jwt: utils.jwt.admin,
-                        data: { notification: NOTIFICATION }
-                    })
-                    .send();
-
-                function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
-
-                    client.params({
-                        a: 'unsubscribe',
-                        t: 'topic',
-                        p: {
-                            t: [pluginCreds.topicName]
-                        }
-                    })
-                        .expect({
-                            t: 'topic',
-                            s: 0,
-                            a: 'unsubscribe'
-                        })
-                        .send(done);
-                }
-            }
-        }
-
-        function runTestCommand(client, done) {
-            var requestId = getRequestId();
-            var subscriptionId = null;
-            client.params({
-                t: 'topic',
-                a: 'subscribe',
-                p: {
-                    sg: "",
-                    t: [pluginCreds.topicName]
-                }
-            })
-                .send(onSubscribed);
-
-            function onSubscribed(err, result) {
-                if (err) {
-                    return done(err);
-                }
-
-                subscriptionId = result.subscriptionId;
-                client.waitFor('notif', cleanUp, 't')
-                    .expect({
-                        t: 'notif',
-                        s: 0
-                    });
-
-                req.create(path.COMMAND.get(DEVICE_ID))
-                    .params({
-                        jwt: utils.jwt.admin,
-                        data: { command: COMMAND }
-                    })
-                    .send();
-
-                function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
-
-                    client.params({
-                        a: 'unsubscribe',
-                        t: 'topic',
-                        p: {
-                            t: [pluginCreds.topicName]
-                        }
-                    })
-                        .expect({
-                            t: 'topic',
-                            s: 0,
-                            a: 'unsubscribe'
-                        })
-                        .send(done);
-                }
-            }
-        }
-
-        function runTestCommandUpdate(client, done) {
-            var requestId = getRequestId();
-            var subscriptionId = null;
-            client.params({
-                t: 'topic',
-                a: 'subscribe',
-                p: {
-                    sg: "",
-                    t: [pluginCreds.topicName]
-                }
-            })
-                .send(onSubscribed);
-
-            function onSubscribed(err, result) {
-                if (err) {
-                    return done(err);
-                }
-
-                subscriptionId = result.subscriptionId;
-                client.waitFor('notif', waitCommandUpdate, 't')
-                    .expect({
-                        t: 'notif',
-                        s: 0
-                    });
-
-                req.create(path.COMMAND.get(DEVICE_ID))
-                    .params({
-                        jwt: utils.jwt.admin,
-                        data: { command: COMMAND }
-                    })
-                    .send(function (err, result) {
-                        if (err) {
-                            return done(err);
-                        }
-
-                        req.update(path.combine(path.COMMAND.get(DEVICE_ID), result.id))
-                            .params({
-                                jwt: utils.jwt.admin,
-                                data: { command: COMMAND }
-                            }).send();
-                    });
-
-                function waitCommandUpdate(err) {
-                    if (err) {
-                        return done(err);
-                    }
-                    client.waitFor('notif', checkAnswer, 't')
-                        .expect({
-                            t: 'notif',
-                            s: 0,
-                            p: {
-                                m: {
-                                }
-                            }
-                        });
-                }
-                function checkAnswer(err, data) {
-                    if (err) {
-                        done(err);
-                    }
-                    var message = JSON.parse(data.p.m);
-                    assert(message.b.command.isUpdated, 'Command wasn\'t updated');
-
-                    cleanUp();
-                }
-
-                function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
-
-                    client.params({
-                        a: 'unsubscribe',
-                        t: 'topic',
-                        p: {
-                            t: [pluginCreds.topicName]
-                        }
-                    })
-                        .expect({
-                            t: 'topic',
-                            s: 0,
-                            a: 'unsubscribe'
-                        })
-                        .send(done);
-                }
-            }
-        }
-
-        it('should receive notification from device', function (done) {
-            runTest(conn, done);
-        });
-
-        it('should receive command notification', function (done) {
-            runTestCommand(conn, done);
-        });
-
-        it('should receive command_update notification', function (done) {
-            runTestCommandUpdate(conn, done)
-        });
-
-    });
-
-    describe.only('#Plugin Subscription DeviceType', function () {
-        var DEVICE = utils.getName('device');
-        var DEVICE_ID = utils.getName('device-id');
-        var DEVICE_TYPE_ID = 2;
-
-        var DEVICE_1 = utils.getName('device');
-        var DEVICE_ID_1 = utils.getName('device');
-        var DEVICE_TYPE_ID_1 = 1;
-
-        var NOTIFICATION = utils.getName('ws-notification');
-        var PLUGIN = utils.getName('plugin');
-        var COMMAND = utils.getName('ws-command');
-        var pluginCreds;
-        var testPlugin;
-        var conn = null;
-
-        function createNotification(deviceId, callback) {
+        function createNotification(notification, deviceId, callback) {
             req.create(path.NOTIFICATION.get(deviceId))
                 .params({
                     jwt: utils.jwt.admin,
-                    data: { notification: NOTIFICATION }
+                    data: { notification: notification }
                 })
                 .send(callback);
         }
 
-        function createCommand(deviceId, callback) {
+        function createCommand(command, deviceId, callback) {
             req.create(path.COMMAND.get(deviceId))
                 .params({
                     jwt: utils.jwt.admin,
-                    data: { command: COMMAND }
+                    data: { command: command }
                 })
                 .send(callback);
         }
 
-        function updateCommand(deviceId, commandId, callback) {
+        function updateCommand(commandUpdate, commandId, deviceId, callback) {
             req.update(path.combine(path.COMMAND.get(deviceId), commandId))
                 .params({
                     jwt: utils.jwt.admin,
-                    data: { command: COMMAND }
+                    data: { command: commandUpdate }
                 }).send(callback);
         }
 
-
-
-        before(function (done) {
-            if (!utils.pluginUrl) {
-                this.skip();
-            }
-
-            function createDevice(callback) {
-                var params = utils.device.getParamsObj(DEVICE, utils.jwt.admin,
-                    networkId, {
-                        name: DEVICE,
-                        version: '1'
-                    });
-                params.id = DEVICE_ID;
-                //adding device_type
-                params.data.deviceTypeId = DEVICE_TYPE_ID;
-                utils.update(path.DEVICE, params, function (err) {
-                    var params = { jwt: utils.jwt.admin };
-                    params.query = path.query('name', DEVICE);
-                    utils.get(path.DEVICE, params, function (err, result) {
-
-                        console.log(result);
-
-                        callback(err);
-                    })
-
-
-                });
-            }
-
-            function createDevice1(callback) {
-                var params = utils.device.getParamsObj(DEVICE_1, utils.jwt.admin,
-                    networkId, {
-                        name: DEVICE_1,
-                        version: '1'
-                    });
-                params.id = DEVICE_ID_1;
-                //adding device_type
-                params.data.deviceTypeId = DEVICE_TYPE_ID_1;
-                utils.update(path.DEVICE, params, function (err) {
-                    var params = { jwt: utils.jwt.admin };
-                    params.query = path.query('name', DEVICE_1);
-                    utils.get(path.DEVICE, params, function (err, result) {
-
-                        console.log(result);
-
-                        callback(err);
-                    })
-
-
-                });
-            }
-
-            function createPlugin(callback) {
-
-                var params = {
-                    jwt: utils.jwt.admin,
-                    data: {
-                        name: PLUGIN,
-                        description: description,
-                        parameters: {
-                            jsonString: paramObject
-                        }
-                    }
-                };
-
-                params.query = path.query(
-                    'deviceTypeIds', DEVICE_TYPE_ID,
-                    'returnCommands', true,
-                    'returnUpdatedCommands', true,
-                    'returnNotifications', true
-                );
-
-                utils.createPlugin(path.current, params, function (err, result) {
-                    pluginCreds = result;
-                    utils.getPlugin(path.PLUGIN, params, function (err, result) {
-                        testPlugin = result[0];
-                        callback();
-                    });
-
-                })
-            }
-
-            function updatePlugin(callback) {
-                var params = {
-                    jwt: utils.jwt.admin
-                };
-
-                params.query = path.query(
-                    'topicName', pluginCreds.topicName,
-                    'status', ACTIVE_STATUS
-                );
-
-                utils.updatePlugin(path.current, params, function (err, result) {
-                    assert.strictEqual(!(!err), false, 'No error');
-
-                    params.query = path.query(
-                        'topicName', pluginCreds.topicName
-                    );
-
-                    utils.getPlugin(path.current, params, function (err, result) {
-                        testPlugin = result[0];
-                        callback();
-                    });
-                })
-            }
-
-            function getWsUrl(callback) {
-                url = pluginCreds.proxyEndpoint;
-                callback();
-            }
-
-            function createConn(callback) {
-                conn = new Websocket(url);
-                conn.connect(callback);
-            }
-
-            function authenticateConn(callback) {
-                conn.params({
-                    t: 'plugin',
-                    a: 'authenticate',
-                    p: {
-                        token: pluginCreds.accessToken
-                    }
-                })
-                    .send(callback);
-            }
-
-            async.series([
-                createDevice,
-                createDevice1,
-                createPlugin,
-                updatePlugin,
-                getWsUrl,
-                createConn,
-                authenticateConn
-            ], done);
-        });
-
-        // block receving from all devices
-        //edit checkAnswer
-        //add possibility to change type (command/command_update/notification)???
-        //add deep equality with commands through JSON.parse
-        function runTest(client, done) {
+        function subscribe(client, topic, callback) {
             client.params({
                 t: 'topic',
                 a: 'subscribe',
                 p: {
                     sg: "",
-                    t: [pluginCreds.topicName]
+                    t: [topic]
                 }
             })
-                .send(onSubscribed);
+                .send(callback);
+        }
+
+        function unsubscribe(client, topic, callback) {
+            client.params({
+                a: 'unsubscribe',
+                t: 'topic',
+                p: {
+                    t: [topic]
+                }
+            })
+                .expect({
+                    t: 'topic',
+                    s: 0,
+                    a: 'unsubscribe'
+                })
+                .send(callback);
+        }
+
+        function runTest(client, topic, deviceId, notification, done) {
+            subscribe(client, topic, onSubscribed);
 
             function onSubscribed(err, result) {
                 if (err) {
@@ -945,130 +488,66 @@ describe('REST API Plugin', function () {
                         t: 'notif',
                         s: 0
                     });
-                // creating notification with wrong device_type firstly
-                createNotification(DEVICE_ID_1, function () {
-                    createNotification(DEVICE_ID);
-                });
+                createNotification(notification, deviceId);
 
                 function cleanUp(err) {
                     if (err) {
-                        return done(err);
+                        done(err);
                     }
-
-                    client.params({
-                        a: 'unsubscribe',
-                        t: 'topic',
-                        p: {
-                            t: [pluginCreds.topicName]
-                        }
-                    })
-                        .expect({
-                            t: 'topic',
-                            s: 0,
-                            a: 'unsubscribe'
-                        })
-                        .send(done);
+                    unsubscribe(client, topic, done);
                 }
             }
         }
 
-        function runTestCommand(client, done) {
-            var requestId = getRequestId();
-            var subscriptionId = null;
-            client.params({
-                t: 'topic',
-                a: 'subscribe',
-                p: {
-                    sg: "",
-                    t: [pluginCreds.topicName]
-                }
-            })
-                .send(onSubscribed);
+        function runTestCommand(client, topic, deviceId, command, done) {
+            subscribe(client, topic, onSubscribed);
 
             function onSubscribed(err, result) {
                 if (err) {
                     return done(err);
                 }
 
-                subscriptionId = result.subscriptionId;
                 client.waitFor('notif', cleanUp, 't')
                     .expect({
                         t: 'notif',
                         s: 0
                     });
 
-                createCommand(DEVICE_ID_1, function () {
-                    createCommand(DEVICE_ID);
-                });
+                createCommand(command, deviceId);
 
                 function cleanUp(err) {
                     if (err) {
-                        return done(err);
+                        done(err);
                     }
-
-                    client.params({
-                        a: 'unsubscribe',
-                        t: 'topic',
-                        p: {
-                            t: [pluginCreds.topicName]
-                        }
-                    })
-                        .expect({
-                            t: 'topic',
-                            s: 0,
-                            a: 'unsubscribe'
-                        })
-                        .send(done);
+                    unsubscribe(client, topic, done);
                 }
             }
         }
 
-
-        function runTestCommandUpdate(client, done) {
-            var requestId = getRequestId();
-            var subscriptionId = null;
-            client.params({
-                t: 'topic',
-                a: 'subscribe',
-                p: {
-                    sg: "",
-                    t: [pluginCreds.topicName]
-                }
-            })
-                .send(onSubscribed);
+        function runTestCommandUpdate(client, topic, deviceId, command, done) {
+            subscribe(client, topic, onSubscribed);
 
             function onSubscribed(err, result) {
                 if (err) {
                     return done(err);
                 }
-
-                var commandId, commandId_1;
-
-                subscriptionId = result.subscriptionId;
-                client.waitFor('notif', waitCommandUpdate, 't')
-                    .expect({
-                        t: 'notif',
-                        s: 0
-                    });
-
-                createCommand(DEVICE_ID_1, function (err, result) {
-                    commandId_1 = result.id;
-                    createCommand(DEVICE_ID, waitCommandUpdate);
-                });
-
+                // client.waitFor('notif', waitCommandUpdate, 't')
+                // .expect({
+                //     t: 'notif',
+                //     s: 0
+                // });
+                createCommand(command, deviceId, waitCommandUpdate);
                 function waitCommandUpdate(err, result) {
                     if (err) {
                         return done(err);
                     }
-                    commandId = result.id;
+                    var commandId = result.id;
                     client.waitFor('notif', checkAnswer, 't')
                         .expect({
                             t: 'notif',
                             s: 0
                         });
-                    updateCommand(DEVICE_ID_1, commandId_1, function () {
-                        updateCommand(DEVICE_ID, commandId);
-                    });
+                    updateCommand(command, commandId, deviceId);
                 }
                 function checkAnswer(err, data) {
                     if (err) {
@@ -1085,167 +564,607 @@ describe('REST API Plugin', function () {
                         return done(err);
                     }
 
-                    client.params({
-                        a: 'unsubscribe',
-                        t: 'topic',
-                        p: {
-                            t: [pluginCreds.topicName]
-                        }
-                    })
-                        .expect({
-                            t: 'topic',
-                            s: 0,
-                            a: 'unsubscribe'
-                        })
-                        .send(done);
+                    unsubscribe(client, topic, done);
                 }
             }
         }
 
-        it('should receive notification from device with specified device_type', function (done) {
-            runTest(conn, done);
-        });
+        function runFailTest(client, topic, deviceId, notification, done) {
+            subscribe(client, topic, onSubscribed);
 
-        it('should receive command notification with specified device_type', function (done) {
-            runTestCommand(conn, done);
-        });
+            function onSubscribed(err, result) {
+                if (err) {
+                    return done(err);
+                }
+                client.waitFor('notif', cleanUp, 't', 2500)
+                    .expect({
+                        t: 'notif',
+                        s: 0
+                    });
+                createNotification(notification, deviceId);
 
-        //this does not work, it seems that platform sends response 2 times
-        it.skip('should receive command_update notification with specified device_type', function (done) {
-            runTestCommandUpdate(conn, done)
-        });
-
-    });
-
-    describe('#Plugin Subscription Network', function () {
-        before(function (done) {
-            if (!utils.pluginUrl) {
-                this.skip();
+                function cleanUp(err) {
+                    assert(err, 'Timeout error should be fired');
+                    unsubscribe(client, topic, done);
+                }
             }
+        }
 
-            function createPlugin(callback) {
+        function runFailTestCommand(client, topic, deviceId, command, done) {
+            subscribe(client, topic, onSubscribed);
 
-                var params = {
-                    jwt: utils.jwt.admin,
-                    data: {
-                        name: PLUGIN3,
-                        description: description,
-                        parameters: {
-                            jsonString: paramObject
-                        }
+            function onSubscribed(err, result) {
+                if (err) {
+                    return done(err);
+                }
+                client.waitFor('notif', cleanUp, 't', 2500)
+                    .expect({
+                        t: 'notif',
+                        s: 0
+                    });
+                createCommand(command, deviceId);
+
+                function cleanUp(err) {
+                    assert(err, 'Timeout error should be fired');
+                    unsubscribe(client, topic, done);
+                }
+            }
+        }
+
+        function runFailTestCommandUpdate(client, topic, deviceId, command, done) {
+            subscribe(client, topic, onSubscribed);
+
+            function onSubscribed(err, result) {
+                if (err) {
+                    return done(err);
+                }
+                // client.waitFor('notif', waitCommandUpdate, 't')
+                //     .expect({
+                //         t: 'notif',
+                //         s: 0
+                //     });
+                createCommand(command, deviceId,waitCommandUpdate);
+                function waitCommandUpdate(err, result) {
+                    if (err) {
+                        return done(err);
                     }
-                };
+                    var commandId = result.id;
+                    client.waitFor('notif', cleanUp, 't', 2500)
+                        .expect({
+                            t: 'notif',
+                            s: 0
+                        });
+                    updateCommand(command, commandId, deviceId);
+                }
 
-                params.query = path.query(
-                    'deviceId', DEVICE_ID,
-                    'networkIds', networkId,
-                    'names', '',
-                    'returnCommands', true,
-                    'returnUpdatedCommands', true,
-                    'returnNotifications', true
-                );
+                function cleanUp(err) {
+                    assert(err, 'Timeout error should be thrown');
 
-                utils.createPlugin(path.current, params, function (err, result) {
-                    pluginTopicName = result.topicName;
-
-                    callback();
-                })
+                    unsubscribe(client, topic, done);
+                }
             }
+        }
 
-            async.series([
-                createPlugin
-            ], done);
+        describe('##Plugin Subscription Device', function () {
+
+            var DEVICE = utils.getName('device');
+            var DEVICE_ID = utils.getName('device-id');
+            var NOTIFICATION = utils.getName('ws-notification');
+            var COMMAND = utils.getName('ws-command');
+            var PLUGIN = utils.getName('plugin');
+            var pluginCreds;
+            var testPlugin;
+            var conn = null;
+
+            before(function (done) {
+                if (!utils.pluginUrl) {
+                    this.skip();
+                }
+
+                function createDevice(callback) {
+                    var params = utils.device.getParamsObj(DEVICE, utils.jwt.admin,
+                        networkId, { name: DEVICE, version: '1' });
+                    params.id = DEVICE_ID;
+                    utils.update(path.DEVICE, params, function (err) {
+                        callback(err);
+                    });
+                }
+
+                function createPlugin(callback) {
+
+                    var params = {
+                        jwt: utils.jwt.admin,
+                        data: {
+                            name: PLUGIN,
+                            description: description,
+                            parameters: {
+                                jsonString: paramObject
+                            }
+                        }
+                    };
+
+                    params.query = path.query(
+                        'returnCommands', true,
+                        'returnUpdatedCommands', true,
+                        'returnNotifications', true
+                    );
+
+                    utils.createPlugin(path.current, params, function (err, result) {
+                        pluginCreds = result;
+                        utils.getPlugin(path.PLUGIN, params, function (err, result) {
+                            testPlugin = result[0];
+                            callback();
+                        });
+
+                    })
+                }
+
+                function updatePlugin(callback) {
+                    var params = {
+                        jwt: utils.jwt.admin
+                    };
+
+                    params.query = path.query(
+                        'topicName', pluginCreds.topicName,
+                        'status', ACTIVE_STATUS
+                    );
+
+                    utils.updatePlugin(path.current, params, function (err, result) {
+                        assert.strictEqual(!(!err), false, 'No error');
+
+                        params.query = path.query(
+                            'topicName', pluginCreds.topicName
+                        );
+
+                        utils.getPlugin(path.current, params, function (err, result) {
+                            testPlugin = result[0];
+                            callback();
+                        });
+                    })
+                }
+
+                function getWsUrl(callback) {
+                    url = pluginCreds.proxyEndpoint;
+                    callback();
+                }
+
+                function createConn(callback) {
+                    conn = new Websocket(url);
+                    conn.connect(callback);
+                }
+
+                function authenticateConn(callback) {
+                    conn.params({
+                        t: 'plugin',
+                        a: 'authenticate',
+                        p: {
+                            token: pluginCreds.accessToken
+                        }
+                    })
+                        .send(callback);
+                }
+
+                async.series([
+                    createDevice,
+                    createPlugin,
+                    updatePlugin,
+                    getWsUrl,
+                    createConn,
+                    authenticateConn
+                ], done);
+            });
+
+            it('should receive notification from device', function (done) {
+                runTest(conn, pluginCreds.topicName, DEVICE_ID, COMMAND, done);
+            });
+
+            it('should receive command notification', function (done) {
+                runTestCommand(conn, pluginCreds.topicName, DEVICE_ID, COMMAND, done);
+            });
+
+            it('should receive command_update notification', function (done) {
+                runTestCommandUpdate(conn, pluginCreds.topicName, DEVICE_ID, COMMAND, done)
+            });
+
         });
 
-        it('registered plugin should not have a subscription', function (done) {
+        describe('#Plugin Subscription DeviceType', function () {
+            var DEVICE = utils.getName('device');
+            var DEVICE_ID = utils.getName('device-id');
+            var DEVICE_TYPE_ID = 2;
 
-            var params = {
-                jwt: utils.jwt.admin
-            };
+            var DEVICE_1 = utils.getName('device');
+            var DEVICE_ID_1 = utils.getName('device');
+            var DEVICE_TYPE_ID_1 = 1;
 
-            params.query = path.query(
-                'topicName', pluginTopicName
-            );
+            var NOTIFICATION = utils.getName('ws-notification');
+            var PLUGIN = utils.getName('plugin');
+            var COMMAND = utils.getName('ws-command');
+            var COMMAND_1 = utils.getName('ws-command');
+            var COMMAND_UPD = utils.getName('ws-command');
+            var COMMAND_UPD_1 = utils.getName('ws-command');
+            var pluginCreds;
+            var testPlugin;
+            var conn = null;
 
-            utils.getPlugin(path.current, params, function (err, getResult) {
-                assert.strictEqual(!(!err), false, 'No error');
-                console.log(getResult);
-                assert.strictEqual(utils.core.isArrayOfLength(getResult, 1), true, 'Is array of 1 object');
+            before(function (done) {
+                if (!utils.pluginUrl) {
+                    this.skip();
+                }
 
-                utils.matches(getResult[0], {
-                    name: PLUGIN3,
-                    subscriptionId: null
-                });
+                function createDevice(callback) {
+                    var params = utils.device.getParamsObj(DEVICE, utils.jwt.admin,
+                        networkId, {
+                            name: DEVICE,
+                            version: '1'
+                        });
+                    params.id = DEVICE_ID;
+                    //adding device_type
+                    params.data.deviceTypeId = DEVICE_TYPE_ID;
+                    utils.update(path.DEVICE, params, function (err) {
+                        var params = { jwt: utils.jwt.admin };
+                        params.query = path.query('name', DEVICE);
+                        utils.get(path.DEVICE, params, function (err, result) {
 
-                done();
+                            console.log(result);
+
+                            callback(err);
+                        })
+
+
+                    });
+                }
+
+                function createDevice1(callback) {
+                    var params = utils.device.getParamsObj(DEVICE_1, utils.jwt.admin,
+                        networkId, {
+                            name: DEVICE_1,
+                            version: '1'
+                        });
+                    params.id = DEVICE_ID_1;
+                    //adding device_type
+                    params.data.deviceTypeId = DEVICE_TYPE_ID_1;
+                    utils.update(path.DEVICE, params, function (err) {
+                        var params = { jwt: utils.jwt.admin };
+                        params.query = path.query('name', DEVICE_1);
+                        utils.get(path.DEVICE, params, function (err, result) {
+
+                            console.log(result);
+
+                            callback(err);
+                        })
+
+
+                    });
+                }
+
+                function createPlugin(callback) {
+
+                    var params = {
+                        jwt: utils.jwt.admin,
+                        data: {
+                            name: PLUGIN,
+                            description: description,
+                            parameters: {
+                                jsonString: paramObject
+                            }
+                        }
+                    };
+
+                    params.query = path.query(
+                        'deviceTypeIds', DEVICE_TYPE_ID,
+                        'returnCommands', true,
+                        'returnUpdatedCommands', true,
+                        'returnNotifications', true
+                    );
+
+                    utils.createPlugin(path.current, params, function (err, result) {
+                        pluginCreds = result;
+                        utils.getPlugin(path.PLUGIN, params, function (err, result) {
+                            testPlugin = result[0];
+                            callback();
+                        });
+
+                    })
+                }
+
+                function updatePlugin(callback) {
+                    var params = {
+                        jwt: utils.jwt.admin
+                    };
+
+                    params.query = path.query(
+                        'topicName', pluginCreds.topicName,
+                        'status', ACTIVE_STATUS
+                    );
+
+                    utils.updatePlugin(path.current, params, function (err, result) {
+                        assert.strictEqual(!(!err), false, 'No error');
+
+                        params.query = path.query(
+                            'topicName', pluginCreds.topicName
+                        );
+
+                        utils.getPlugin(path.current, params, function (err, result) {
+                            testPlugin = result[0];
+                            callback();
+                        });
+                    })
+                }
+
+                function getWsUrl(callback) {
+                    url = pluginCreds.proxyEndpoint;
+                    callback();
+                }
+
+                function createConn(callback) {
+                    conn = new Websocket(url);
+                    conn.connect(callback);
+                }
+
+                function authenticateConn(callback) {
+                    conn.params({
+                        t: 'plugin',
+                        a: 'authenticate',
+                        p: {
+                            token: pluginCreds.accessToken
+                        }
+                    })
+                        .send(callback);
+                }
+
+                async.series([
+                    createDevice,
+                    createDevice1,
+                    createPlugin,
+                    updatePlugin,
+                    getWsUrl,
+                    createConn,
+                    authenticateConn
+                ], done);
+            });
+
+            it('should not receive notification from device with specified device_type and throw timeout error', function (done) {
+                runFailTest(conn, pluginCreds.topicName, DEVICE_ID_1, NOTIFICATION, done);
+            });
+
+            it('should not receive command notification from device with specified device_type and throw timeout error', function (done) {
+                runFailTestCommand(conn, pluginCreds.topicName, DEVICE_ID_1, COMMAND_1, done);
+            });
+
+            it('should not receive command update notification from device with specified device_type and throw timeout error', function (done) {
+                runFailTestCommandUpdate(conn, pluginCreds.topicName, DEVICE_ID_1, COMMAND_UPD, done);
+            });
+
+            it('should receive notification from device with specified device_type', function (done) {
+                runTest(conn, pluginCreds.topicName, DEVICE_ID, NOTIFICATION, done);
+            });
+
+            it('should receive command notification with specified device_type', function (done) {
+                runTestCommand(conn, pluginCreds.topicName, DEVICE_ID, COMMAND, done);
+            });
+
+            //this does not work, it seems that platform sends response 2 times
+            it('should receive command_update notification with specified device_type', function (done) {
+                runTestCommandUpdate(conn, pluginCreds.topicName, DEVICE_ID, COMMAND_UPD, done)
+            });
+
+        });
+
+        describe('##Plugin Subscription Network', function () {
+            var DEVICE = utils.getName('device');
+            var DEVICE_ID = utils.getName('device-id');
+            var NETWORK = utils.getName('network');
+            var NETWORK_ID = null;
+
+            var DEVICE_1 = utils.getName('device');
+            var DEVICE_ID_1 = utils.getName('device');
+            var NETWORK_1 = utils.getName('network');
+            var NETWORK_ID_1 = null;
+
+            var NOTIFICATION = utils.getName('ws-notification');
+            var PLUGIN = utils.getName('plugin');
+            var COMMAND = utils.getName('ws-command');
+            var pluginCreds;
+            var testPlugin;
+            var conn = null;
+
+            before(function (done) {
+                if (!utils.pluginUrl) {
+                    this.skip();
+                }
+
+                function createNetwork(callback) {
+                    var params = {
+                        jwt: utils.jwt.admin,
+                        data: {
+                            name: NETWORK
+                        }
+                    };
+
+                    utils.create(path.NETWORK, params, function (err, result) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        NETWORK_ID = result.id;
+                        callback()
+                    });
+                }
+
+                function createNetwork1(callback) {
+                    var params = {
+                        jwt: utils.jwt.admin,
+                        data: {
+                            name: NETWORK_1
+                        }
+                    };
+
+                    utils.create(path.NETWORK, params, function (err, result) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        NETWORK_ID_1 = result.id;
+                        callback()
+                    });
+                }
+
+                function createDevice(callback) {
+                    var params = utils.device.getParamsObj(DEVICE, utils.jwt.admin,
+                        NETWORK_ID, {
+                            name: DEVICE,
+                            version: '1'
+                        });
+                    params.id = DEVICE_ID;
+                    utils.update(path.DEVICE, params, function (err) {
+                        var params = { jwt: utils.jwt.admin };
+                        params.query = path.query('name', DEVICE);
+                        utils.get(path.DEVICE, params, function (err, result) {
+
+                            console.log(result);
+
+                            callback(err);
+                        })
+
+
+                    });
+                }
+
+                function createDevice1(callback) {
+                    var params = utils.device.getParamsObj(DEVICE_1, utils.jwt.admin,
+                        NETWORK_ID_1, {
+                            name: DEVICE_1,
+                            version: '1'
+                        });
+                    params.id = DEVICE_ID_1;
+                    //adding device_type
+                    utils.update(path.DEVICE, params, function (err) {
+                        var params = { jwt: utils.jwt.admin };
+                        params.query = path.query('name', DEVICE_1);
+                        utils.get(path.DEVICE, params, function (err, result) {
+
+                            console.log(result);
+
+                            callback(err);
+                        })
+
+
+                    });
+                }
+
+                function createPlugin(callback) {
+
+                    var params = {
+                        jwt: utils.jwt.admin,
+                        data: {
+                            name: PLUGIN,
+                            description: description,
+                            parameters: {
+                                jsonString: paramObject
+                            }
+                        }
+                    };
+
+                    params.query = path.query(
+                        'networkIds', NETWORK_ID,
+                        'returnCommands', true,
+                        'returnUpdatedCommands', true,
+                        'returnNotifications', true
+                    );
+
+                    utils.createPlugin(path.current, params, function (err, result) {
+                        pluginCreds = result;
+                        utils.getPlugin(path.PLUGIN, params, function (err, result) {
+                            testPlugin = result[0];
+                            callback();
+                        });
+
+                    })
+                }
+
+                function updatePlugin(callback) {
+                    var params = {
+                        jwt: utils.jwt.admin
+                    };
+
+                    params.query = path.query(
+                        'topicName', pluginCreds.topicName,
+                        'status', ACTIVE_STATUS
+                    );
+
+                    utils.updatePlugin(path.current, params, function (err, result) {
+                        assert.strictEqual(!(!err), false, 'No error');
+
+                        params.query = path.query(
+                            'topicName', pluginCreds.topicName
+                        );
+
+                        utils.getPlugin(path.current, params, function (err, result) {
+                            testPlugin = result[0];
+                            callback();
+                        });
+                    })
+                }
+
+                function getWsUrl(callback) {
+                    url = pluginCreds.proxyEndpoint;
+                    callback();
+                }
+
+                function createConn(callback) {
+                    conn = new Websocket(url);
+                    conn.connect(callback);
+                }
+
+                function authenticateConn(callback) {
+                    conn.params({
+                        t: 'plugin',
+                        a: 'authenticate',
+                        p: {
+                            token: pluginCreds.accessToken
+                        }
+                    })
+                        .send(callback);
+                }
+
+                async.series([
+                    createNetwork,
+                    createNetwork1,
+                    createDevice,
+                    createDevice1,
+                    createPlugin,
+                    updatePlugin,
+                    getWsUrl,
+                    createConn,
+                    authenticateConn
+                ], done);
+            });
+
+            it('should not receive notification from device with specified network_id and throw timeout error', function (done) {
+                runFailTest(conn, pluginCreds.topicName, DEVICE_ID_1, NOTIFICATION, done);
+            });
+
+            it('should not receive command notification from device with specified network_id and throw timeout error', function (done) {
+                runFailTestCommand(conn, pluginCreds.topicName, DEVICE_ID_1, COMMAND, done);
+            });
+
+            it('should not receive command update notification from device with specified network_id and throw timeout error', function (done) {
+                runFailTestCommandUpdate(conn, pluginCreds.topicName, DEVICE_ID_1, COMMAND, done);
+            });
+
+            it('should receive notification from device with specified network_id', function (done) {
+                runTest(conn, pluginCreds.topicName, DEVICE_ID, NOTIFICATION, done);
+            });
+
+            it('should receive command notification with specified network_id', function (done) {
+                runTestCommand(conn, pluginCreds.topicName, DEVICE_ID, COMMAND, done);
+            });
+
+            it('should receive command_update notification with specified network_id', function (done) {
+                runTestCommandUpdate(conn, pluginCreds.topicName, DEVICE_ID, COMMAND, done)
             });
         });
-
-        it('activated plugin should have a subscription', function (done) {
-
-            var params = {
-                jwt: utils.jwt.admin
-            };
-
-            params.query = path.query(
-                'topicName', pluginTopicName,
-                'status', ACTIVE_STATUS
-            );
-
-            utils.updatePlugin(path.current, params, function (err, result) {
-                assert.strictEqual(!(!err), false, 'No error');
-
-                params.query = path.query(
-                    'topicName', pluginTopicName
-                );
-
-                utils.getPlugin(path.current, params, function (err, getResult) {
-                    assert.strictEqual(!(!err), false, 'No error');
-                    console.log(getResult);
-                    assert.strictEqual(utils.core.isArrayOfLength(getResult, 1), true, 'Is array of 1 object');
-
-                    var updatedPlugin = getResult[0];
-                    assert.strictEqual(updatedPlugin.name === PLUGIN3, true);
-                    assert.strictEqual(updatedPlugin.subscriptionId !== null, true);
-
-                    done();
-                });
-            })
-        });
-
-        it('deactivated plugin should not have a subscription', function (done) {
-
-            var params = {
-                jwt: utils.jwt.admin
-            };
-
-            params.query = path.query(
-                'topicName', pluginTopicName,
-                'status', INACTIVE_STATUS
-            );
-
-            utils.updatePlugin(path.current, params, function (err, result) {
-                assert.strictEqual(!(!err), false, 'No error');
-
-                params.query = path.query(
-                    'topicName', pluginTopicName
-                );
-
-                utils.getPlugin(path.current, params, function (err, getResult) {
-                    assert.strictEqual(!(!err), false, 'No error');
-                    console.log(getResult);
-                    assert.strictEqual(utils.core.isArrayOfLength(getResult, 1), true, 'Is array of 1 object');
-
-                    utils.matches(getResult[0], {
-                        name: PLUGIN3,
-                        subscriptionId: null
-                    });
-
-                    done();
-                });
-            })
-        });
-
     });
 
     describe('#Plugin Subscription', function () {
