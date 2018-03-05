@@ -1630,6 +1630,66 @@ describe.only('REST API Plugin', function () {
     });
 
     describe('#Plugin List', function () {
+        function createDevice(callback) {
+            var params = utils.device.getParamsObj(DEVICE, utils.jwt.admin,
+                networkId, { name: DEVICE, version: '1' });
+            params.id = DEVICE_ID;
+            utils.update(path.DEVICE, params, function (err) {
+                callback(err);
+            });
+        }
+
+        function createPlugin(plugin, returnCommands, returnUpdatedCommands, returnNotifications, callback) {
+            var params = {
+                jwt: utils.jwt.admin,
+                data: {
+                    name: plugin,
+                    description: description,
+                    parameters: {
+                        jsonString: paramObject
+                    }
+                }
+            };
+
+            params.query = path.query(
+                'returnCommands', returnCommands,
+                'returnUpdatedCommands', returnUpdatedCommands,
+                'returnNotifications', returnNotifications
+            );
+
+            utils.createPlugin(path.current, params, function (err, result) {
+                callback(null, result);
+            });
+        }
+
+        function updatePlugin(pluginCreds, callback) {
+            var params = {
+                jwt: utils.jwt.admin
+            };
+
+            params.query = path.query(
+                'topicName', pluginCreds.topicName,
+                'status', ACTIVE_STATUS
+            );
+
+            utils.updatePlugin(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                params.query = path.query(
+                    'topicName', pluginCreds.topicName
+                );
+                callback(null, pluginCreds);
+            });
+        }
+
+        function setUpPlugin(plugin, returnCommands, returnUpdatedCommands, returnNotifications, callback) {
+            createPlugin(plugin, returnCommands, returnUpdatedCommands, returnNotifications, function (err, result) {
+                var pluginCreds = result;
+                updatePlugin(result, function (err, result) {
+                    callback(null, pluginCreds);
+                })
+            })
+        }
+        var TOPIC_NAME;
         before(function (done) {
             if (!utils.pluginUrl) {
                 this.skip();
@@ -1658,6 +1718,7 @@ describe.only('REST API Plugin', function () {
                 );
 
                 utils.createPlugin(path.current, params, function (err, result) {
+                    TOPIC_NAME = result.topicName;
                     callback();
                 })
             }
@@ -1665,6 +1726,49 @@ describe.only('REST API Plugin', function () {
             async.series([
                 createPlugin
             ], done);
+        });
+
+        it.only('should get plugins by name', function (done) {
+            var params = {
+                jwt: jwtWithPermissions
+            };
+            params.query = path.query(
+                'name', PLUGIN1
+            );
+            utils.getPlugin(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(PLUGIN1, result[0].name, 'Names should be equal');
+                done();
+            })
+        });
+
+        it.only('should get plugin by topic name', function (done) {
+            var params = {
+                jwt: jwtWithPermissions
+            };
+            params.query = path.query(
+                'topicName', TOPIC_NAME
+            );
+            utils.getPlugin(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(TOPIC_NAME, result[0].topicName, 'Topic names should be equal');
+                done();
+            })
+        });
+
+        it.only('should get plugins by status', function (done) {
+            var params = {
+                jwt: utils.jwt.admin
+            };
+            console.log(ACTIVE_STATUS);
+            params.query = path.query(
+                'status', 1
+            );
+            utils.getPlugin(path.current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                console.log(result);
+                done();
+            })
         });
 
         it('should count all user plugins', function (done) {
@@ -1679,7 +1783,6 @@ describe.only('REST API Plugin', function () {
         it('should get all user plugins', function (done) {
             utils.getPlugin(path.current, { jwt: jwtWithPermissions }, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
-                console.log(result);
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
                 utils.matches(result[0], {
                     name: PLUGIN1
@@ -1698,7 +1801,7 @@ describe.only('REST API Plugin', function () {
             })
         });
 
-        it('should get all plugins with admin token', function (done) {
+        it.only('should get all plugins with admin token', function (done) {
             utils.getPlugin(path.current, { jwt: utils.jwt.admin }, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 console.log(result);
@@ -1748,7 +1851,7 @@ describe.only('REST API Plugin', function () {
     });
 
     after(function (done) {
-
+        console.log('---------------------------------');
         utils.clearDataJWT(done);
     });
 });
