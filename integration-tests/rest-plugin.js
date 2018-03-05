@@ -8,7 +8,7 @@ var status = require('./common/http').status;
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
-describe('REST API Plugin', function () {
+describe.only('REST API Plugin', function () {
     this.timeout(90000);
 
     var helper = utils.command;
@@ -417,10 +417,8 @@ describe('REST API Plugin', function () {
         });
     });
 
-    //fix command_update subscriptions
-    //sometimes it fails due to incoming message, which includes Updated: false
-    //also add deep equality
-    describe.only('#Plugin Subscription block', function () {
+    // add deep equality
+    describe('#Plugin Subscription block', function () {
 
         function createNotification(notification, deviceId, callback) {
             req.create(path.NOTIFICATION.get(deviceId))
@@ -524,31 +522,19 @@ describe('REST API Plugin', function () {
             }
         }
 
-        function runTestCommandUpdate(client, topic, deviceId, command, done) {
+        function runTestCommandUpdate(client, topic, deviceId, command, commandId, done) {
             subscribe(client, topic, onSubscribed);
 
+
             function onSubscribed(err, result) {
-                if (err) {
-                    return done(err);
-                }
-                // client.waitFor('notif', waitCommandUpdate, 't')
-                // .expect({
-                //     t: 'notif',
-                //     s: 0
-                // });
-                createCommand(command, deviceId, waitCommandUpdate);
-                function waitCommandUpdate(err, result) {
-                    if (err) {
-                        return done(err);
-                    }
-                    var commandId = result.id;
-                    client.waitFor('notif', checkAnswer, 't')
-                        .expect({
-                            t: 'notif',
-                            s: 0
-                        });
-                    updateCommand(command, commandId, deviceId);
-                }
+
+                client.waitFor('notif', checkAnswer, 't')
+                    .expect({
+                        t: 'notif',
+                        s: 0
+                    });
+                updateCommand(command, commandId, deviceId);
+
                 function checkAnswer(err, data) {
                     if (err) {
                         done(err);
@@ -611,31 +597,17 @@ describe('REST API Plugin', function () {
             }
         }
 
-        function runFailTestCommandUpdate(client, topic, deviceId, command, done) {
+        function runFailTestCommandUpdate(client, topic, deviceId, command, commandId, done) {
             subscribe(client, topic, onSubscribed);
 
             function onSubscribed(err, result) {
-                if (err) {
-                    return done(err);
-                }
-                // client.waitFor('notif', waitCommandUpdate, 't')
-                //     .expect({
-                //         t: 'notif',
-                //         s: 0
-                //     });
-                createCommand(command, deviceId,waitCommandUpdate);
-                function waitCommandUpdate(err, result) {
-                    if (err) {
-                        return done(err);
-                    }
-                    var commandId = result.id;
-                    client.waitFor('notif', cleanUp, 't', 2500)
-                        .expect({
-                            t: 'notif',
-                            s: 0
-                        });
-                    updateCommand(command, commandId, deviceId);
-                }
+
+                client.waitFor('notif', cleanUp, 't', 2500)
+                    .expect({
+                        t: 'notif',
+                        s: 0
+                    });
+                updateCommand(command, commandId, deviceId);
 
                 function cleanUp(err) {
                     assert(err, 'Timeout error should be thrown');
@@ -645,16 +617,19 @@ describe('REST API Plugin', function () {
             }
         }
 
-        describe('##Plugin Subscription Device', function () {
+        describe('##Plugin Subscription Notification, Command, CommandUpdate', function () {
 
             var DEVICE = utils.getName('device');
             var DEVICE_ID = utils.getName('device-id');
+
             var NOTIFICATION = utils.getName('ws-notification');
             var COMMAND = utils.getName('ws-command');
-            var PLUGIN = utils.getName('plugin');
-            var pluginCreds;
-            var testPlugin;
-            var conn = null;
+
+            var PLUGIN_NOTIFICATION = utils.getName('plugin');
+            var PLUGIN_COMMAND = utils.getName('plugin');
+            var PLUGIN_COMMAND_UPDATE = utils.getName('plugin');
+
+            var pluginNotification = {}, pluginCommand = {}, pluginCommandUpdate = {};
 
             before(function (done) {
                 if (!utils.pluginUrl) {
@@ -670,12 +645,11 @@ describe('REST API Plugin', function () {
                     });
                 }
 
-                function createPlugin(callback) {
-
+                function createPlugin(plugin, returnCommands, returnUpdatedCommands, returnNotifications, callback) {
                     var params = {
                         jwt: utils.jwt.admin,
                         data: {
-                            name: PLUGIN,
+                            name: plugin,
                             description: description,
                             parameters: {
                                 jsonString: paramObject
@@ -684,22 +658,17 @@ describe('REST API Plugin', function () {
                     };
 
                     params.query = path.query(
-                        'returnCommands', true,
-                        'returnUpdatedCommands', true,
-                        'returnNotifications', true
+                        'returnCommands', returnCommands,
+                        'returnUpdatedCommands', returnUpdatedCommands,
+                        'returnNotifications', returnNotifications
                     );
 
                     utils.createPlugin(path.current, params, function (err, result) {
-                        pluginCreds = result;
-                        utils.getPlugin(path.PLUGIN, params, function (err, result) {
-                            testPlugin = result[0];
-                            callback();
-                        });
-
-                    })
+                        callback(null, result);
+                    });
                 }
 
-                function updatePlugin(callback) {
+                function updatePlugin(pluginCreds, callback) {
                     var params = {
                         jwt: utils.jwt.admin
                     };
@@ -711,64 +680,127 @@ describe('REST API Plugin', function () {
 
                     utils.updatePlugin(path.current, params, function (err, result) {
                         assert.strictEqual(!(!err), false, 'No error');
-
                         params.query = path.query(
                             'topicName', pluginCreds.topicName
                         );
+                        callback(null, pluginCreds);
+                    });
+                }
 
-                        utils.getPlugin(path.current, params, function (err, result) {
-                            testPlugin = result[0];
-                            callback();
-                        });
+                function createConn(pluginCreds, callback) {
+                    var conn = new Websocket(pluginCreds.proxyEndpoint);
+                    conn.connect(function (err) {
+                        assert.strictEqual(!(!err), false, 'No error');
+                        conn.params({
+                            t: 'plugin',
+                            a: 'authenticate',
+                            p: {
+                                token: pluginCreds.accessToken
+                            }
+                        })
+                            .send(function (err) {
+                                assert.strictEqual(!(!err), false, 'No error');
+                                callback(null, conn)
+                            });
+                    });
+                }
+
+
+                function setUpPlugin(plugin, returnCommands, returnUpdatedCommands, returnNotifications, callback) {
+                    createPlugin(plugin, returnCommands, returnUpdatedCommands, returnNotifications, function (err, result) {
+                        var pluginCreds = result;
+                        updatePlugin(result, function (err, result) {
+                            createConn(result, function (err, result) {
+                                pluginCreds.conn = result;
+                                callback(null, pluginCreds);
+                            })
+                        })
                     })
-                }
-
-                function getWsUrl(callback) {
-                    url = pluginCreds.proxyEndpoint;
-                    callback();
-                }
-
-                function createConn(callback) {
-                    conn = new Websocket(url);
-                    conn.connect(callback);
-                }
-
-                function authenticateConn(callback) {
-                    conn.params({
-                        t: 'plugin',
-                        a: 'authenticate',
-                        p: {
-                            token: pluginCreds.accessToken
-                        }
-                    })
-                        .send(callback);
                 }
 
                 async.series([
                     createDevice,
-                    createPlugin,
-                    updatePlugin,
-                    getWsUrl,
-                    createConn,
-                    authenticateConn
-                ], done);
+                    setUpPlugin.bind(null, PLUGIN_NOTIFICATION, false, false, true),
+                    setUpPlugin.bind(null, PLUGIN_COMMAND, true, false, false),
+                    setUpPlugin.bind(null, PLUGIN_COMMAND_UPDATE, false, true, false)
+                ], function (err, result) {
+                    pluginNotification = {
+                        topic: result[1].topicName,
+                        conn: result[1].conn
+                    }
+                    pluginCommand = {
+                        topic: result[2].topicName,
+                        conn: result[2].conn
+                    }
+                    pluginCommandUpdate = {
+                        topic: result[3].topicName,
+                        conn: result[3].conn
+                    }
+                    done();
+                });
             });
 
-            it('should receive notification from device', function (done) {
-                runTest(conn, pluginCreds.topicName, DEVICE_ID, COMMAND, done);
+            describe('###Testing plugin, which can receive only notifications', function () {
+                var COMMAND_ID;
+                before(function (done) {
+                    createCommand(COMMAND, DEVICE_ID, function (err, result) {
+                        COMMAND_ID = result.id;
+                        done();
+                    });
+                });
+                it('should receive notification from device', function (done) {
+                    runTest(pluginNotification.conn, pluginNotification.topic, DEVICE_ID, NOTIFICATION, done);
+                });
+                it('shouldn\'t receive command from device', function (done) {
+                    runFailTestCommand(pluginNotification.conn, pluginNotification.topic, DEVICE_ID, COMMAND, done);
+                });
+                it('shouldn\'t receive command_update from device', function (done) {
+                    runFailTestCommandUpdate(pluginNotification.conn, pluginNotification.topic, DEVICE_ID, COMMAND, COMMAND_ID, done);
+                });
             });
 
-            it('should receive command notification', function (done) {
-                runTestCommand(conn, pluginCreds.topicName, DEVICE_ID, COMMAND, done);
+            describe('###Testing plugin, which can receive only commands', function () {
+                var COMMAND_ID;
+                before(function (done) {
+                    createCommand(COMMAND, DEVICE_ID, function (err, result) {
+                        COMMAND_ID = result.id;
+                        done();
+                    });
+                });
+                it('shouldn\'t receive notification from device', function (done) {
+                    runFailTest(pluginCommand.conn, pluginCommand.topic, DEVICE_ID, NOTIFICATION, done);
+                });
+                it('should receive command from device', function (done) {
+                    runTestCommand(pluginCommand.conn, pluginCommand.topic, DEVICE_ID, COMMAND, done);
+                });
+                it('shouldn\'t receive command_update from device', function (done) {
+                    runFailTestCommandUpdate(pluginCommand.conn, pluginCommand.topic, DEVICE_ID, COMMAND, COMMAND_ID, done);
+                });
             });
 
-            it('should receive command_update notification', function (done) {
-                runTestCommandUpdate(conn, pluginCreds.topicName, DEVICE_ID, COMMAND, done)
-            });
+            describe('###Testing plugin, which can receive only command updates', function () {
+                var COMMAND_ID;
+                before(function (done) {
+                    createCommand(COMMAND, DEVICE_ID, function (err, result) {
+                        COMMAND_ID = result.id;
+                        done();
+                    });
+                });
+                it('shouldn\'t receive notification from device', function (done) {
+                    runFailTest(pluginCommandUpdate.conn, pluginCommandUpdate.topic, DEVICE_ID, NOTIFICATION, done);
+                });
+                it('shouldn\'t receive command from device', function (done) {
+                    runFailTestCommand(pluginCommandUpdate.conn, pluginCommandUpdate.topic, DEVICE_ID, COMMAND, done);
+                });
+                it('should receive command_update from device', function (done) {
+                    runTestCommandUpdate(pluginCommandUpdate.conn, pluginCommandUpdate.topic, DEVICE_ID, COMMAND, COMMAND_ID, done);
+                });
+            })
+
 
         });
 
-        describe('#Plugin Subscription DeviceType', function () {
+        describe('##Plugin Subscription DeviceType', function () {
             var DEVICE = utils.getName('device');
             var DEVICE_ID = utils.getName('device-id');
             var DEVICE_TYPE_ID = 2;
@@ -780,9 +812,8 @@ describe('REST API Plugin', function () {
             var NOTIFICATION = utils.getName('ws-notification');
             var PLUGIN = utils.getName('plugin');
             var COMMAND = utils.getName('ws-command');
-            var COMMAND_1 = utils.getName('ws-command');
-            var COMMAND_UPD = utils.getName('ws-command');
-            var COMMAND_UPD_1 = utils.getName('ws-command');
+            var COMMAND_ID;
+            var COMMAND_ID_1;
             var pluginCreds;
             var testPlugin;
             var conn = null;
@@ -892,6 +923,20 @@ describe('REST API Plugin', function () {
                     })
                 }
 
+                function createCommandForUpdate(callback) {
+                    createCommand(COMMAND, DEVICE_ID, function (err, result) {
+                        COMMAND_ID = result.id;
+                        callback();
+                    });
+                }
+
+                function createCommandForUpdate1(callback) {
+                    createCommand(COMMAND, DEVICE_ID_1, function (err, result) {
+                        COMMAND_ID_1 = result.id;
+                        callback();
+                    });
+                }
+
                 function getWsUrl(callback) {
                     url = pluginCreds.proxyEndpoint;
                     callback();
@@ -918,6 +963,8 @@ describe('REST API Plugin', function () {
                     createDevice1,
                     createPlugin,
                     updatePlugin,
+                    createCommandForUpdate,
+                    createCommandForUpdate1,
                     getWsUrl,
                     createConn,
                     authenticateConn
@@ -929,11 +976,11 @@ describe('REST API Plugin', function () {
             });
 
             it('should not receive command notification from device with specified device_type and throw timeout error', function (done) {
-                runFailTestCommand(conn, pluginCreds.topicName, DEVICE_ID_1, COMMAND_1, done);
+                runFailTestCommand(conn, pluginCreds.topicName, DEVICE_ID_1, COMMAND, done);
             });
 
             it('should not receive command update notification from device with specified device_type and throw timeout error', function (done) {
-                runFailTestCommandUpdate(conn, pluginCreds.topicName, DEVICE_ID_1, COMMAND_UPD, done);
+                runFailTestCommandUpdate(conn, pluginCreds.topicName, DEVICE_ID_1, COMMAND, COMMAND_ID_1, done);
             });
 
             it('should receive notification from device with specified device_type', function (done) {
@@ -946,7 +993,7 @@ describe('REST API Plugin', function () {
 
             //this does not work, it seems that platform sends response 2 times
             it('should receive command_update notification with specified device_type', function (done) {
-                runTestCommandUpdate(conn, pluginCreds.topicName, DEVICE_ID, COMMAND_UPD, done)
+                runTestCommandUpdate(conn, pluginCreds.topicName, DEVICE_ID, COMMAND, COMMAND_ID, done)
             });
 
         });
@@ -965,6 +1012,8 @@ describe('REST API Plugin', function () {
             var NOTIFICATION = utils.getName('ws-notification');
             var PLUGIN = utils.getName('plugin');
             var COMMAND = utils.getName('ws-command');
+            var COMMAND_ID;
+            var COMMAND_ID_1;
             var pluginCreds;
             var testPlugin;
             var conn = null;
@@ -1107,6 +1156,20 @@ describe('REST API Plugin', function () {
                     })
                 }
 
+                function createCommandForUpdate(callback) {
+                    createCommand(COMMAND, DEVICE_ID, function (err, result) {
+                        COMMAND_ID = result.id;
+                        callback();
+                    });
+                }
+
+                function createCommandForUpdate1(callback) {
+                    createCommand(COMMAND, DEVICE_ID_1, function (err, result) {
+                        COMMAND_ID_1 = result.id;
+                        callback();
+                    });
+                }
+
                 function getWsUrl(callback) {
                     url = pluginCreds.proxyEndpoint;
                     callback();
@@ -1135,6 +1198,8 @@ describe('REST API Plugin', function () {
                     createDevice1,
                     createPlugin,
                     updatePlugin,
+                    createCommandForUpdate,
+                    createCommandForUpdate1,
                     getWsUrl,
                     createConn,
                     authenticateConn
@@ -1150,7 +1215,7 @@ describe('REST API Plugin', function () {
             });
 
             it('should not receive command update notification from device with specified network_id and throw timeout error', function (done) {
-                runFailTestCommandUpdate(conn, pluginCreds.topicName, DEVICE_ID_1, COMMAND, done);
+                runFailTestCommandUpdate(conn, pluginCreds.topicName, DEVICE_ID_1, COMMAND, COMMAND_ID_1, done);
             });
 
             it('should receive notification from device with specified network_id', function (done) {
@@ -1162,8 +1227,177 @@ describe('REST API Plugin', function () {
             });
 
             it('should receive command_update notification with specified network_id', function (done) {
-                runTestCommandUpdate(conn, pluginCreds.topicName, DEVICE_ID, COMMAND, done)
+                runTestCommandUpdate(conn, pluginCreds.topicName, DEVICE_ID, COMMAND, COMMAND_ID, done)
             });
+        });
+
+        describe('##Plugin Subscription Notification name', function () {
+            var DEVICE = utils.getName('device');
+            var DEVICE_ID = utils.getName('device-id');
+
+            var PLUGIN = utils.getName('plugin');
+            var NOTIFICATION = utils.getName('ws-notification');
+            var NOTIFICATION_1 = utils.getName('ws-notification');
+            var COMMAND = utils.getName('ws-command');
+            var COMMAND_1 = utils.getName('ws-command');
+            var COMMAND_ID;
+            var COMMAND_ID_1;
+
+            var pluginCreds;
+            var testPlugin;
+            var conn = null;
+
+            before(function (done) {
+                if (!utils.pluginUrl) {
+                    this.skip();
+                }
+
+                function createDevice(callback) {
+                    var params = utils.device.getParamsObj(DEVICE, utils.jwt.admin,
+                        networkId, {
+                            name: DEVICE,
+                            version: '1'
+                        });
+                    params.id = DEVICE_ID;
+                    utils.update(path.DEVICE, params, function (err) {
+                        var params = { jwt: utils.jwt.admin };
+                        params.query = path.query('name', DEVICE);
+                        utils.get(path.DEVICE, params, function (err, result) {
+
+                            console.log(result);
+
+                            callback(err);
+                        })
+
+
+                    });
+                }
+
+                function createPlugin(callback) {
+
+                    var params = {
+                        jwt: utils.jwt.admin,
+                        data: {
+                            name: PLUGIN,
+                            description: description,
+                            parameters: {
+                                jsonString: paramObject
+                            }
+                        }
+                    };
+
+                    params.query = path.query(
+                        'names', [NOTIFICATION, COMMAND].join(','),
+                        'returnCommands', true,
+                        'returnUpdatedCommands', true,
+                        'returnNotifications', true
+                    );
+
+                    utils.createPlugin(path.current, params, function (err, result) {
+                        pluginCreds = result;
+                        utils.getPlugin(path.PLUGIN, params, function (err, result) {
+                            testPlugin = result[0];
+                            callback();
+                        });
+
+                    })
+                }
+
+                function updatePlugin(callback) {
+                    var params = {
+                        jwt: utils.jwt.admin
+                    };
+
+                    params.query = path.query(
+                        'topicName', pluginCreds.topicName,
+                        'status', ACTIVE_STATUS
+                    );
+
+                    utils.updatePlugin(path.current, params, function (err, result) {
+                        assert.strictEqual(!(!err), false, 'No error');
+
+                        params.query = path.query(
+                            'topicName', pluginCreds.topicName
+                        );
+
+                        utils.getPlugin(path.current, params, function (err, result) {
+                            testPlugin = result[0];
+                            callback();
+                        });
+                    })
+                }
+
+                function createCommandForUpdate(callback) {
+                    createCommand(COMMAND, DEVICE_ID, function (err, result) {
+                        COMMAND_ID = result.id;
+                        callback();
+                    });
+                }
+
+                function createCommandForUpdate1(callback) {
+                    createCommand(COMMAND_1, DEVICE_ID, function (err, result) {
+                        COMMAND_ID_1 = result.id;
+                        callback();
+                    });
+                }
+
+                function getWsUrl(callback) {
+                    url = pluginCreds.proxyEndpoint;
+                    callback();
+                }
+
+                function createConn(callback) {
+                    conn = new Websocket(url);
+                    conn.connect(callback);
+                }
+
+                function authenticateConn(callback) {
+                    conn.params({
+                        t: 'plugin',
+                        a: 'authenticate',
+                        p: {
+                            token: pluginCreds.accessToken
+                        }
+                    })
+                        .send(callback);
+                }
+
+                async.series([
+                    createDevice,
+                    createPlugin,
+                    updatePlugin,
+                    createCommandForUpdate,
+                    createCommandForUpdate1,
+                    getWsUrl,
+                    createConn,
+                    authenticateConn
+                ], done);
+            });
+
+            it('should not receive notification from device with specified notification name and throw timeout error', function (done) {
+                runFailTest(conn, pluginCreds.topicName, DEVICE_ID, NOTIFICATION_1, done);
+            });
+
+            it('should not receive command notification from device with specified notification name and throw timeout error', function (done) {
+                runFailTestCommand(conn, pluginCreds.topicName, DEVICE_ID, COMMAND_1, done);
+            });
+
+            it('should not receive command update notification from device with specified notification name and throw timeout error', function (done) {
+                runFailTestCommandUpdate(conn, pluginCreds.topicName, DEVICE_ID, COMMAND_1, COMMAND_ID_1, done);
+            });
+
+            it('should receive notification from device with specified notification name', function (done) {
+                runTest(conn, pluginCreds.topicName, DEVICE_ID, NOTIFICATION, done);
+            });
+
+            it('should receive command notification with specified command name', function (done) {
+                runTestCommand(conn, pluginCreds.topicName, DEVICE_ID, COMMAND, done);
+            });
+
+            it('should receive command_update notification with specified command update name', function (done) {
+                runTestCommandUpdate(conn, pluginCreds.topicName, DEVICE_ID, COMMAND, COMMAND_ID, done)
+            });
+
         });
     });
 
