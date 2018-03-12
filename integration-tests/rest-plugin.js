@@ -8,7 +8,7 @@ var status = require('./common/http').status;
 var Websocket = require('./common/websocket');
 var getRequestId = utils.core.getRequestId;
 
-describe.only('REST API Plugin', function () {
+describe('REST API Plugin', function () {
     this.timeout(90000);
 
     var helper = utils.command;
@@ -373,6 +373,9 @@ describe.only('REST API Plugin', function () {
         });
 
         after(function (done){
+            if (!utils.pluginUrl) {
+                this.skip();
+            }
             var params = {
                 jwt: jwtWithPermissions
             };
@@ -619,8 +622,7 @@ describe.only('REST API Plugin', function () {
 
     });
 
-    // add deep equality
-    describe('#Plugin Subscription block', function () {
+    describe('#Plugin Subscription actions', function () {
 
         function createNotification(notification, deviceId, callback) {
             req.create(path.NOTIFICATION.get(deviceId))
@@ -707,13 +709,22 @@ describe.only('REST API Plugin', function () {
                     return done(err);
                 }
 
-                client.waitFor('notif', cleanUp, 't')
+                client.waitFor('notif', checkResponse, 't')
                     .expect({
                         t: 'notif',
                         s: 0
                     });
 
                 createCommand(command, deviceId);
+
+                function checkResponse(err, data) {
+                    if (err) {
+                        done(err);
+                    }
+                    var message = JSON.parse(data.p.m);
+                    assert.strictEqual(message.b.command.command, command, 'Commands must be the same');
+                    cleanUp();
+                }
 
                 function cleanUp(err) {
                     if (err) {
@@ -730,18 +741,20 @@ describe.only('REST API Plugin', function () {
 
             function onSubscribed(err, result) {
 
-                client.waitFor('notif', checkAnswer, 't')
+                client.waitFor('notif', checkResponse, 't')
                     .expect({
                         t: 'notif',
                         s: 0
                     });
                 updateCommand(command, commandId, deviceId);
 
-                function checkAnswer(err, data) {
+                function checkResponse(err, data) {
                     if (err) {
                         done(err);
                     }
                     var message = JSON.parse(data.p.m);
+                    assert.strictEqual(message.b.command.command, command, 'Commands must be the same');
+                    assert.strictEqual(message.b.command.id, commandId, 'Commands\' ids must be the same');
                     assert(message.b.command.isUpdated, 'Command wasn\'t updated');
 
                     cleanUp();
@@ -942,7 +955,7 @@ describe.only('REST API Plugin', function () {
                 });
             });
 
-            it('Should fail on subscribing while already subscribed', function (done) {
+            it('Should fail on subscribing on another topic', function (done) {
                 subscribe(pluginNotification.conn, pluginNotification.topic, onSubscribed);
                 function onSubscribed(err, result) {
                     subscribe(pluginNotification.conn, pluginCommand.topic, function(err,result){
@@ -954,6 +967,9 @@ describe.only('REST API Plugin', function () {
             describe('###Testing plugin, which can receive only notifications', function () {
                 var COMMAND_ID;
                 before(function (done) {
+                    if (!utils.pluginUrl) {
+                        this.skip();
+                    }
                     createCommand(COMMAND, DEVICE_ID, function (err, result) {
                         COMMAND_ID = result.id;
                         done();
@@ -973,6 +989,9 @@ describe.only('REST API Plugin', function () {
             describe('###Testing plugin, which can receive only commands', function () {
                 var COMMAND_ID;
                 before(function (done) {
+                    if (!utils.pluginUrl) {
+                        this.skip();
+                    }
                     createCommand(COMMAND, DEVICE_ID, function (err, result) {
                         COMMAND_ID = result.id;
                         done();
@@ -992,6 +1011,9 @@ describe.only('REST API Plugin', function () {
             describe('###Testing plugin, which can receive only command updates', function () {
                 var COMMAND_ID;
                 before(function (done) {
+                    if (!utils.pluginUrl) {
+                        this.skip();
+                    }
                     createCommand(COMMAND, DEVICE_ID, function (err, result) {
                         COMMAND_ID = result.id;
                         done();
@@ -1047,9 +1069,6 @@ describe.only('REST API Plugin', function () {
                         var params = { jwt: utils.jwt.admin };
                         params.query = path.query('name', DEVICE);
                         utils.get(path.DEVICE, params, function (err, result) {
-
-                            console.log(result);
-
                             callback(err);
                         })
 
@@ -1070,9 +1089,6 @@ describe.only('REST API Plugin', function () {
                         var params = { jwt: utils.jwt.admin };
                         params.query = path.query('name', DEVICE_1);
                         utils.get(path.DEVICE, params, function (err, result) {
-
-                            console.log(result);
-
                             callback(err);
                         })
 
@@ -1202,7 +1218,6 @@ describe.only('REST API Plugin', function () {
                 runTestCommand(conn, pluginCreds.topicName, DEVICE_ID, COMMAND, done);
             });
 
-            //this does not work, it seems that platform sends response 2 times
             it('should receive command_update notification with specified device_type', function (done) {
                 runTestCommandUpdate(conn, pluginCreds.topicName, DEVICE_ID, COMMAND, COMMAND_ID, done)
             });
@@ -1281,9 +1296,6 @@ describe.only('REST API Plugin', function () {
                         var params = { jwt: utils.jwt.admin };
                         params.query = path.query('name', DEVICE);
                         utils.get(path.DEVICE, params, function (err, result) {
-
-                            console.log(result);
-
                             callback(err);
                         })
 
@@ -1303,9 +1315,6 @@ describe.only('REST API Plugin', function () {
                         var params = { jwt: utils.jwt.admin };
                         params.query = path.query('name', DEVICE_1);
                         utils.get(path.DEVICE, params, function (err, result) {
-
-                            console.log(result);
-
                             callback(err);
                         })
 
@@ -1474,13 +1483,8 @@ describe.only('REST API Plugin', function () {
                         var params = { jwt: utils.jwt.admin };
                         params.query = path.query('name', DEVICE);
                         utils.get(path.DEVICE, params, function (err, result) {
-
-                            console.log(result);
-
                             callback(err);
-                        })
-
-
+                        });
                     });
                 }
 
@@ -1612,7 +1616,7 @@ describe.only('REST API Plugin', function () {
         });
     });
 
-    describe('#Plugin Subscription', function () {
+    describe('#Plugin Subscription status', function () {
         before(function (done) {
             if (!utils.pluginUrl) {
                 this.skip();
@@ -1664,9 +1668,7 @@ describe.only('REST API Plugin', function () {
 
             utils.getPlugin(path.current, params, function (err, getResult) {
                 assert.strictEqual(!(!err), false, 'No error');
-                console.log(getResult);
                 assert.strictEqual(utils.core.isArrayOfLength(getResult, 1), true, 'Is array of 1 object');
-
                 utils.matches(getResult[0], {
                     name: PLUGIN3,
                     subscriptionId: null
@@ -1696,7 +1698,6 @@ describe.only('REST API Plugin', function () {
 
                 utils.getPlugin(path.current, params, function (err, getResult) {
                     assert.strictEqual(!(!err), false, 'No error');
-                    console.log(getResult);
                     assert.strictEqual(utils.core.isArrayOfLength(getResult, 1), true, 'Is array of 1 object');
 
                     var updatedPlugin = getResult[0];
@@ -1728,7 +1729,6 @@ describe.only('REST API Plugin', function () {
 
                 utils.getPlugin(path.current, params, function (err, getResult) {
                     assert.strictEqual(!(!err), false, 'No error');
-                    console.log(getResult);
                     assert.strictEqual(utils.core.isArrayOfLength(getResult, 1), true, 'Is array of 1 object');
 
                     utils.matches(getResult[0], {
@@ -1957,7 +1957,6 @@ describe.only('REST API Plugin', function () {
                 'topicName', TOPIC_NAME
             );
             utils.getPlugin(path.current, params, function (err, result) {
-                console.log(result);
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(TOPIC_NAME, result[0].topicName, 'Topic names should be equal');
                 done();
