@@ -5,7 +5,8 @@ var req = require('./common/request');
 var utils = require('./common/utils');
 var path = require('./common/path');
 var status = require('./common/http').status;
-var Websocket = require('./common/websocket');
+var Websocket = require('./common/ws');
+
 var getRequestId = utils.core.getRequestId;
 
 describe('REST API Plugin', function () {
@@ -354,12 +355,12 @@ describe('REST API Plugin', function () {
                         name: NETWORK_1
                     }
                 };
-    
+
                 utils.create(path.NETWORK, params, function (err, result) {
                     if (err) {
                         return callback(err);
                     }
-    
+
                     networkId_1 = result.id;
                     callback()
                 });
@@ -372,7 +373,7 @@ describe('REST API Plugin', function () {
             ], done);
         });
 
-        after(function (done){
+        after(function (done) {
             if (!utils.pluginUrl) {
                 this.skip();
             }
@@ -472,7 +473,7 @@ describe('REST API Plugin', function () {
             })
         });
 
-        it('should fail on updating networkIds of ACTIVE plugin', function(done){
+        it('should fail on updating networkIds of ACTIVE plugin', function (done) {
             var params = {
                 jwt: jwtWithPermissions
             };
@@ -488,7 +489,7 @@ describe('REST API Plugin', function () {
             });
         });
 
-        it('should fail on updating deviceId of ACTIVE plugin', function(done){
+        it('should fail on updating deviceId of ACTIVE plugin', function (done) {
             var params = {
                 jwt: jwtWithPermissions
             };
@@ -505,7 +506,7 @@ describe('REST API Plugin', function () {
             })
         });
 
-        it('should fail on updating notification names of ACTIVE plugin', function(done){
+        it('should fail on updating notification names of ACTIVE plugin', function (done) {
             var params = {
                 jwt: jwtWithPermissions
             };
@@ -570,7 +571,7 @@ describe('REST API Plugin', function () {
             })
         });
 
-        it('should update networkIds of INACTIVE plugin', function(done){
+        it('should update networkIds of INACTIVE plugin', function (done) {
             var params = {
                 jwt: jwtWithPermissions
             };
@@ -586,7 +587,7 @@ describe('REST API Plugin', function () {
             });
         });
 
-        it('should update deviceId of INACTIVE plugin', function(done){
+        it('should update deviceId of INACTIVE plugin', function (done) {
             var params = {
                 jwt: jwtWithPermissions
             };
@@ -602,7 +603,7 @@ describe('REST API Plugin', function () {
             })
         });
 
-        it('should update notification names of INACTIVE plugin', function(done){
+        it('should update notification names of INACTIVE plugin', function (done) {
             var params = {
                 jwt: jwtWithPermissions
             };
@@ -651,31 +652,34 @@ describe('REST API Plugin', function () {
         }
 
         function subscribe(client, topic, callback) {
-            client.params({
+            var msg = {
                 t: 'topic',
                 a: 'subscribe',
                 p: {
                     sg: "",
                     t: [topic]
                 }
-            })
-                .send(callback);
+            }
+            client.send(msg);
+            client.on({
+                s: 0
+            }, callback);
         }
 
         function unsubscribe(client, topic, callback) {
-            client.params({
+
+            var msg = {
                 a: 'unsubscribe',
                 t: 'topic',
                 p: {
                     t: [topic]
                 }
-            })
-                .expect({
-                    t: 'topic',
-                    s: 0,
-                    a: 'unsubscribe'
-                })
-                .send(callback);
+            }
+
+            client.send(msg);
+            client.on({
+                s: 0
+            }, callback);
         }
 
         function runTest(client, topic, deviceId, notification, done) {
@@ -685,14 +689,15 @@ describe('REST API Plugin', function () {
                 if (err) {
                     return done(err);
                 }
-                client.waitFor('notif', cleanUp, 't')
-                    .expect({
-                        t: 'notif',
-                        s: 0
-                    });
+                client.on({
+                    t: 'notif',
+                    s: 0
+                }, cleanUp);
+
                 createNotification(notification, deviceId);
 
                 function cleanUp(err) {
+
                     if (err) {
                         done(err);
                     }
@@ -709,11 +714,10 @@ describe('REST API Plugin', function () {
                     return done(err);
                 }
 
-                client.waitFor('notif', checkResponse, 't')
-                    .expect({
-                        t: 'notif',
-                        s: 0
-                    });
+                client.on({
+                    t: 'notif',
+                    s: 0
+                }, checkResponse);
 
                 createCommand(command, deviceId);
 
@@ -741,11 +745,10 @@ describe('REST API Plugin', function () {
 
             function onSubscribed(err, result) {
 
-                client.waitFor('notif', checkResponse, 't')
-                    .expect({
-                        t: 'notif',
-                        s: 0
-                    });
+                client.on({
+                    t: 'notif',
+                    s: 0
+                }, checkResponse);
                 updateCommand(command, commandId, deviceId);
 
                 function checkResponse(err, data) {
@@ -777,11 +780,10 @@ describe('REST API Plugin', function () {
                 if (err) {
                     return done(err);
                 }
-                client.waitFor('notif', cleanUp, 't', 2500)
-                    .expect({
-                        t: 'notif',
-                        s: 0
-                    });
+                client.on({
+                    t: 'notif',
+                    s: 0
+                }, cleanUp);
                 createNotification(notification, deviceId);
 
                 function cleanUp(err) {
@@ -798,11 +800,11 @@ describe('REST API Plugin', function () {
                 if (err) {
                     return done(err);
                 }
-                client.waitFor('notif', cleanUp, 't', 2500)
-                    .expect({
-                        t: 'notif',
-                        s: 0
-                    });
+                client.on({
+                    t: 'notif',
+                    s: 0
+                }, cleanUp);
+
                 createCommand(command, deviceId);
 
                 function cleanUp(err) {
@@ -817,11 +819,10 @@ describe('REST API Plugin', function () {
 
             function onSubscribed(err, result) {
 
-                client.waitFor('notif', cleanUp, 't', 2500)
-                    .expect({
-                        t: 'notif',
-                        s: 0
-                    });
+                client.on({
+                    t: 'notif',
+                    s: 0
+                }, cleanUp);
                 updateCommand(command, commandId, deviceId);
 
                 function cleanUp(err) {
@@ -906,17 +907,17 @@ describe('REST API Plugin', function () {
                     var conn = new Websocket(pluginCreds.proxyEndpoint);
                     conn.connect(function (err) {
                         assert.strictEqual(!(!err), false, 'No error');
-                        conn.params({
+                        conn.send({
                             t: 'plugin',
                             a: 'authenticate',
                             p: {
                                 token: pluginCreds.accessToken
                             }
-                        })
-                            .send(function (err) {
-                                assert.strictEqual(!(!err), false, 'No error');
-                                callback(null, conn)
-                            });
+                        });
+                        conn.on({ s: 0 }, function (err) {
+                            assert.strictEqual(!(!err), false, 'No error');
+                            callback(null, conn)
+                        });
                     });
                 }
 
@@ -957,11 +958,23 @@ describe('REST API Plugin', function () {
 
             it('Should fail on subscribing on another topic', function (done) {
                 subscribe(pluginNotification.conn, pluginNotification.topic, onSubscribed);
+
                 function onSubscribed(err, result) {
-                    subscribe(pluginNotification.conn, pluginCommand.topic, function(err,result){
-                        assert(result.s === 1, 'Result should be fail');
+                    var msg = {
+                        t: 'topic',
+                        a: 'subscribe',
+                        p: {
+                            sg: "",
+                            t: [pluginCommand.topic]
+                        }
+                    }
+                    pluginNotification.conn.send(msg);
+                    pluginNotification.conn.on({
+                        s: 1
+                    },function(){
                         unsubscribe(pluginNotification.conn, pluginNotification.topic, done);
                     });
+
                 }
             });
             describe('###Testing plugin, which can receive only notifications', function () {
@@ -1028,9 +1041,7 @@ describe('REST API Plugin', function () {
                 it('should receive command_update from device', function (done) {
                     runTestCommandUpdate(pluginCommandUpdate.conn, pluginCommandUpdate.topic, DEVICE_ID, COMMAND, COMMAND_ID, done);
                 });
-            })
-
-
+            });
         });
 
         describe('##Plugin Subscription DeviceType', function () {
@@ -1175,14 +1186,14 @@ describe('REST API Plugin', function () {
                 }
 
                 function authenticateConn(callback) {
-                    conn.params({
+                    conn.send({
                         t: 'plugin',
                         a: 'authenticate',
                         p: {
                             token: pluginCreds.accessToken
                         }
-                    })
-                        .send(callback);
+                    });
+                    conn.on({ s: 0 }, callback);
                 }
 
                 async.series([
@@ -1401,14 +1412,14 @@ describe('REST API Plugin', function () {
                 }
 
                 function authenticateConn(callback) {
-                    conn.params({
+                    conn.send({
                         t: 'plugin',
                         a: 'authenticate',
                         p: {
                             token: pluginCreds.accessToken
                         }
-                    })
-                        .send(callback);
+                    });
+                    conn.on({ s: 0 }, callback);
                 }
 
                 async.series([
@@ -1567,14 +1578,14 @@ describe('REST API Plugin', function () {
                 }
 
                 function authenticateConn(callback) {
-                    conn.params({
+                    conn.send({
                         t: 'plugin',
                         a: 'authenticate',
                         p: {
                             token: pluginCreds.accessToken
                         }
-                    })
-                        .send(callback);
+                    });
+                    conn.on({ s: 0 }, callback);
                 }
 
                 async.series([
