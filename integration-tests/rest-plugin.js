@@ -593,7 +593,7 @@ describe('REST API Plugin', function () {
             ], done);
         });
 
-        it('should count all user plugins', function (done) {
+        it('should count user plugins by plugin name', function (done) {
             var params = {jwt: jwtWithPermissions};
             params.query = path.query('name', PLUGIN4);
             utils.getPlugin(PLUGIN_COUNT_PATH, params, function (err, result) {
@@ -604,7 +604,7 @@ describe('REST API Plugin', function () {
             })
         });
 
-        it('should get all user plugins', function (done) {
+        it('should get user plugins by name', function (done) {
             var params = {jwt: jwtWithPermissions};
             params.query = path.query('name', PLUGIN4);
             utils.getPlugin(path.current, params, function (err, result) {
