@@ -26,16 +26,16 @@ var utils = {
 
     core: $utils,
 
-    url:  getParam("restUrl") ,
+    url: getParam("restUrl"),
 
-    authUrl:  getParam("authRestUrl") ,
+    authUrl: getParam("authRestUrl"),
 
-    pluginUrl:  getParam("pluginRestUrl") ,
+    pluginUrl: getParam("pluginRestUrl"),
 
     admin: {
         login: 'dhadmin',
         password: 'dhadmin_#911',
-        id:1
+        id: 1
     },
 
     loggingOff: false,
@@ -107,10 +107,10 @@ var utils = {
             var expDate = new Date();
             expDate.setFullYear(expDate.getFullYear() + 10);
 
-            utils.createAuth(path.JWT + '/create', {jwt: utils.jwt.admin, data: {userId: userId, actions: actions, networkIds: networkIds, deviceTypeIds: deviceTypeIds, expiration: expDate }}, callback);
+            utils.createAuth(path.JWT + '/create', { jwt: utils.jwt.admin, data: { userId: userId, actions: actions, networkIds: networkIds, deviceTypeIds: deviceTypeIds, expiration: expDate } }, callback);
         }
     },
-    
+
     action: {
         Any: 0,
         None: 1,
@@ -190,7 +190,7 @@ var utils = {
 
     configuration: {
         get: function (name, cb, status) {
-            utils.get(path.CONFIGURATION, {id: name}, cb, status)
+            utils.get(path.CONFIGURATION, { id: name }, cb, status)
         }
     },
 
@@ -268,7 +268,7 @@ var utils = {
     },
 
     get: function ($path, params, cb, responseStatus) {
-        if(!responseStatus){responseStatus = status.EXPECTED_READ}
+        if (!responseStatus) { responseStatus = status.EXPECTED_READ }
         new Http(this.url, path.get($path, params.id, params.query), this.loggingOff)
             .get(params, function (err, result, xhr) {
                 if (err) {
@@ -283,7 +283,7 @@ var utils = {
     },
 
     getFullPath: function (fullUrl, $path, params, cb, responseStatus) {
-        if(!responseStatus){responseStatus = status.EXPECTED_READ}
+        if (!responseStatus) { responseStatus = status.EXPECTED_READ }
         new Http(fullUrl, path.get($path, params.id, params.query), this.loggingOff)
             .get(params, function (err, result, xhr) {
                 if (err) {
@@ -298,7 +298,7 @@ var utils = {
     },
 
     getAuth: function ($path, params, cb, responseStatus) {
-        if(!responseStatus){responseStatus = status.EXPECTED_READ}
+        if (!responseStatus) { responseStatus = status.EXPECTED_READ }
         new Http(getParam("authRestUrl"), path.get($path, params.id, params.query), this.loggingOff)
             .get(params, function (err, result, xhr) {
                 if (err) {
@@ -313,7 +313,7 @@ var utils = {
     },
 
     getPlugin: function ($path, params, cb, responseStatus) {
-        if(!responseStatus){responseStatus = status.EXPECTED_READ}
+        if (!responseStatus) { responseStatus = status.EXPECTED_READ }
         new Http(getParam("pluginRestUrl"), path.get($path, params.id, params.query), this.loggingOff)
             .get(params, function (err, result, xhr) {
                 if (err) {
@@ -328,7 +328,7 @@ var utils = {
     },
 
     getBackend: function ($path, params, cb, responseStatus) {
-        if(!responseStatus){responseStatus = status.EXPECTED_READ}
+        if (!responseStatus) { responseStatus = status.EXPECTED_READ }
         new Http(getParam("backendRestUrl"), path.get($path, params.id, params.query), this.loggingOff)
             .get(params, function (err, result, xhr) {
                 if (err) {
@@ -449,7 +449,7 @@ var utils = {
 
     getInvalidName: function () {
         //Name will be longer than constraints allow
-        return (Math.random()*1e256).toString(36)
+        return (Math.random() * 1e256).toString(36)
     },
 
     createUser2: function (role, networkIds, callback) {
@@ -491,7 +491,7 @@ var utils = {
                         return callback(err);
                     }
 
-                    callback(null, {user: user});
+                    callback(null, { user: user });
                 })
         });
     },
@@ -533,7 +533,7 @@ var utils = {
                         return callback(err);
                     }
 
-                    callback(null, {user: user});
+                    callback(null, { user: user });
                 })
         });
     },
@@ -577,7 +577,7 @@ var utils = {
                         return callback(err);
                     }
 
-                    callback(null, {user: user});
+                    callback(null, { user: user });
                 })
         });
     },
@@ -586,7 +586,7 @@ var utils = {
 
         var self = this;
         function clearEntities(path, name, callback) {
-            utils.get(path, {user: utils.admin}, function (err, result) {
+            utils.get(path, { user: utils.admin }, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -596,7 +596,7 @@ var utils = {
                         return cb();
                     }
 
-                    utils.delete(path, {user: utils.admin, id: item.id}, cb);
+                    utils.delete(path, { user: utils.admin, id: item.id }, cb);
                 }, callback)
             });
         }
@@ -636,7 +636,7 @@ var utils = {
 
         var self = this;
         function clearEntities(fullUrl, pathCurrent, name, callback) {
-            utils.getFullPath(fullUrl, pathCurrent, {jwt: utils.jwt.admin}, function (err, result) {
+            utils.getFullPath(fullUrl, pathCurrent, { jwt: utils.jwt.admin }, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -655,7 +655,7 @@ var utils = {
                         );
                         utils.deletePlugin(pathCurrent, params, cb);
                     } else {
-                        utils.deleteFullPath(fullUrl, pathCurrent, {jwt: utils.jwt.admin, id: item.id}, cb);
+                        utils.deleteFullPath(fullUrl, pathCurrent, { jwt: utils.jwt.admin, id: item.id }, cb);
                     }
                 }, callback)
             });
@@ -739,6 +739,38 @@ var utils = {
             }
 
             assert.strictEqual(ac, ex, 'Expected value for \'' + key + '\' should be: \'' + ex + '\'');
+        });
+    },
+
+    //without assert
+    matchesFields: function (actual, expected) {
+
+        var keys = Object.keys(expected);
+
+        return keys.every(key => {
+
+            if (!actual.hasOwnProperty(key)) {
+                return false;
+            }
+
+            var ac = actual[key];
+            var ex = expected[key];
+
+            if (Array.isArray(ex)) {
+                if (!(Array.isArray(ac) && ac.length === ex.length && utils.matchesFields(ac, ex))) {
+                    return false;
+                }
+            }
+            if (ex && (typeof (ex) === 'object')) {
+                if (!utils.matchesFields(ac, ex)) {
+                    return false;
+                }
+            }
+
+            if (ac !== ex) {
+                return false;
+            }
+            return true;
         });
     },
 
