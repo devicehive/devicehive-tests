@@ -53,8 +53,13 @@ class WSConnection {
             }
         }, timeout);
     }
+
     close() {
         this.socket.close();
+    }
+
+    getReadyState() {
+        return this.socket.readyState;
     }
 }
 

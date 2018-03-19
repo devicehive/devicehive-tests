@@ -2,7 +2,7 @@ var async = require('async');
 var utils = require('./common/utils');
 var path = require('./common/path');
 var req = require('./common/request');
-var Websocket = require('./common/websocket');
+var Websocket = require('./common/ws');
 var getRequestId = utils.core.getRequestId;
 var status = require('./common/http').status;
 
@@ -23,7 +23,7 @@ describe('WebSocket API Authentication', function () {
 
         function getWsUrl(callback) {
 
-            utils.get(path.INFO, {jwt: utils.jwt.admin} ,function (err, result) {
+            utils.get(path.INFO, { jwt: utils.jwt.admin }, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -31,7 +31,7 @@ describe('WebSocket API Authentication', function () {
                 callback();
             });
         }
-        
+
         function createNetwork(callback) {
             var params = {
                 jwt: utils.jwt.admin,
@@ -101,17 +101,17 @@ describe('WebSocket API Authentication', function () {
             }
 
             function runTest(callback) {
-                client.params({
+                client.on({
+                    action: 'authenticate',
+                    status: 'success',
+                    requestId: requestId
+                }, callback);
+
+                client.send({
                     action: 'authenticate',
                     requestId: requestId,
                     token: token
-                })
-                    .expect({
-                        action: 'authenticate',
-                        status: 'success',
-                        requestId: requestId
-                    })
-                    .send(callback);
+                });
             }
 
             async.series([
@@ -135,13 +135,16 @@ describe('WebSocket API Authentication', function () {
             }
 
             function runTest(callback) {
-                client.params({
+                client.on({
+                    error: 'Invalid credentials',
+                    code: 401
+                }, callback);
+
+                client.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
-                    token:  invalidToken
-                })
-                    .expectError(401, 'Invalid credentials')
-                    .send(callback);
+                    token: invalidToken
+                });
             }
 
             async.series([
@@ -165,13 +168,17 @@ describe('WebSocket API Authentication', function () {
             }
 
             function runTest(callback) {
-                client.params({
+
+                client.on({
+                    error: 'Invalid credentials',
+                    code: 401
+                }, callback);
+
+                client.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
-                    token:  utils.jwt.admin_refresh
-                })
-                    .expectError(401, 'Invalid credentials')
-                    .send(callback);
+                    token: utils.jwt.admin_refresh
+                });
             }
 
             async.series([
@@ -198,18 +205,18 @@ describe('WebSocket API Authentication', function () {
             }
 
             function runTest(callback) {
-                client.params({
+                client.on({
+                    action: 'token',
+                    status: 'success',
+                    requestId: requestId
+                }, callback);
+
+                client.send({
                     action: 'token',
                     requestId: requestId,
                     login: user.login,
                     password: utils.NEW_USER_PASSWORD
-                })
-                    .expect({
-                        action: 'token',
-                        status: 'success',
-                        requestId: requestId
-                    })
-                    .send(callback);
+                });
             }
 
             async.series([
@@ -234,14 +241,17 @@ describe('WebSocket API Authentication', function () {
             }
 
             function runTest(callback) {
-                client.params({
+                client.on({
+                    code: 401,
+                    error: 'Invalid credentials'
+                }, callback);
+
+                client.send({
                     action: 'token',
                     requestId: requestId,
                     login: user.login,
-                    password: "123"
-                })
-                    .expectError(401, 'Invalid credentials')
-                    .send(callback);
+                    password: '123'
+                });
             }
 
             async.series([
@@ -266,14 +276,17 @@ describe('WebSocket API Authentication', function () {
             }
 
             function runTest(callback) {
-                client.params({
+                client.on({
+                    code: 401,
+                    error: 'User with login = invalid-login not found or bad password'
+                }, callback);
+
+                client.send({
                     action: 'token',
                     requestId: requestId,
                     login: 'invalid-login',
                     password: 'invalid-password'
-                })
-                    .expectError(401, 'User with login = invalid-login not found or bad password')
-                    .send(callback);
+                });
             }
 
             async.series([
@@ -300,26 +313,31 @@ describe('WebSocket API Authentication', function () {
             }
 
             function authenticateConn(callback) {
-                client.params({
+
+                client.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+
+                client.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: utils.jwt.admin
-                })
-                    .send(callback);
+                });
             }
 
             function runTest(callback) {
-                client.params({
+                client.on({
+                    action: 'token/create',
+                    status: 'success',
+                    requestId: requestId
+                }, callback);
+
+                client.send({
                     action: 'token/create',
                     requestId: requestId,
-                    payload: {userId: user.id}
-                })
-                    .expect({
-                        action: 'token/create',
-                        status: 'success',
-                        requestId: requestId
-                    })
-                    .send(callback);
+                    payload: { userId: user.id }
+                });
             }
 
             async.series([
@@ -345,22 +363,29 @@ describe('WebSocket API Authentication', function () {
             }
 
             function authenticateConn(callback) {
-                client.params({
+                client.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+
+                client.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: token
-                })
-                    .send(callback);
+                });
             }
 
             function runTest(callback) {
-                client.params({
+                client.on({
+                    code: 403,
+                    error: 'Access is denied'
+                }, callback);
+
+                client.send({
                     action: 'token/create',
                     requestId: requestId,
-                    payload: {userId: user.id}
-                })
-                    .expectError(403, 'Access is denied')
-                    .send(callback);
+                    payload: { userId: user.id }
+                });
             }
 
             async.series([
@@ -386,13 +411,16 @@ describe('WebSocket API Authentication', function () {
             }
 
             function runTest(callback) {
-                client.params({
+                client.on({
+                    code: 401,
+                    error: 'Unauthorized'
+                }, callback);
+
+                client.send({
                     action: 'token/create',
                     requestId: requestId,
-                    payload: {userId: user.id}
-                })
-                    .expectError(401, 'Unauthorized')
-                    .send(callback);
+                    payload: { userId: user.id }
+                });
             }
 
             async.series([
@@ -417,22 +445,29 @@ describe('WebSocket API Authentication', function () {
             }
 
             function authenticateConn(callback) {
-                client.params({
+                client.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+
+                client.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: utils.jwt.admin
-                })
-                    .send(callback);
+                });
             }
 
             function runTest(callback) {
-                client.params({
+                client.on({
+                    code: 404,
+                    error: 'User with id = -1 not found'
+                }, callback);
+
+                client.send({
                     action: 'token/create',
                     requestId: requestId,
-                    payload: {userId: -1}
-                })
-                    .expectError(404, 'User with id = -1 not found')
-                    .send(callback);
+                    payload: { userId: -1 }
+                });
             }
 
             async.series([
@@ -460,17 +495,17 @@ describe('WebSocket API Authentication', function () {
             }
 
             function runTest(callback) {
-                client.params({
+                client.on({
+                    action: 'token/refresh',
+                    status: 'success',
+                    requestId: requestId
+                }, callback);
+
+                client.send({
                     action: 'token/refresh',
                     requestId: requestId,
                     refreshToken: utils.jwt.admin_refresh
-                })
-                    .expect({
-                        action: 'token/refresh',
-                        status: 'success',
-                        requestId: requestId
-                    })
-                    .send(callback);
+                });
             }
 
             async.series([
@@ -494,13 +529,17 @@ describe('WebSocket API Authentication', function () {
             }
 
             function runTest(callback) {
-                client.params({
+
+                client.on({
+                    error: 'Invalid token type',
+                    code: status.NOT_AUTHORIZED
+                }, callback);
+
+                client.send({
                     action: 'token/refresh',
                     requestId: getRequestId(),
-                    refreshToken:  utils.jwt.admin_refresh_invalid
-                })
-                    .expectError(status.NOT_AUTHORIZED, 'Invalid token type')
-                    .send(callback);
+                    refreshToken: utils.jwt.admin_refresh_invalid
+                });
             }
 
             async.series([
@@ -524,13 +563,16 @@ describe('WebSocket API Authentication', function () {
             }
 
             function runTest(callback) {
-                client.params({
+                client.on({
+                    error: 'Token has expired',
+                    code: status.NOT_AUTHORIZED
+                }, callback);
+
+                client.send({
                     action: 'token/refresh',
                     requestId: getRequestId(),
-                    refreshToken:  utils.jwt.admin_refresh_exp
-                })
-                    .expectError(status.NOT_AUTHORIZED, 'Token has expired')
-                    .send(callback);
+                    refreshToken: utils.jwt.admin_refresh_exp
+                });
             }
 
             async.series([

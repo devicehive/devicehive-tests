@@ -765,10 +765,10 @@ var utils = {
                 if (!utils.matchesFields(ac, ex)) {
                     return false;
                 }
-            }
-
-            if (ac !== ex) {
-                return false;
+            } else {
+                if (ex && ac !== ex) {
+                    return false;
+                }
             }
             return true;
         });
