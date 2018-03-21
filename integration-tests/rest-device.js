@@ -520,38 +520,6 @@ describe('REST API Device Unit', function () {
                 done();
             });
         });
-    });
-
-    describe('#Create', function () {
-
-        var NEW_DEVICE = utils.getName('new-device');
-        var NEW_DEVICE_ID = utils.getName('id-222');
-        var jwt = null;
-
-        before(function (done) {
-        	function createJWT(callback) {
-        		utils.jwt.create(user.id, ['*'], networkId, ['*'], function (err, result) {
-        			if (err) {
-        				return callback(err);
-        			}
-        			jwt = result.accessToken;
-        			callback()
-        		})
-        	}
-
-            function createDevice(callback) {
-                var params = helper.getParamsObj(NEW_DEVICE, jwt, null, {name: DEVICE});
-                params.id = NEW_DEVICE_ID;
-                utils.update(path.current, params, function (err) {
-                    callback(err);
-                });
-            }
-
-            async.series([
-            	createJWT,
-                createDevice
-            ], done);
-        });
 
         it('should return newly created device with the default network ID', function (done) {
             var params = {jwt: utils.jwt.admin};
@@ -568,6 +536,16 @@ describe('REST API Device Unit', function () {
             });
         });
 
+        it('should fail device creation for invalid network id', function (done) {
+            var params = helper.getParamsObj(NEW_DEVICE, utils.jwt.admin, utils.NON_EXISTING_ID, {name: DEVICE});
+            params.id = NEW_DEVICE_ID;
+            utils.update(path.current, params, function (err) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'Invalid request parameters');
+                assert.strictEqual(err.httpStatus, status.BAD_REQUEST);
+                done();
+            });
+        });
     });
 
     describe('#Create Client', function () {

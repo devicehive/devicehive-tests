@@ -16,6 +16,7 @@ describe('REST API Plugin', function () {
     var PLUGIN1 = utils.getName('plugin');
     var PLUGIN2 = utils.getName('plugin');
     var PLUGIN3 = utils.getName('plugin');
+    var PLUGIN4 = utils.getName('plugin');
     var DEVICE_ID = utils.getName('device-id');
     var COMMAND = utils.getName('cmd');
     var ACTIVE_STATUS = 'ACTIVE';
@@ -565,7 +566,7 @@ describe('REST API Plugin', function () {
                 var params = {
                     jwt: jwtWithPermissions,
                     data: {
-                        name: PLUGIN1,
+                        name: PLUGIN4,
                         description: description,
                         parameters: {
                             jsonString: paramObject
@@ -592,8 +593,10 @@ describe('REST API Plugin', function () {
             ], done);
         });
 
-        it('should count all user plugins', function (done) {
-            utils.getPlugin(PLUGIN_COUNT_PATH, {jwt: jwtWithPermissions}, function (err, result) {
+        it('should count user plugins by plugin name', function (done) {
+            var params = {jwt: jwtWithPermissions};
+            params.query = path.query('name', PLUGIN4);
+            utils.getPlugin(PLUGIN_COUNT_PATH, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.count, 1);
 
@@ -601,13 +604,15 @@ describe('REST API Plugin', function () {
             })
         });
 
-        it('should get all user plugins', function (done) {
-            utils.getPlugin(path.current, {jwt: jwtWithPermissions}, function (err, result) {
+        it('should get user plugins by name', function (done) {
+            var params = {jwt: jwtWithPermissions};
+            params.query = path.query('name', PLUGIN4);
+            utils.getPlugin(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 console.log(result);
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
                 utils.matches(result[0], {
-                    name: PLUGIN1
+                    name: PLUGIN4
                 });
 
                 done();

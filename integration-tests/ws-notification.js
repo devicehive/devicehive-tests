@@ -1122,7 +1122,31 @@ describe('WebSocket API Notification', function () {
                 networkIds: [utils.NON_EXISTING_ID],
                 requestId: requestId
             })
-                .expectError(403, "Networks with such networkIds wasn't found: {[" + utils.NON_EXISTING_ID + "]}")
+                .expectError(403, "Access is denied")
+                .send(done);
+        });
+
+        it('should reject subscribe to device notifications for non existing network for admin', function (done) {
+            var requestId = getRequestId();
+
+            adminConn.params({
+                action: 'notification/subscribe',
+                networkIds: [utils.NON_EXISTING_ID],
+                requestId: requestId
+            })
+                .expectError(404, "Networks with such networkIds wasn't found: {[" + utils.NON_EXISTING_ID + "]}")
+                .send(done);
+        });
+
+        it('should reject subscribe to device notifications for non existing device type for admin', function (done) {
+            var requestId = getRequestId();
+
+            adminConn.params({
+                action: 'notification/subscribe',
+                deviceTypeIds: [utils.NON_EXISTING_ID],
+                requestId: requestId
+            })
+                .expectError(404, "Device types with such deviceTypeIds wasn't found: {[" + utils.NON_EXISTING_ID + "]}")
                 .send(done);
         });
     });
