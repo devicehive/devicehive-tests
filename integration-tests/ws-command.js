@@ -1344,7 +1344,7 @@ describe('WebSocket API Command', function () {
                     .params({
                         jwt: utils.jwt.admin,
                         data: {command: COMMAND}
-                    })
+                    });
                 
                 function cleanUp(err) {
                     if (err) {
@@ -1387,10 +1387,35 @@ describe('WebSocket API Command', function () {
                 returnUpdatedCommands: true,
                 requestId: requestId
             })
-                .expectError(403, "Networks with such networkIds wasn't found: {[" + utils.NON_EXISTING_ID + "]}")
+                .expectError(403, "Access is denied")
                 .send(done);
         });
 
+        it('should reject subscribe to device commands for non existing network, returnUpdated = true for admin', function (done) {
+            var requestId = getRequestId();
+
+            adminConn.params({
+                action: 'command/subscribe',
+                networkIds: [utils.NON_EXISTING_ID],
+                returnUpdatedCommands: true,
+                requestId: requestId
+            })
+                .expectError(404, "Networks with such networkIds wasn't found: {[" + utils.NON_EXISTING_ID + "]}")
+                .send(done);
+        });
+
+        it('should reject subscribe to device commands for non existing network, returnUpdated = true for admin', function (done) {
+            var requestId = getRequestId();
+
+            adminConn.params({
+                action: 'command/subscribe',
+                deviceTypeIds: [utils.NON_EXISTING_ID],
+                returnUpdatedCommands: true,
+                requestId: requestId
+            })
+                .expectError(404, "Device types with such deviceTypeIds wasn't found: {[" + utils.NON_EXISTING_ID + "]}")
+                .send(done);
+        });
     });
 
     describe('#command/unsubscribe', function () {
