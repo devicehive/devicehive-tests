@@ -533,7 +533,7 @@ describe('WebSocket API Device', function () {
             ], done);
         });
 
-        it('should return error for device id with illegal characters', function(done) {
+        it('should return error for device id with illegal characters #1', function(done) {
             var requestId = getRequestId();
             conn.params({
                 action: 'device/save',
@@ -542,8 +542,10 @@ describe('WebSocket API Device', function () {
             })
                 .expectError(400, 'Device Id can only contain letters, digits and dashes.')
                 .send(done);
+        });
 
-            requestId = getRequestId();
+        it('should return error for device id with illegal characters #2', function(done) {
+            var requestId = getRequestId();
             conn.params({
                 action: 'device/save',
                 requestId: requestId,
@@ -551,14 +553,30 @@ describe('WebSocket API Device', function () {
             })
                 .expectError(400, 'Device Id can only contain letters, digits and dashes.')
                 .send(done);
+        });
 
-            requestId = getRequestId();
+        it('should return error for device id with illegal characters #3', function(done) {
+            var requestId = getRequestId();
             conn.params({
                 action: 'device/save',
                 requestId: requestId,
                 deviceId: illegalDeviceId3
             })
                 .expectError(400, 'Device Id can only contain letters, digits and dashes.')
+                .send(done);
+        });
+
+        it('should fail device creation for invalid network id', function (done) {
+            var requestId = getRequestId();
+            conn.params({
+                action: 'device/save',
+                requestId: requestId,
+                deviceId: deviceId,
+                device: {
+                    networkId: utils.NON_EXISTING_ID
+                }
+            })
+                .expectError(400, 'Invalid request parameters')
                 .send(done);
         });
 

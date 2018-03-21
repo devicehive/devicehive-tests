@@ -275,7 +275,7 @@ describe('WebSocket API Command', function () {
                     deviceId: invalidDeviceId,
                     command: command
                 })
-                .expectError(404, 'Device with such deviceId = ' + invalidDeviceId + ' not found')
+                .expectError(403, 'Access is denied')
                 .send(done);
         });
         
@@ -1565,7 +1565,7 @@ describe('WebSocket API Command', function () {
                     commandId: commandId1,
                     command: { command: COMMAND }
                 })
-                .expectError(404, 'Device with such deviceId = ' + invalidDeviceId + ' not found')
+                .expectError(403, 'Access is denied')
                 .send(done);
         });
 
