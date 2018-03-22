@@ -287,6 +287,31 @@ describe('REST API Device Command', function () {
                 done();
             });
         });
+
+        it('should succeed for original command, returnUpdatedCommands = false', function (done) {
+            var params = {jwt: jwt};
+            var current = path.COMMAND.getCommand(DEVICE_ID, commandId);
+            params.query = path.query('returnUpdatedCommands', false);
+            utils.get(current, params, function (err, result) {
+                assert.strictEqual(!(!err), false, 'No error');
+                assert.strictEqual(hasCommand(result), true);
+
+                done();
+            });
+        });
+
+        it('should fail for original command, returnUpdatedCommands = true', function (done) {
+            var params = {jwt: jwt};
+            var current = path.COMMAND.getCommand(DEVICE_ID, commandId);
+            params.query = path.query('returnUpdatedCommands', true);
+            utils.get(current, params, function (err, result) {
+                assert.strictEqual(!(!err), true, 'Error object created');
+                assert.strictEqual(err.error, 'Command with id = ' + commandId + ' not found');
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+
+                done();
+            });
+        });
     });
 
     describe('#Poll', function () {
