@@ -494,37 +494,98 @@ describe('REST API Network', function () {
 
     describe('#Delete', function () {
 
-        var networkId = null;
+        var DEVICE = utils.getName('network-device');
+        var DEVICE_ID = utils.getName('network-id');
+
+        var networkId1 = null;
+        var networkId2 = null;
 
         before(function (done) {
-            req.create(path.current)
-                .params({
-                    jwt: utils.jwt.admin,
-                    data: {name: utils.getName('network-5')}
-                })
-                .send(function (err, result) {
-                    if (err) {
-                        return done(err);
-                    }
+            function createNetwork1(callback) {
+                req.create(path.current)
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {name: utils.getName('network-5')}
+                    })
+                    .send(function (err, result) {
+                        if (err) {
+                            return done(err);
+                        }
 
-                    networkId = result.id;
-                    done();
-                });
+                        networkId1 = result.id;
+                        callback();
+                    });
+            }
+
+            function createNetwork2(callback) {
+                req.create(path.current)
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {name: utils.getName('network-5')}
+                    })
+                    .send(function (err, result) {
+                        if (err) {
+                            return done(err);
+                        }
+
+                        networkId2 = result.id;
+                        callback();
+                    });
+            }
+
+            function createDevice(callback) {
+                var params = utils.device.getParamsObj(DEVICE, utils.jwt.admin, null, {name: DEVICE, version: '1'});
+                params.data.networkId = networkId2;
+                req.update(path.get(path.DEVICE, DEVICE_ID))
+                    .params(params)
+                    .send(function (err) {
+                        if (err) {
+                            return callback(err);
+                        }
+                        callback();
+                    });
+            }
+
+            async.series([
+                createNetwork1,
+                createNetwork2,
+                createDevice
+            ], done);
         });
 
-        it('should fail get with 404 after we deleted network', function (done) {
+        it('should fail get with 404 if network has already been deleted', function (done) {
             req.delete(path.current)
-                .params({jwt: utils.jwt.admin, id: networkId})
+                .params({jwt: utils.jwt.admin, id: networkId1})
                 .send(function (err) {
                     if (err) {
                         return done(err);
                     }
 
                     req.get(path.current)
-                        .params({jwt: utils.jwt.admin, id: networkId})
+                        .params({jwt: utils.jwt.admin, id: networkId1})
                         .expectError(status.NOT_FOUND,
-                            format('Network with id = %s not found', networkId))
+                            format('Network with id = %s not found', networkId1))
                         .send(done);
+                });
+        });
+
+        it('should fail with 400 if network has devices, force = false', function (done) {
+            req.delete(path.current)
+                .params({jwt: utils.jwt.admin, id: networkId2})
+                .query('force', false)
+                .expectError(status.BAD_REQUEST,
+                    'There are the following devices within this network: ' + DEVICE_ID + '. Please review and delete them first.')
+                .send(done);
+        });
+
+        it('should fail delete network with devices, force = true', function (done) {
+            req.delete(path.current)
+                .params({jwt: utils.jwt.admin, id: networkId2})
+                .query('force', true)
+                .send(function (err) {
+                    assert.strictEqual(!(!err), false, 'No error');
+
+                    done();
                 });
         });
     });
