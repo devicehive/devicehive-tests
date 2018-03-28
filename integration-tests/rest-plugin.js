@@ -277,6 +277,40 @@ describe('REST API Plugin', function () {
             })
         });
 
+        it('should fail with 403 on updating non existing plugin', function (done) {
+            var params = {
+                jwt: jwtWithPermissions2
+            };
+
+            params.query = path.query(
+                'topicName', utils.NON_EXISTING_ID,
+                'status', ACTIVE_STATUS
+            );
+
+            utils.updatePlugin(path.current, params, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+
+                done();
+            })
+        });
+
+        it('should fail with 404 on updating non existing plugin by admin', function (done) {
+            var params = {
+                jwt: utils.jwt.admin
+            };
+
+            params.query = path.query(
+                'topicName', utils.NON_EXISTING_ID,
+                'status', ACTIVE_STATUS
+            );
+
+            utils.updatePlugin(path.current, params, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+
+                done();
+            })
+        });
+
         it('should update plugin status', function (done) {
             var params = {
                 jwt: jwtWithPermissions
@@ -524,6 +558,38 @@ describe('REST API Plugin', function () {
 
             utils.deletePlugin(path.current, params, function (err, result) {
                 assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+
+                done();
+            })
+        });
+
+        it('should fail with 403 on deleting non existing plugin', function (done) {
+            var params = {
+                jwt: jwtWithPermissions2
+            };
+
+            params.query = path.query(
+                'topicName', utils.NON_EXISTING_ID
+            );
+
+            utils.deletePlugin(path.current, params, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+
+                done();
+            })
+        });
+
+        it('should fail with 404 on deleting non existing plugin by admin', function (done) {
+            var params = {
+                jwt: utils.jwt.admin
+            };
+
+            params.query = path.query(
+                'topicName', utils.NON_EXISTING_ID
+            );
+
+            utils.deletePlugin(path.current, params, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
 
                 done();
             })
