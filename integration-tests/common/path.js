@@ -28,6 +28,9 @@ var path = {
         get: function (deviceId) {
             return path.combine(path.DEVICE, deviceId, 'command');
         },
+        getCommand: function (deviceId, commandId) {
+            return path.combine(path.DEVICE, deviceId, 'command', commandId);
+        },
         poll: function () {
             return path.combine(path.DEVICE, 'command', path.POLL);
         }
