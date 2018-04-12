@@ -1149,6 +1149,18 @@ describe('WebSocket API Notification', function () {
                 .expectError(404, "Device types with such deviceTypeIds wasn't found: {[" + utils.NON_EXISTING_ID + "]}")
                 .send(done);
         });
+
+        it('should reject subscribe to device notifications for empty device id for admin', function (done) {
+            var requestId = getRequestId();
+
+            adminConn.params({
+                action: 'notification/subscribe',
+                deviceId: "",
+                requestId: requestId
+            })
+                .expectError(400, "Device id is wrong or empty")
+                .send(done);
+        });
     });
 
     describe('#notification/unsubscribe', function () {
