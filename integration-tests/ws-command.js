@@ -1416,6 +1416,19 @@ describe('WebSocket API Command', function () {
                 .expectError(404, "Device types with such deviceTypeIds wasn't found: {[" + utils.NON_EXISTING_ID + "]}")
                 .send(done);
         });
+
+        it('should reject subscribe to device commands for empty device id, returnUpdated = true for admin', function (done) {
+            var requestId = getRequestId();
+
+            adminConn.params({
+                action: 'command/subscribe',
+                deviceId: "",
+                returnUpdatedCommands: true,
+                requestId: requestId
+            })
+                .expectError(400, "Device id is wrong or empty")
+                .send(done);
+        });
     });
 
     describe('#command/unsubscribe', function () {
