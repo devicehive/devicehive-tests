@@ -1,59 +1,66 @@
-global.WebSocket = require('ws');
-var utils = require('./utils');
+const WebSocket = require('ws');
+const utils = require('./utils');
+class WSConnection {
 
-function Websocket(url) {
-    this.dateOpened = null;
-    this.socket = new WebSocket(url);
-}
+    constructor(url) {
+        this.socket = new WebSocket(url);
+        this.dateOpened = null;
+    }
 
-Websocket.prototype = {
-
-    connect: function (callback) {
-        var self = this;
-
-        this.socket.onopen = function () {
-            self.dateOpened = new Date().toISOString();
-            console.log('Connection opened at %s', self.dateOpened);
+    connect(callback) {
+        this.socket.onopen = () => {
+            this.dateOpened = new Date().toISOString();
+            console.log(`Connection opened at ${this.dateOpened}`);
             return callback();
         };
 
-        this.socket.onerror = function (err) {
+        this.socket.onerror = err => {
             console.log(JSON.stringify(err));
         };
 
-        this.socket.onclose = function () {
-            console.log('Connection, which was opened at %s, closed', self.dateOpened);
+        this.socket.onclose = () => {
+            console.log(`Connection, which was opened at ${this.dateOpened}, closed`);
         };
-    },
+    }
 
-    send: function (obj, done = utils.emptyCb) {
-        var msg = JSON.stringify(obj);
+    send(obj) {
+        const msg = JSON.stringify(obj);
         console.log('-> %s', msg);
         this.socket.send(msg);
-    },
+    }
 
-    on: function (obj = {}, callback = utils.emptyCb) {
+    on(obj = {}, callback = utils.emptyCb) {
+        let received = false;
 
-        var received = false;
+        const listener = event => {
+            console.log(`<- ${event.data}`);
+            const data = JSON.parse(event.data);
 
-        this.socket.onmessage = function (message) {
-            console.log('<- %s', JSON.stringify(message));
-            var data = JSON.parse(message.data);
-            utils.matches(data, obj);
-            received = true;
-            callback(null, data);
-        };
-        var timeout = utils.WEBSOCKET_TIMEOUT;
-        setTimeout(function () {
+            if (utils.matchesFields(data, obj)) {
+                received = true;
+                this.socket.removeEventListener('message', listener);
+                callback(null, data);
+            }
+        }
+        this.socket.addEventListener('message', listener);
+
+        const timeout = utils.WEBSOCKET_TIMEOUT;
+
+        setTimeout(() => {
             if (!received) {
+                this.socket.removeEventListener('message', listener);
                 callback(new Error('waitFor() timeout: hasn\'t got message, for ' + timeout + 'ms'));
             }
         }, timeout);
-    },
+    }
 
-    close: function () {
+    close() {
         this.socket.close();
     }
-};
 
-module.exports = Websocket;
+    getReadyState() {
+        return this.socket.readyState;
+    }
+}
+
+module.exports = WSConnection;
