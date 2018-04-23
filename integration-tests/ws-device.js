@@ -4,7 +4,7 @@ var utils = require('./common/utils');
 var path = require('./common/path');
 var req = require('./common/request');
 var status = require('./common/http').status;
-var Websocket = require('./common/websocket');
+var Websocket = require('./common/ws');
 var getRequestId = utils.core.getRequestId;
 
 describe('WebSocket API Device', function () {
@@ -20,18 +20,18 @@ describe('WebSocket API Device', function () {
 
     var device = {
         name: DEVICE,
-        data: {a: '1', b: '2'}
+        data: { a: '1', b: '2' }
     };
     var device2 = {
         name: DEVICE2,
-        data: {a: '11', b: '12'}
+        data: { a: '11', b: '12' }
     };
-    
+
     var deviceId = utils.getName('ws-device-id-1');
     var deviceId2 = utils.getName('ws-device-id-2');
 
     before(function (done) {
-        req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
+        req.get(path.INFO).params({ jwt: utils.jwt.admin }).send(function (err, result) {
             if (err) {
                 return done(err);
             }
@@ -47,7 +47,7 @@ describe('WebSocket API Device', function () {
         var networkId = null;
 
         before(function (done) {
-        	function createNetwork(callback) {
+            function createNetwork(callback) {
                 var params = {
                     jwt: utils.jwt.admin,
                     data: { name: NETWORK, key: NETWORK_KEY }
@@ -64,9 +64,9 @@ describe('WebSocket API Device', function () {
             }
 
             function createDevice(callback) {
-            	device.networkId = networkId;
+                device.networkId = networkId;
                 req.update(path.get(path.DEVICE, deviceId))
-                    .params({jwt: utils.jwt.admin, data: device})
+                    .params({ jwt: utils.jwt.admin, data: device })
                     .send(callback);
             }
 
@@ -102,25 +102,33 @@ describe('WebSocket API Device', function () {
             }
 
             function authenticateConn(callback) {
-                conn.params({
-                        action: 'authenticate',
-                        requestId: getRequestId(),
-                        token: token
-                    })
-                    .send(callback);
+                conn.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+
+                conn.send({
+                    action: 'authenticate',
+                    requestId: getRequestId(),
+                    token: token
+                });
             }
 
             function authenticateAdminConn(callback) {
-                adminConn.params({
+                adminConn.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+
+                adminConn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: utils.jwt.admin
-                })
-                    .send(callback);
+                });
             }
 
             async.series([
-            	createNetwork,
+                createNetwork,
                 createDevice,
                 createToken,
                 createConn,
@@ -132,10 +140,10 @@ describe('WebSocket API Device', function () {
 
         it('should return 401 error for valid refresh jwt', function (done) {
             req.update(path.get(path.DEVICE, deviceId))
-                .params({jwt: utils.jwt.admin_refresh, data: device})
+                .params({ jwt: utils.jwt.admin_refresh, data: device })
                 .expectError(401, 'Unauthorized')
                 .send(done);
- 
+
         });
 
         it('should not get information about device without deviceId', function (done) {
@@ -144,12 +152,15 @@ describe('WebSocket API Device', function () {
             var expectedDevice = utils.core.clone(device);
             delete expectedDevice.key;
 
-            conn.params({
-                    action: 'device/get',
-                    requestId: requestId
-                })
-                .expectError(400, 'Device id is wrong or empty')
-                .send(done);
+            conn.on({
+                code: 400,
+                error: 'Device id is wrong or empty'
+            }, done);
+
+            conn.send({
+                action: 'device/get',
+                requestId: requestId
+            });
         });
 
         it('should return 400 when deviceId is null', function (done) {
@@ -158,39 +169,48 @@ describe('WebSocket API Device', function () {
             var expectedDevice = utils.core.clone(device);
             delete expectedDevice.key;
 
-            conn.params({
+            conn.on({
+                code: 400,
+                error: 'Device id is wrong or empty'
+            }, done);
+
+            conn.send({
                 action: 'device/get',
                 requestId: requestId,
                 deviceId: null
-            })
-                .expectError(400, 'Device id is wrong or empty')
-                .send(done);
+            });
         });
 
         it('should return 403 when client has no access to device', function (done) {
             var requestId = getRequestId();
             var invalidDeviceId = 'invalid-device-id';
 
-            conn.params({
+            conn.on({
+                code: 403,
+                error: 'Access is denied'
+            }, done);
+
+            conn.send({
                 action: 'device/get',
                 deviceId: invalidDeviceId,
                 requestId: requestId
-            })
-                .expectError(403, 'Access is denied')
-                .send(done);
+            });
         });
 
         it('should return 404 for admin when no device exists', function (done) {
             var requestId = getRequestId();
             var invalidDeviceId = 'invalid-device-id';
 
-            adminConn.params({
+            adminConn.on({
+                code: 404,
+                error: 'Device with such deviceId = ' + invalidDeviceId + ' not found'
+            }, done);
+
+            adminConn.send({
                 action: 'device/get',
                 deviceId: invalidDeviceId,
                 requestId: requestId
-            })
-                .expectError(404, 'Device with such deviceId = ' + invalidDeviceId + ' not found')
-                .send(done);
+            });
         });
 
         after(function (done) {
@@ -226,14 +246,14 @@ describe('WebSocket API Device', function () {
             function createDevice(callback) {
                 device.networkId = networkId;
                 req.update(path.get(path.DEVICE, deviceId))
-                    .params({jwt: utils.jwt.admin, data: device})
+                    .params({ jwt: utils.jwt.admin, data: device })
                     .send(callback);
             }
 
             function createDevice2(callback) {
                 device2.networkId = networkId;
                 req.update(path.get(path.DEVICE, deviceId2))
-                    .params({jwt: utils.jwt.admin, data: device2})
+                    .params({ jwt: utils.jwt.admin, data: device2 })
                     .send(callback);
             }
 
@@ -284,21 +304,29 @@ describe('WebSocket API Device', function () {
             }
 
             function authenticateConn(callback) {
-                conn.params({
+                conn.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+
+                conn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: token
-                })
-                    .send(callback);
+                });
             }
 
             function authenticateNoActionsConnection(callback) {
-                noActionsConnection.params({
+                noActionsConnection.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+
+                noActionsConnection.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: noActionsToken
-                })
-                    .send(callback);
+                });
             }
 
             async.series([
@@ -317,20 +345,18 @@ describe('WebSocket API Device', function () {
         it('should count devices based on the name pattern', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                action: 'device/count',
+                requestId: requestId,
+                status: 'success',
+                count: 1
+            }, done);
+
+            conn.send({
                 action: 'device/count',
                 requestId: requestId,
                 namePattern: '%ws-device-1%'
-            })
-                .expect({
-                    action: 'device/count',
-                    requestId: requestId,
-                    status: 'success'
-                })
-                .assert(function (result) {
-                    assert.strictEqual(result.count, 1);
-                })
-                .send(done);
+            });
         });
 
         it('should get the first device only', function (done) {
@@ -339,47 +365,49 @@ describe('WebSocket API Device', function () {
             var expectedDevice = utils.core.clone(device);
             delete expectedDevice.key;
 
-            conn.params({
+            conn.on({
+                action: 'device/list',
+                requestId: requestId,
+                status: 'success',
+                devices: [expectedDevice]
+            }, done);
+
+            conn.send({
                 action: 'device/list',
                 requestId: requestId,
                 namePattern: '%ws-device-1%'
-            })
-                .expect({
-                    action: 'device/list',
-                    requestId: requestId,
-                    status: 'success',
-                    devices: [expectedDevice]
-                })
-                .send(done);
+            });
         });
 
         it('should get device count', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                action: 'device/count',
+                requestId: requestId,
+                status: 'success'
+            }, (err, data) => {
+                assert.strictEqual(data.count > 0, true);
+                done();
+            });
+
+            conn.send({
                 action: 'device/count',
                 requestId: requestId
-            })
-                .expect({
-                    action: 'device/count',
-                    requestId: requestId,
-                    status: 'success'
-                })
-                .assert(function (result) {
-                    assert.strictEqual(result.count > 0, true);
-                })
-                .send(done);
+            });
         });
 
         it('should fail with 403 on count all devices', function (done) {
             var requestId = getRequestId();
 
-            noActionsConnection.params({
+            noActionsConnection.on({
+                code: status.FORBIDDEN
+            }, done);
+
+            noActionsConnection.send({
                 action: 'device/count',
                 requestId: requestId
-            })
-                .expectError(status.FORBIDDEN)
-                .send(done)
+            });
         });
 
         it('should get devices in correct order', function (done) {
@@ -390,19 +418,19 @@ describe('WebSocket API Device', function () {
             delete expectedDevice.key;
             delete expectedDevice2.key;
 
-            conn.params({
+            conn.on({
+                action: 'device/list',
+                requestId: requestId,
+                status: 'success',
+                devices: [expectedDevice, expectedDevice2]
+            }, done);
+
+            conn.send({
                 action: 'device/list',
                 requestId: requestId,
                 sortField: 'name',
                 sortOrder: 'asc'
-            })
-                .expect({
-                    action: 'device/list',
-                    requestId: requestId,
-                    status: 'success',
-                    devices: [expectedDevice, expectedDevice2]
-                })
-                .send(done);
+            });
         });
 
         after(function (done) {
@@ -421,7 +449,7 @@ describe('WebSocket API Device', function () {
         var illegalDeviceId3 = 'm*!t1s1#bo!_test';
 
         before(function (done) {
-        	function createNetwork(callback) {
+            function createNetwork(callback) {
                 var params = {
                     jwt: utils.jwt.admin,
                     data: { name: NETWORK, key: NETWORK_KEY }
@@ -438,10 +466,10 @@ describe('WebSocket API Device', function () {
             }
 
             function createDevice(callback) {
-        	    device.id = deviceId;
-            	device.networkId = networkId;
+                device.id = deviceId;
+                device.networkId = networkId;
                 req.update(path.get(path.DEVICE, deviceId))
-                    .params({jwt: utils.jwt.admin, data: device})
+                    .params({ jwt: utils.jwt.admin, data: device })
                     .send(callback);
             }
 
@@ -472,17 +500,21 @@ describe('WebSocket API Device', function () {
             }
 
             function authenticateConn(callback) {
-                conn.params({
+                conn.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+
+                conn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     deviceId: deviceId,
                     token: token
-                })
-                    .send(callback);
+                });
             }
 
             async.series([
-            	createNetwork,
+                createNetwork,
                 createDevice,
                 createToken,
                 createConn,
@@ -490,10 +522,10 @@ describe('WebSocket API Device', function () {
             ], done);
         });
 
-        describe('#unauthorized', function(done) {
-            it('should return error using refresh jwt', function() {
+        describe('#unauthorized', function (done) {
+            it('should return error using refresh jwt', function () {
                 req.get(path.DEVICE)
-                    .params({jwt: utils.jwt.admin_refresh, id: deviceId})
+                    .params({ jwt: utils.jwt.admin_refresh, id: deviceId })
                     .expectError(401, 'Unauthorized')
                     .send(done);
             });
@@ -503,18 +535,19 @@ describe('WebSocket API Device', function () {
 
             function saveDevice(callback) {
                 var requestId = getRequestId();
-                conn.params({
-                        action: 'device/save',
-                        requestId: requestId,
-                        deviceId: deviceId,
-                        device: device
-                    })
-                    .expect({
-                        action: 'device/save',
-                        requestId: requestId,
-                        status: 'success'
-                    })
-                    .send(callback);
+
+                conn.on({
+                    action: 'device/save',
+                    requestId: requestId,
+                    status: 'success'
+                }, callback);
+
+                conn.send({
+                    action: 'device/save',
+                    requestId: requestId,
+                    deviceId: deviceId,
+                    device: device
+                });
             }
 
             function checkDevice(callback) {
@@ -522,7 +555,7 @@ describe('WebSocket API Device', function () {
                 delete expectedDevice.key;
 
                 req.get(path.DEVICE)
-                    .params({jwt: utils.jwt.admin, id: deviceId})
+                    .params({ jwt: utils.jwt.admin, id: deviceId })
                     .expect(expectedDevice)
                     .send(callback);
             }
@@ -533,51 +566,66 @@ describe('WebSocket API Device', function () {
             ], done);
         });
 
-        it('should return error for device id with illegal characters #1', function(done) {
+        it('should return error for device id with illegal characters #1', function (done) {
             var requestId = getRequestId();
-            conn.params({
+            conn.on({
+                code: 400,
+                error: 'Device Id can only contain letters, digits and dashes.'
+            }, done);
+
+            conn.send({
                 action: 'device/save',
                 requestId: requestId,
                 deviceId: illegalDeviceId1
-            })
-                .expectError(400, 'Device Id can only contain letters, digits and dashes.')
-                .send(done);
+            });
         });
 
-        it('should return error for device id with illegal characters #2', function(done) {
+        it('should return error for device id with illegal characters #2', function (done) {
             var requestId = getRequestId();
-            conn.params({
+
+            conn.on({
+                code: 400,
+                error: 'Device Id can only contain letters, digits and dashes.'
+            }, done);
+
+            conn.send({
                 action: 'device/save',
                 requestId: requestId,
                 deviceId: illegalDeviceId2
-            })
-                .expectError(400, 'Device Id can only contain letters, digits and dashes.')
-                .send(done);
+            });
         });
 
-        it('should return error for device id with illegal characters #3', function(done) {
+        it('should return error for device id with illegal characters #3', function (done) {
             var requestId = getRequestId();
-            conn.params({
+
+            conn.on({
+                code: 400,
+                error: 'Device Id can only contain letters, digits and dashes.'
+            }, done);
+
+            conn.send({
                 action: 'device/save',
                 requestId: requestId,
                 deviceId: illegalDeviceId3
-            })
-                .expectError(400, 'Device Id can only contain letters, digits and dashes.')
-                .send(done);
+            });
         });
 
         it('should fail device creation for invalid network id', function (done) {
             var requestId = getRequestId();
-            conn.params({
+
+            conn.on({
+                code: 400,
+                error: 'Invalid request parameters'
+            }, done);
+
+            conn.send({
                 action: 'device/save',
                 requestId: requestId,
                 deviceId: deviceId,
                 device: {
                     networkId: utils.NON_EXISTING_ID
                 }
-            })
-                .expectError(400, 'Invalid request parameters')
-                .send(done);
+            });
         });
 
         after(function (done) {
@@ -596,7 +644,7 @@ describe('WebSocket API Device', function () {
         var DEVICE_TO_DELETE = utils.getName('ws-device');
         var deviceToDelete = {
             name: DEVICE_TO_DELETE,
-            data: {a: '111', b: '123'}
+            data: { a: '111', b: '123' }
         };
         var deviceToDeleteId = utils.getName('ws-device-id');
 
@@ -622,7 +670,7 @@ describe('WebSocket API Device', function () {
                 deviceToDelete.id = deviceToDeleteId;
                 deviceToDelete.networkId = networkId;
                 req.update(path.get(path.DEVICE, deviceToDeleteId))
-                    .params({jwt: utils.jwt.admin, data: deviceToDelete})
+                    .params({ jwt: utils.jwt.admin, data: deviceToDelete })
                     .send(callback);
             }
 
@@ -630,7 +678,7 @@ describe('WebSocket API Device', function () {
                 conn = new Websocket(url);
                 conn.connect(callback);
             }
-            
+
             function createRefreshConn(callback) {
                 refreshConn = new Websocket(url);
                 refreshConn.connect(callback);
@@ -663,21 +711,29 @@ describe('WebSocket API Device', function () {
             }
 
             function authenticateConn(callback) {
-                conn.params({
+                conn.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+
+                conn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: token
-                })
-                    .send(callback);
+                });
             }
 
             function authenticateAdminConn(callback) {
-                adminConn.params({
+                adminConn.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+
+                adminConn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: utils.jwt.admin
-                })
-                    .send(callback);
+                });
             }
 
             async.series([
@@ -692,60 +748,67 @@ describe('WebSocket API Device', function () {
             ], done);
         });
 
-        
-        it('should return error using refresh jwt', function(done) {
+
+        it('should return error using refresh jwt', function (done) {
             var requestId = getRequestId();
 
-            refreshConn.params({
+            refreshConn.on({
+                code: 401,
+                error: 'Invalid credentials'
+            }, done);
+
+            refreshConn.send({
                 action: 'authenticate',
                 requestId: getRequestId(),
                 token: utils.jwt.admin_refresh
-            })
-                .expectError(401, 'Invalid credentials')
-                .send(done);
+            });
         });
 
-        it('should return 403 for invalid device id with client token', function(done) {
+        it('should return 403 for invalid device id with client token', function (done) {
             var requestId = getRequestId();
             var deviceToDeleteInvalidId = 'invalid-device-id';
-            
-            conn.params({
+
+            conn.on({
+                code: 403,
+                error: 'Access is denied'
+            }, done);
+            conn.send({
                 action: 'device/delete',
                 requestId: requestId,
                 deviceId: deviceToDeleteInvalidId
-            })
-                .expectError(403, 'Access is denied')
-                .send(done);
+            });
         });
 
-        it('should return 404 for invalid device id with admin token', function(done) {
+        it('should return 404 for invalid device id with admin token', function (done) {
             var requestId = getRequestId();
             var deviceToDeleteInvalidId = 'invalid-device-id';
-            
-            adminConn.params({
+
+            adminConn.on({
+                code: 404,
+                error: 'Device with such deviceId = ' + deviceToDeleteInvalidId + ' not found'
+            }, done);
+            adminConn.send({
                 action: 'device/delete',
                 requestId: requestId,
                 deviceId: deviceToDeleteInvalidId
-            })
-                .expectError(404, 'Device with such deviceId = ' + deviceToDeleteInvalidId + ' not found')
-                .send(done);
+            });
         });
-        
+
         it('should delete device', function (done) {
 
             function deleteDevice(callback) {
                 var requestId = getRequestId();
-                adminConn.params({
+
+                adminConn.on({
+                    action: 'device/delete',
+                    requestId: requestId,
+                    status: 'success'
+                }, callback);
+                adminConn.send({
                     action: 'device/delete',
                     requestId: requestId,
                     deviceId: deviceToDeleteId
-                })
-                    .expect({
-                        action: 'device/delete',
-                        requestId: requestId,
-                        status: 'success'
-                    })
-                    .send(callback);
+                });
             }
 
             function checkDevice(callback) {
@@ -753,7 +816,7 @@ describe('WebSocket API Device', function () {
                 delete expectedDevice.key;
 
                 req.get(path.DEVICE)
-                    .params({jwt: utils.jwt.admin, id: deviceToDeleteId})
+                    .params({ jwt: utils.jwt.admin, id: deviceToDeleteId })
                     .expectError(404, 'Device with such deviceId = ' + deviceToDeleteId + ' not found')
                     .send(callback);
             }

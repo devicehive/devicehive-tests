@@ -8,7 +8,7 @@ var format = require('util').format;
 var Websocket = require('./common/ws');
 var getRequestId = utils.core.getRequestId;
 
-describe.only('WebSocket API Command', function () {
+describe('WebSocket API Command', function () {
     this.timeout(90000);
     var url = null;
 
@@ -1462,7 +1462,7 @@ describe.only('WebSocket API Command', function () {
             var requestId = getRequestId();
 
             conn.on({
-                error: `Networks with such networkIds wasn't found: {[${utils.NON_EXISTING_ID}]}`,
+                error: 'Access is denied',
                 code: 403
             }, done)
             conn.send({
@@ -1474,7 +1474,7 @@ describe.only('WebSocket API Command', function () {
         });
 
         it('should reject subscribe to device commands for non existing network, returnUpdated = true for admin', function (done) {
-            const requestId = getRequestId();
+            var requestId = getRequestId();
 
             adminConn.on({
                 error: `Networks with such networkIds wasn't found: {[${utils.NON_EXISTING_ID}]}`,
@@ -1489,33 +1489,24 @@ describe.only('WebSocket API Command', function () {
             })
         });
 
-        it('should reject subscribe to device commands for non existing network, returnUpdated = true for admin', function (done) {
-            const requestId = getRequestId();
+        it('should reject subscribe to device commands for non existing device type, returnUpdated = true for admin', function (done) {
+            var requestId = getRequestId();
 
             adminConn.on({
-                error: `Networks with such networkIds wasn't found: {[${utils.NON_EXISTING_ID}]}`,
+                error: `Device types with such deviceTypeIds wasn't found: {[${utils.NON_EXISTING_ID}]}`,
                 code: 404
             }, done);
 
             adminConn.send({
                 action: 'command/subscribe',
-                networkIds: [utils.NON_EXISTING_ID],
+                deviceTypeIds: [utils.NON_EXISTING_ID],
                 returnUpdatedCommands: true,
                 requestId: requestId
-            })
-
-            // adminConn.params({
-            //     action: 'command/subscribe',
-            //     deviceTypeIds: [utils.NON_EXISTING_ID],
-            //     returnUpdatedCommands: true,
-            //     requestId: requestId
-            // })
-            //     .expectError(404, "Device types with such deviceTypeIds wasn't found: {[" + utils.NON_EXISTING_ID + "]}")
-            //     .send(done);
+            });
         });
 
         it('should reject subscribe to device commands for empty device id, returnUpdated = true for admin', function (done) {
-            const requestId = getRequestId();
+            var requestId = getRequestId();
 
             adminConn.on({
                 error: 'Device id is wrong or empty',
@@ -1527,13 +1518,7 @@ describe.only('WebSocket API Command', function () {
                 deviceId: '',
                 returnUpdatedCommands: true,
                 requestId: requestId
-            })
-
-            // adminConn.params({
-
-            // })
-            //     .expectError(400, "Device id is wrong or empty")
-            //     .send(done);
+            });
         });
     });
 

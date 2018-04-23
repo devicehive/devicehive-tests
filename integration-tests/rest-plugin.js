@@ -2162,11 +2162,9 @@ describe('REST API Plugin', function () {
             });
         });
 
-        // it('should count all user plugins', function (done) {
-        //     utils.getPlugin(PLUGIN_COUNT_PATH, { jwt: jwtWithPermissions }, function (err, result) {
         it('should count user plugins by plugin name', function (done) {
             var params = {jwt: jwtWithPermissions};
-            params.query = path.query('name', PLUGIN4);
+            params.query = path.query('name', PLUGIN_USER);
             utils.getPlugin(PLUGIN_COUNT_PATH, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.count, 1);
@@ -2177,12 +2175,12 @@ describe('REST API Plugin', function () {
 
         it('should get user plugins by name', function (done) {
             var params = {jwt: jwtWithPermissions};
-            params.query = path.query('name', PLUGIN4);
+            params.query = path.query('name', PLUGIN_USER);
             utils.getPlugin(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
                 utils.matches(result[0], {
-                    name: PLUGIN4
+                    name: PLUGIN_USER
                 });
 
                 done();
