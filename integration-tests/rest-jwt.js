@@ -217,23 +217,71 @@ describe('REST API JSON Web Tokens', function () {
         });
 
         it('should create token with custom expiration date', function (done) {
+            var expirationDate = new Date("2018-01-01T00:00:00.000Z");
+
             utils.createAuth(path.JWT + '/create', {jwt: utils.jwt.admin,
                 data: {
                     userId: 1,
                     actions: ['*'],
                     networkIds: ['*'],
                     deviceTypeIds: ['*'],
-                    expiration: "2018-01-01T00:00:00.000Z"
+                    expiration: expirationDate.getTime()
                 }
             }, function (err, result) {
                 if (err) {
                     return done(err);
                 }
 
-                assert.strictEqual(result.accessToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImEiOlswXSwiZSI6MTUxNDc2NDgwMDAwMCwidCI6MSwidSI6MSwibiI6WyIqIl0sImR0IjpbIioiXX19'),
-                    true, 'Access token is not correct');
-                assert.strictEqual(result.refreshToken.includes('eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImEiOlswXSwiZSI6MTUxNDc2NDgwMDAwMCwidCI6MCwidSI6MSwibiI6WyIqIl0sImR0IjpbIioiXX19'),
-                    true, 'Refresh token is not correct');
+                assert.strictEqual(utils.parseJwt(result.accessToken).payload.e, expirationDate.getTime(), 'Access token expiration is not correct');
+                assert.strictEqual(utils.parseJwt(result.refreshToken).payload.e, expirationDate.getTime(), 'Refresh token expiration is not correct');
+
+                done();
+            });
+        });
+
+        it('should create token with custom refresh expiration date', function (done) {
+            var refreshExpirationDate = new Date("2016-01-01T00:00:00.000Z");
+
+            utils.createAuth(path.JWT + '/create', {jwt: utils.jwt.admin,
+                data: {
+                    userId: 1,
+                    actions: ['*'],
+                    networkIds: ['*'],
+                    deviceTypeIds: ['*'],
+                    refreshExpiration: refreshExpirationDate.getTime()
+                }
+            }, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                assert.notStrictEqual(utils.parseJwt(result.accessToken).payload.e, refreshExpirationDate.getTime(), 'Access token expiration is not correct');
+                assert.strictEqual(utils.parseJwt(result.refreshToken).payload.e, refreshExpirationDate.getTime(), 'Refresh token expiration is not correct');
+
+                done();
+            });
+        });
+
+        it('should create token with custom access and refresh expiration date', function (done) {
+            var expirationDate = new Date("2018-01-01T00:00:00.000Z");
+            var refreshExpirationDate = new Date("2016-01-01T00:00:00.000Z");
+
+            utils.createAuth(path.JWT + '/create', {jwt: utils.jwt.admin,
+                data: {
+                    userId: 1,
+                    actions: ['*'],
+                    networkIds: ['*'],
+                    deviceTypeIds: ['*'],
+                    expiration: expirationDate.getTime(),
+                    refreshExpiration: refreshExpirationDate.getTime()
+                }
+            }, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
+
+                assert.strictEqual(utils.parseJwt(result.accessToken).payload.e, expirationDate.getTime(), 'Access token expiration is not correct');
+                assert.strictEqual(utils.parseJwt(result.refreshToken).payload.e, refreshExpirationDate.getTime(), 'Refresh token expiration is not correct');
 
                 done();
             });

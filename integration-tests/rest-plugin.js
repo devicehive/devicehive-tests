@@ -20,6 +20,7 @@ describe('REST API Plugin', function () {
     var PLUGIN1 = utils.getName('plugin');
     var PLUGIN2 = utils.getName('plugin');
     var PLUGIN3 = utils.getName('plugin');
+    var PLUGIN4 = utils.getName('plugin');
     var DEVICE_ID = utils.getName('device-id');
     var COMMAND = utils.getName('cmd');
     var ACTIVE_STATUS = 'ACTIVE';
@@ -424,7 +425,41 @@ describe('REST API Plugin', function () {
             })
         });
 
-        it('should update plugin status to ACTIVE', function (done) {
+        it('should fail with 403 on updating non existing plugin', function (done) {
+            var params = {
+                jwt: jwtWithPermissions2
+            };
+
+            params.query = path.query(
+                'topicName', utils.NON_EXISTING_ID,
+                'status', ACTIVE_STATUS
+            );
+
+            utils.updatePlugin(path.current, params, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+
+                done();
+            })
+        });
+
+        it('should fail with 404 on updating non existing plugin by admin', function (done) {
+            var params = {
+                jwt: utils.jwt.admin
+            };
+
+            params.query = path.query(
+                'topicName', utils.NON_EXISTING_ID,
+                'status', ACTIVE_STATUS
+            );
+
+            utils.updatePlugin(path.current, params, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+
+                done();
+            })
+        });
+
+        it('should update plugin status to active', function (done) {
             var params = {
                 jwt: jwtWithPermissions
             };
@@ -1720,8 +1755,39 @@ describe('REST API Plugin', function () {
             })
         });
 
-        it('deactivated plugin should not have a subscription', function (done) {
+        it('should fail with 403 on deleting non existing plugin', function (done) {
+            var params = {
+                jwt: jwtWithPermissions2
+            };
 
+            params.query = path.query(
+                'topicName', utils.NON_EXISTING_ID
+            );
+
+            utils.deletePlugin(path.current, params, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.FORBIDDEN);
+
+                done();
+            })
+        });
+
+        it('should fail with 404 on deleting non existing plugin by admin', function (done) {
+            var params = {
+                jwt: utils.jwt.admin
+            };
+
+            params.query = path.query(
+                'topicName', utils.NON_EXISTING_ID
+            );
+
+            utils.deletePlugin(path.current, params, function (err, result) {
+                assert.strictEqual(err.httpStatus, status.NOT_FOUND);
+
+                done();
+            })
+        });
+
+        it('should delete plugin', function (done) {
             var params = {
                 jwt: utils.jwt.admin
             };
@@ -1765,7 +1831,7 @@ describe('REST API Plugin', function () {
                 var params = {
                     jwt: jwtWithPermissions,
                     data: {
-                        name: PLUGIN2,
+                        name: PLUGIN4,
                         description: description,
                         parameters: {
                             jsonString: paramObject
@@ -2096,8 +2162,12 @@ describe('REST API Plugin', function () {
             });
         });
 
-        it('should count all user plugins', function (done) {
-            utils.getPlugin(PLUGIN_COUNT_PATH, { jwt: jwtWithPermissions }, function (err, result) {
+        // it('should count all user plugins', function (done) {
+        //     utils.getPlugin(PLUGIN_COUNT_PATH, { jwt: jwtWithPermissions }, function (err, result) {
+        it('should count user plugins by plugin name', function (done) {
+            var params = {jwt: jwtWithPermissions};
+            params.query = path.query('name', PLUGIN4);
+            utils.getPlugin(PLUGIN_COUNT_PATH, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(result.count, 1);
 
@@ -2105,12 +2175,14 @@ describe('REST API Plugin', function () {
             })
         });
 
-        it('should get all user plugins', function (done) {
-            utils.getPlugin(path.current, { jwt: jwtWithPermissions }, function (err, result) {
+        it('should get user plugins by name', function (done) {
+            var params = {jwt: jwtWithPermissions};
+            params.query = path.query('name', PLUGIN4);
+            utils.getPlugin(path.current, params, function (err, result) {
                 assert.strictEqual(!(!err), false, 'No error');
                 assert.strictEqual(utils.core.isArrayOfLength(result, 1), true, 'Is array of 1 object');
                 utils.matches(result[0], {
-                    name: PLUGIN_USER
+                    name: PLUGIN4
                 });
 
                 done();
