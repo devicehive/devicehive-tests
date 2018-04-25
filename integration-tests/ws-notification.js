@@ -1083,11 +1083,6 @@ describe('WebSocket API Notification', function () {
                         return done(err);
                     }
 
-                    conn.send({
-                        action: 'device/delete',
-                        requestId: requestId,
-                        deviceId: newDeviceId
-                    })
                     conn.on({
                         action: 'device/delete',
                         requestId: requestId,
@@ -1102,6 +1097,12 @@ describe('WebSocket API Notification', function () {
                             requestId: getRequestId(),
                             subscriptionId: subscriptionId
                         });
+                    });
+
+                    conn.send({
+                        action: 'device/delete',
+                        requestId: requestId,
+                        deviceId: newDeviceId
                     });
                 }
             }
