@@ -5,7 +5,7 @@ var utils = require('./common/utils');
 var path = require('./common/path');
 var status = require('./common/http').status;
 var req = require('./common/request');
-var Websocket = require('./common/websocket');
+var Websocket = require('./common/ws');
 var getRequestId = utils.core.getRequestId;
 
 describe('WebSocket API User', function () {
@@ -27,7 +27,7 @@ describe('WebSocket API User', function () {
 
     before(function (done) {
         function createUrl(callback) {
-            req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
+            req.get(path.INFO).params({ jwt: utils.jwt.admin }).send(function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -138,30 +138,41 @@ describe('WebSocket API User', function () {
         }
 
         function authenticateConn(callback) {
-            conn.params({
+            conn.on({
+                action: 'authenticate',
+                status: 'success'
+            }, callback);
+
+            conn.send({
                 action: 'authenticate',
                 requestId: getRequestId(),
                 token: token
-            })
-                .send(callback);
+            });
         }
 
         function authenticateAdminConn(callback) {
-            adminConn.params({
+            adminConn.on({
+                action: 'authenticate',
+                status: 'success'
+            }, callback);
+
+            adminConn.send({
                 action: 'authenticate',
                 requestId: getRequestId(),
                 token: adminToken
-            })
-                .send(callback);
+            });
         }
 
         function authenticateNoActionsConnection(callback) {
-            noActionsConnection.params({
+            noActionsConnection.on({
+                action: 'authenticate',
+                status: 'success'
+            }, callback);
+            noActionsConnection.send({
                 action: 'authenticate',
                 requestId: getRequestId(),
                 token: noActionsToken
-            })
-                .send(callback);
+            });
         }
 
         async.series([
@@ -186,113 +197,112 @@ describe('WebSocket API User', function () {
         it('should count all users', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                action: 'user/count',
+                requestId: requestId,
+                status: 'success'
+            }, (err, data) => {
+                assert.strictEqual(data.count > 0, true);
+                done();
+            });
+
+            conn.send({
                 action: 'user/count',
                 requestId: requestId
-            })
-                .expect({
-                    action: 'user/count',
-                    requestId: requestId,
-                    status: 'success'
-                })
-                .assert(function (result) {
-                    assert.strictEqual(result.count > 0, true);
-                })
-                .send(done);
+            });
         });
 
         it('should fail with 403 on count all users', function (done) {
             var requestId = getRequestId();
 
-            noActionsConnection.params({
+            noActionsConnection.on({
+                code: status.FORBIDDEN
+            }, done);
+
+            noActionsConnection.send({
                 action: 'user/count',
                 requestId: requestId
-            })
-                .expectError(status.FORBIDDEN)
-                .send(done)
+            });
         });
 
         it('should return all users', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                action: 'user/list',
+                requestId: requestId,
+                status: 'success'
+            }, (err, data) => {
+                assert(utils.core.isArrayNonEmpty(data.users), 'Array of users should not be empty');
+                const checkUsers = data.users.some(item => {
+                    return item.id === user.id && item.login === user.login;
+                });
+                assert(data, 'Array should match user');
+                done();
+            });
+
+            conn.send({
                 action: 'user/list',
                 requestId: requestId,
                 take: 10000
-            })
-                .expect({
-                    action: 'user/list',
-                    requestId: requestId,
-                    status: 'success'
-                })
-                .expectTrue(function (result) {
-                    return utils.core.isArrayNonEmpty(result.users);
-                })
-                .expectTrue(function (result) {
-                    return result.users.some(function (item) {
-                        return item.id === user.id && item.login === user.login;
-                    });
-                })
-                .send(done);
+            });
         });
 
         it('should count users by login', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                action: 'user/count',
+                requestId: requestId,
+                status: 'success',
+                count: 1
+            }, done);
+
+            conn.send({
                 action: 'user/count',
                 requestId: requestId,
                 login: user.login
-            })
-                .expect({
-                    action: 'user/count',
-                    requestId: requestId,
-                    status: 'success'
-                })
-                .assert(function (result) {
-                    assert.equal(result.count, 1);
-                })
-                .send(done);
+            });
         });
 
         it('should get user by login', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                action: 'user/list',
+                requestId: requestId,
+                status: 'success'
+            }, (err, data) => {
+                assert.equal(data.users.length === 1, true, "Should get user by login");
+                done();
+            });
+
+            conn.send({
                 action: 'user/list',
                 requestId: requestId,
                 login: user.login,
                 take: 10000
-            })
-                .expect({
-                    action: 'user/list',
-                    requestId: requestId,
-                    status: 'success'
-                })
-                .assert(function (result) {
-                    assert.equal(result.users.length === 1, true, "Should get user by login");
-                })
-                .send(done);
+            });
         });
 
         it('should get non-existing user, no error', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                action: 'user/list',
+                requestId: requestId,
+                status: 'success'
+            }, (err, data) => {
+                assert(utils.core.isEmptyArray(data.users), 'Users should be empty');
+                done();
+            });
+
+            conn.send({
                 action: 'user/list',
                 requestId: requestId,
                 login: 'non-existing',
                 take: 10000
-            })
-                .expect({
-                    action: 'user/list',
-                    requestId: requestId,
-                    status: 'success'
-                })
-                .expectTrue(function (result) {
-                    return utils.core.isEmptyArray(result.users);
-                })
-                .send(done);
+            });
         });
     });
 
@@ -301,22 +311,22 @@ describe('WebSocket API User', function () {
         it('should authorize using current user', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                action: 'user/getCurrent',
+                requestId: requestId,
+                status: 'success',
+                current: {
+                    id: user.id,
+                    login: user.login,
+                    role: 1,
+                    status: 0
+                }
+            }, done);
+
+            conn.send({
                 action: 'user/getCurrent',
                 requestId: requestId
-            })
-                .expect({
-                    action: 'user/getCurrent',
-                    requestId: requestId,
-                    status: 'success',
-                    current: {
-                        id: user.id,
-                        login: user.login,
-                        role: 1,
-                        status: 0
-                    }
-                })
-                .send(done);
+            });
         });
     });
 
@@ -342,21 +352,21 @@ describe('WebSocket API User', function () {
         it('should get user by id', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                user: {
+                    id: user.id,
+                    login: user.login,
+                    role: 1,
+                    status: 0,
+                    introReviewed: false
+                }
+            }, done);
+
+            conn.send({
                 action: 'user/get',
                 requestId: requestId,
                 userId: user.id
-            })
-                .expect({
-                    user: {
-                        id: user.id,
-                        login: user.login,
-                        role: 1,
-                        status: 0,
-                        introReviewed: false
-                    }
-                })
-                .send(done);
+            });
         });
 
         it('should not create user with invalid login', function (done) {
@@ -374,13 +384,16 @@ describe('WebSocket API User', function () {
                 "introReviewed": false
             };
 
-            conn.params({
+            conn.on({
+                code: status.BAD_REQUEST,
+                error: 'Field cannot be empty. The length of login should be from 3 to 128 symbols.'
+            }, done);
+
+            conn.send({
                 action: 'user/insert',
                 requestId: requestId,
                 user: userWithInvalidLogin
-            })
-                .expectError(status.BAD_REQUEST, 'Field cannot be empty. The length of login should be from 3 to 128 symbols.')
-                .send(done);
+            });
         });
 
         it('should not create user with invalid password', function (done) {
@@ -398,34 +411,37 @@ describe('WebSocket API User', function () {
                 "introReviewed": false
             };
 
-            conn.params({
+            conn.on({
+                code: status.BAD_REQUEST,
+                error: 'Password can contain only from 6 to 128 symbols!'
+            }, done);
+
+            conn.send({
                 action: 'user/insert',
                 requestId: requestId,
                 user: userWithInvalidPassword
-            })
-                .expectError(status.BAD_REQUEST, 'Password can contain only from 6 to 128 symbols!')
-                .send(done);
+            });
         });
 
         it('should get user with reviewed intro by id using admin', function (done) {
             var requestId = getRequestId();
 
-            adminConn.params({
+            adminConn.on({
+                user: {
+                    id: reviewedIntroUser.id,
+                    login: reviewedIntroUser.login,
+                    role: 0,
+                    status: 0,
+                    lastLogin: null,
+                    introReviewed: true
+                }
+            }, done);
+
+            adminConn.send({
                 action: 'user/get',
                 requestId: requestId,
                 userId: reviewedIntroUser.id
-            })
-                .expect({
-                    user: {
-                        id: reviewedIntroUser.id,
-                            login: reviewedIntroUser.login,
-                        role: 0,
-                        status: 0,
-                        lastLogin: null,
-                        introReviewed: true
-                    }
-                })
-                .send(done);
+            });
         });
     });
 
@@ -448,7 +464,12 @@ describe('WebSocket API User', function () {
         it('should fail with 403 when trying to create user with existing login', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                code: status.FORBIDDEN,
+                error: 'User with such login already exists. Please, select another one'
+            }, done);
+
+            conn.send({
                 action: 'user/insert',
                 requestId: requestId,
                 user: {
@@ -457,9 +478,7 @@ describe('WebSocket API User', function () {
                     role: 0,
                     status: 0
                 }
-            })
-                .expectError(status.FORBIDDEN, 'User with such login already exists. Please, select another one')
-                .send(done);
+            });
         });
     });
 
@@ -487,7 +506,7 @@ describe('WebSocket API User', function () {
 
             function createNetwork(callback) {
                 req.create(path.NETWORK)
-                    .params({jwt: utils.jwt.admin, data: {name: NETWORK}})
+                    .params({ jwt: utils.jwt.admin, data: { name: NETWORK } })
                     .send(function (err, result) {
                         if (err) {
                             callback(err);
@@ -507,38 +526,42 @@ describe('WebSocket API User', function () {
         it('should assign user network', function (done) {
             var requestId = getRequestId();
 
-            adminConn.params({
+            adminConn.on({
+                action: 'user/assignNetwork',
+                status: 'success'
+            }, (err, data) => {
+                if (err) {
+                    return done(err);
+                }
+                var requestId2 = getRequestId();
+
+                adminConn.on({
+                    user: {
+                        id: userWithNetworks.id,
+                        login: userWithNetworks.login,
+                        role: 0,
+                        status: 0,
+                        lastLogin: null,
+                        networks: [{
+                            id: networkId,
+                            name: NETWORK
+                        }]
+                    }
+                }, done);
+
+                adminConn.send({
+                    action: 'user/get',
+                    requestId: requestId2,
+                    userId: userWithNetworks.id
+                });
+            });
+
+            adminConn.send({
                 action: 'user/assignNetwork',
                 requestId: requestId,
                 userId: userWithNetworks.id,
                 networkId: networkId
-            })
-                .send(function (err) {
-                    if (err) {
-                        return done(err);
-                    }
-                    var requestId2 = getRequestId();
-
-                    adminConn.params({
-                        action: 'user/get',
-                        requestId: requestId2,
-                        userId: userWithNetworks.id
-                    })
-                    .expect({
-                        user: {
-                            id: userWithNetworks.id,
-                                login: userWithNetworks.login,
-                            role: 0,
-                            status: 0,
-                            lastLogin: null,
-                            networks: [{
-                                id: networkId,
-                                name: NETWORK
-                            }]
-                        }
-                     })
-                    .send(done);
-                });
+            });
         });
     });
 
@@ -604,36 +627,37 @@ describe('WebSocket API User', function () {
         it('should update current user introReviewed field', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                action: "user/updateCurrent",
+                requestId: requestId,
+                status: "success"
+            }, (err, data) => {
+                if (err) {
+                    return done(err);
+                }
+                var requestId2 = getRequestId();
+
+                conn.on({
+                    current: {
+                        id: user.id,
+                        login: user.login,
+                        role: 1,
+                        status: 0,
+                        introReviewed: true
+                    }
+                }, done);
+
+                conn.send({
+                    action: 'user/getCurrent',
+                    requestId: requestId
+                });
+            });
+
+            conn.send({
                 action: 'user/updateCurrent',
                 requestId: requestId,
-                user: {introReviewed: true}
-            })
-                .expect({
-                    action: "user/updateCurrent",
-                    "requestId": requestId,
-                    "status": "success"
-                })
-               .send(function (err) {
-                    if (err) {
-                        return done(err);
-                    }
-
-                   conn.params({
-                       action: 'user/getCurrent',
-                       requestId: requestId
-                   })
-                        .expect({
-                            "current": {
-                                id: user.id,
-                                login: user.login,
-                                role: 1,
-                                status: 0,
-                                introReviewed: true
-                            }
-                        })
-                        .send(done);
-                });
+                user: { introReviewed: true }
+            });
         });
 
         it('should update current user data field', function (done) {
@@ -641,43 +665,52 @@ describe('WebSocket API User', function () {
             var requestId2 = getRequestId();
             var requestId3 = getRequestId();
 
-            conn.params({
-                action: 'user/updateCurrent',
+            conn.on({
+                action: "user/updateCurrent",
                 requestId: requestId,
-                userId: user.id,
-                user: {data: {userdata: "userdata"}}
-            })
-            .send(function (err) {
+                status: "success"
+            }, (err, data) => {
                 if (err) {
                     return done(err);
                 }
+                var requestId2 = getRequestId();
 
-                conn.params({
-                    action: 'user/updateCurrent',
+                conn.on({
+                    action: "user/updateCurrent",
                     requestId: requestId2,
-                    userId: user.id,
-                    user: {data: null}
-                })
-                .send(function (err) {
+                    status: "success"
+                }, (err, data) => {
                     if (err) {
-                        return done(err);
+                        done(err);
                     }
-
-                    conn.params({
-                        action: 'user/getCurrent',
-                        requestId: requestId3,
-                        userId: user.id
-                    })
-                    .expect({
+                    conn.on({
                         current: {
                             id: user.id,
                             login: user.login,
                             status: 0,
                             data: null
                         }
-                    })
-                    .send(done);
+                    }, done);
+                    conn.send({
+                        action: 'user/getCurrent',
+                        requestId: requestId3,
+                        userId: user.id
+                    });
                 });
+
+                conn.send({
+                    action: 'user/updateCurrent',
+                    requestId: requestId2,
+                    userId: user.id,
+                    user: { data: null }
+                });
+            });
+
+            conn.send({
+                action: 'user/updateCurrent',
+                requestId: requestId,
+                userId: user.id,
+                user: { data: { userdata: "userdata" } }
             });
         });
 
@@ -685,105 +718,122 @@ describe('WebSocket API User', function () {
             var requestId = getRequestId();
             var requestId2 = getRequestId();
 
-            conn.params({
+            conn.on({
+                action: "user/updateCurrent",
+                requestId: requestId,
+                status: "success"
+            }, (err, data) => {
+                if (err) {
+                    return done(err);
+                }
+                var requestId2 = getRequestId();
+
+                conn.on({
+                    current: {
+                        id: user.id,
+                        login: user.login,
+                        status: 0,
+                        data: null
+                    }
+                }, done);
+
+                conn.send({
+                    action: 'user/getCurrent',
+                    requestId: requestId2,
+                    userId: user.id
+                });
+            });
+
+            conn.send({
                 action: 'user/updateCurrent',
                 requestId: requestId,
                 userId: user.id,
-                user: {password: "devicehive"}
-            })
-                .send(function (err) {
-                    if (err) {
-                        return done(err);
-                    }
-
-
-                    conn.params({
-                        action: 'user/getCurrent',
-                        requestId: requestId2,
-                        userId: user.id
-                    })
-                        .expect({
-                            current: {
-                                id: user.id,
-                                login: user.login,
-                                status: 0,
-                                data: null
-                            }
-                        })
-                        .send(done);
-                });
+                user: { password: "devicehive" }
+            });
         });
 
         it('should partially update user account', function (done) {
             var requestId = getRequestId();
 
-            adminConn.params({
+            adminConn.on({
+                action: "user/update",
+                status: "success"
+            }, (err, data) => {
+                if (err) {
+                    return done(err);
+                }
+                var requestId2 = getRequestId();
+
+                adminConn.on({
+                    user: {
+                        id: user.id,
+                        login: user.login,
+                        role: 1,
+                        status: 1,
+                        introReviewed: true
+                    }
+                }, done);
+
+                adminConn.send({
+                    action: 'user/get',
+                    requestId: requestId,
+                    userId: user.id
+                });
+            });
+
+            adminConn.send({
                 action: 'user/update',
                 requestId: requestId,
                 userId: user.id,
-                user: {status: 1}
-            })
-                .send(function (err) {
-                    if (err) {
-                        return done(err);
-                    }
-
-                    adminConn.params({
-                        action: 'user/get',
-                        requestId: requestId,
-                        userId: user.id
-                    })
-                        .expect({
-                            user: {
-                                id: user.id,
-                                login: user.login,
-                                role: 1,
-                                status: 1,
-                                introReviewed: true
-                            }
-                        })
-                        .send(done);
-                });
+                user: { status: 1 }
+            });
         });
 
         it('should not be able to update other user if not admin', function (done) {
             var requestId = getRequestId();
+            conn.on({
+                code: status.FORBIDDEN,
+                error: 'Admin permissions required for this action'
+            }, done);
 
-            conn.params({
+            conn.send({
                 action: 'user/update',
                 requestId: requestId,
                 userId: user2.id,
-                user: {status: 1}
-            })
-                .expectError(status.FORBIDDEN, 'Admin permissions required for this action')
-                .send(done);
+                user: { status: 1 }
+            });
         });
 
         it('should not be able to update user status if not admin', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                code: status.FORBIDDEN,
+                error: 'Admin permissions required for this action'
+            }, done);
+
+            conn.send({
                 action: 'user/updateCurrent',
                 requestId: requestId,
-                user: {status: 1}
-            })
-                .expectError(status.FORBIDDEN, 'Admin permissions required for this action')
-                .send(done);
+                user: { status: 1 }
+            });
         });
 
         it('should not be able to update user role if not admin', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                code: status.FORBIDDEN,
+                error: 'Admin permissions required for this action'
+            }, done);
+
+            conn.send({
                 action: 'user/updateCurrent',
                 requestId: requestId,
                 userId: user2.id,
-                user: {role: 1}
-            })
-                .expectError(status.FORBIDDEN, 'Admin permissions required for this action')
-                .send(done);
+                user: { role: 1 }
+            });
         });
-
     });
 
     describe('#Delete', function () {
@@ -805,49 +855,62 @@ describe('WebSocket API User', function () {
         it('should fail with 404 when trying to get deleted user', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                action: "user/delete",
+                status: "success"
+            }, (err, data) => {
+                if (err) {
+                    return done(err);
+                }
+                var requestId2 = getRequestId();
+
+                conn.on({
+                    code: status.NOT_FOUND,
+                    error: 'User with id = ' + userToDelete.id + ' not found'
+                }, done);
+
+                conn.send({
+                    action: 'user/get',
+                    requestId: requestId,
+                    userId: userToDelete.id
+                });
+            });
+
+            conn.send({
                 action: 'user/delete',
                 requestId: requestId,
                 userId: userToDelete.id
-            })
-                .send(function (err) {
-                    if (err) {
-                        done(err);
-                    }
-
-                    conn.params({
-                        action: 'user/get',
-                        requestId: requestId,
-                        userId: userToDelete.id
-                    })
-                        .expectError(status.NOT_FOUND, format('User with id = ' + userToDelete.id + ' not found'))
-                        .send(done);
-                });
+            });
         });
 
-        it('should not allow to delete a user that owns current admin jwt with ManageUser permission', function(done){
+        it('should not allow to delete a user that owns current admin jwt with ManageUser permission', function (done) {
             var requestId = getRequestId();
 
-            adminConn.params({
+            adminConn.on({
+                code: status.FORBIDDEN,
+                error: cantDeleteYourselfMessage
+            }, done);
+
+            adminConn.send({
                 action: 'user/delete',
                 requestId: requestId,
                 userId: adminUser.id
-            })
-                .expectError(status.FORBIDDEN, cantDeleteYourselfMessage)
-                .send(done);
+            });
         });
 
-        it('should not allow to delete a user that owns current client jwt with ManageUser permission', function(done){
+        it('should not allow to delete a user that owns current client jwt with ManageUser permission', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                code: status.FORBIDDEN,
+                error: cantDeleteYourselfMessage
+            }, done);
+
+            conn.send({
                 action: 'user/delete',
                 requestId: requestId,
                 userId: user.id
-            })
-                .expectError(status.FORBIDDEN, cantDeleteYourselfMessage)
-                .send(done);
-
+            });
         });
     });
 
@@ -856,13 +919,15 @@ describe('WebSocket API User', function () {
         it('should fail with 400 when trying to create user with invalid parameters', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                code: status.BAD_REQUEST
+            }, done);
+
+            conn.send({
                 action: 'user/insert',
                 requestId: requestId,
-                user: {invalidProp: utils.getName('invalid-user')}
-            })
-                .expectError(status.BAD_REQUEST)
-                .send(done);
+                user: { invalidProp: utils.getName('invalid-user') }
+            });
         });
     });
 
@@ -872,97 +937,121 @@ describe('WebSocket API User', function () {
             it('should fail with 401 on authencitation if auth parameters omitted', function (done) {
                 var requestId = getRequestId();
 
-                noTokenConn.params({
+                noTokenConn.on({
+                    code: status.NOT_AUTHORIZED,
+                    error: 'Unauthorized'
+                }, done);
+    
+                noTokenConn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: null
-                })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(done);
+                });
             });
 
             it('should fail with 401 on user/list if auth parameters omitted', function (done) {
                 var requestId = getRequestId();
 
-                noTokenConn.params({
+                noTokenConn.on({
+                    code: status.NOT_AUTHORIZED,
+                    error: 'Unauthorized'
+                }, done);
+    
+                noTokenConn.send({
                     action: 'user/list',
                     requestId: getRequestId(),
                     token: null
-                })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(done);
+                });
             });
 
             it('should fail with 401 when selecting user by id, auth parameters omitted', function (done) {
                 var requestId = getRequestId();
 
-                noTokenConn.params({
+                noTokenConn.on({
+                    code: status.NOT_AUTHORIZED,
+                    error: 'Unauthorized'
+                }, done);
+    
+                noTokenConn.send({
                     action: 'user/get',
                     requestId: getRequestId(),
                     userId: utils.NON_EXISTING_ID
-                })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(done);
+                });
             });
 
             it('should fail with 401 when selecting user by \'/current\', auth parameters omitted', function (done) {
                 var requestId = getRequestId();
 
-                noTokenConn.params({
+                noTokenConn.on({
+                    code: status.NOT_AUTHORIZED,
+                    error: 'Unauthorized'
+                }, done);
+    
+                noTokenConn.send({
                     action: 'user/getCurrent',
                     requestId: getRequestId(),
                     userId: utils.NON_EXISTING_ID
-                })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(done);
+                });
             });
-
 
             it('should fail with 401 when creating user with no auth parameters', function (done) {
                 var requestId = getRequestId();
 
-                noTokenConn.params({
+                noTokenConn.on({
+                    code: status.NOT_AUTHORIZED,
+                    error: 'Unauthorized'
+                }, done);
+    
+                noTokenConn.send({
                     action: 'user/insert',
                     requestId: getRequestId(),
-                    user: {login: 'not-authorized'}
-                })
-                    .expectError(status.NOT_AUTHORIZED)
-                    .send(done);
+                    user: { login: 'not-authorized' }
+                });
             });
 
             it('should fail with 401 when updating user with no auth parameters', function (done) {
                 var requestId = getRequestId();
 
-                noTokenConn.params({
+                noTokenConn.on({
+                    code: status.NOT_AUTHORIZED,
+                    error: 'Unauthorized'
+                }, done);
+    
+                noTokenConn.send({
                     action: 'user/update',
                     requestId: getRequestId(),
                     userId: utils.NON_EXISTING_ID,
-                    user: {login: 'not-authorized'}
-                })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(done);
+                    user: { login: 'not-authorized' }
+                });
             });
 
             it('should fail with 401 when updating user by \'/current\' with no auth parameters', function (done) {
-                noTokenConn.params({
+
+                noTokenConn.on({
+                    code: status.NOT_AUTHORIZED,
+                    error: 'Unauthorized'
+                }, done);
+    
+                noTokenConn.send({
                     action: 'user/updateCurrent',
                     requestId: getRequestId(),
-                    user: {login: 'not-authorized'}
-                })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(done);
+                    user: { login: 'not-authorized' }
+                });
             });
 
             it('should fail with 401 when deleting user with no auth parameters', function (done) {
                 var requestId = getRequestId();
 
-                noTokenConn.params({
+                noTokenConn.on({
+                    code: status.NOT_AUTHORIZED,
+                    error: 'Unauthorized'
+                }, done);
+    
+                noTokenConn.send({
                     action: 'user/delete',
                     requestId: getRequestId(),
                     userId: utils.NON_EXISTING_ID
-                })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(done);
+                });
             });
         });
 
@@ -1007,12 +1096,16 @@ describe('WebSocket API User', function () {
 
 
                 function authenticateNonNetworkConn(callback) {
-                    nonNetworkConn.params({
+                    nonNetworkConn.on({
+                        action: 'authenticate',
+                        status: 'success'
+                    }, callback);
+        
+                    nonNetworkConn.send({
                         action: 'authenticate',
                         requestId: getRequestId(),
                         token: nonNetworkUserJwt
-                    })
-                        .send(callback);
+                    });
                 }
 
                 async.series([
@@ -1028,96 +1121,120 @@ describe('WebSocket API User', function () {
             it('should fail with 403 when selecting users with invalid jwt', function (done) {
                 var requestId = getRequestId();
 
-                nonNetworkConn.params({
+                nonNetworkConn.on({
+                    code: status.FORBIDDEN,
+                    error: 'Access is denied'
+                }, done);
+    
+                nonNetworkConn.send({
                     action: 'user/list',
                     requestId: getRequestId()
-                })
-                    .expectError(status.FORBIDDEN, 'Access is denied')
-                    .send(done);
+                });
             });
 
             it('should fail with 403 when selecting user by id with invalid jwt', function (done) {
                 var requestId = getRequestId();
 
-                nonNetworkConn.params({
+                nonNetworkConn.on({
+                    code: status.FORBIDDEN,
+                    error: 'Access is denied'
+                }, done);
+    
+                nonNetworkConn.send({
                     action: 'user/get',
                     requestId: getRequestId(),
                     userId: nonNetworkUser.id
-                })
-                    .expectError(status.FORBIDDEN, 'Access is denied')
-                    .send(done);
+                });
             });
 
             it('should fail with 401 when authenticate with refresh jwt', function (done) {
                 var requestId = getRequestId();
 
-                refreshConn.params({
+                refreshConn.on({
+                    code: status.NOT_AUTHORIZED,
+                    error: 'Invalid credentials'
+                }, done);
+    
+                refreshConn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: utils.jwt.admin_refresh
-                })
-                    .expectError(status.NOT_AUTHORIZED, 'Invalid credentials')
-                    .send(done);
+                });
             });
 
             it('should fail with 403 when selecting users no auth', function (done) {
                 var requestId = getRequestId();
 
-                nonNetworkConn.params({
+                nonNetworkConn.on({
+                    code: status.FORBIDDEN,
+                    error: 'Access is denied'
+                }, done);
+    
+                nonNetworkConn.send({
                     action: 'user/list',
                     requestId: getRequestId()
-                })
-                    .expectError(status.FORBIDDEN, 'Access is denied')
-                    .send(done);
+                });
             });
 
             it('should fail with 403 when getting user with invalid jwt', function (done) {
                 var requestId = getRequestId();
 
-                nonNetworkConn.params({
+                nonNetworkConn.on({
+                    code: status.FORBIDDEN,
+                    error: 'Access is denied'
+                }, done);
+    
+                nonNetworkConn.send({
                     action: 'user/list',
                     requestId: getRequestId(),
                     userId: utils.NON_EXISTING_ID
-                })
-                    .expectError(status.FORBIDDEN, 'Access is denied')
-                    .send(done);
+                });
             });
 
             it('should fail with 403 when creating user with invalid jwt', function (done) {
                 var requestId = getRequestId();
 
-                nonNetworkConn.params({
+                nonNetworkConn.on({
+                    code: status.FORBIDDEN,
+                    error: 'Access is denied'
+                }, done);
+    
+                nonNetworkConn.send({
                     action: 'user/insert',
                     requestId: getRequestId(),
-                    user: {login: 'not-authorized'}
-                })
-                    .expectError(status.FORBIDDEN)
-                    .send(done);
+                    user: { login: 'not-authorized' }
+                });
             });
 
             it('should fail with 403 when updating user with invalid jwt', function (done) {
                 var requestId = getRequestId();
 
-                nonNetworkConn.params({
+                nonNetworkConn.on({
+                    code: status.FORBIDDEN,
+                    error: 'Access is denied'
+                }, done);
+    
+                nonNetworkConn.send({
                     action: 'user/update',
                     requestId: getRequestId(),
                     userId: utils.NON_EXISTING_ID,
-                    user: {login: 'not-authorized'}
-                })
-                    .expectError(status.FORBIDDEN, 'Access is denied')
-                    .send(done);
+                    user: { login: 'not-authorized' }
+                });
             });
 
             it('should fail with 403 when deleting user with invalid jwt', function (done) {
                 var requestId = getRequestId();
 
-                nonNetworkConn.params({
+                nonNetworkConn.on({
+                    code: status.FORBIDDEN,
+                    error: 'Access is denied'
+                }, done);
+    
+                nonNetworkConn.send({
                     action: 'user/delete',
                     requestId: requestId,
                     userId: utils.NON_EXISTING_ID
-                })
-                    .expectError(status.FORBIDDEN, 'Access is denied')
-                    .send(done);
+                });
             });
 
             after(function (done) {
@@ -1133,38 +1250,47 @@ describe('WebSocket API User', function () {
         it('should fail with 404 when selecting user by non-existing id', function (done) {
             var requestId = getRequestId();
 
-            adminConn.params({
+            adminConn.on({
+                code: status.NOT_FOUND,
+                error: 'User with id = ' + utils.NON_EXISTING_ID + ' not found'
+            }, done);
+
+            adminConn.send({
                 action: 'user/get',
                 requestId: getRequestId(),
                 userId: utils.NON_EXISTING_ID
-            })
-                .expectError(status.NOT_FOUND, format('User with id = ' + utils.NON_EXISTING_ID + ' not found'))
-                .send(done);
+            });
         });
 
         it('should fail with 404 when updating user by non-existing id', function (done) {
             var requestId = getRequestId();
 
-            adminConn.params({
+            adminConn.on({
+                code: status.NOT_FOUND,
+                error: 'User with id = ' + utils.NON_EXISTING_ID + ' not found'
+            }, done);
+
+            adminConn.send({
                 action: 'user/update',
                 requestId: getRequestId(),
                 userId: utils.NON_EXISTING_ID,
-                user: {data: {userdata: 123}}
-            })
-                .expectError(status.NOT_FOUND, format('User with id = ' + utils.NON_EXISTING_ID + ' not found'))
-                .send(done);
+                user: { data: { userdata: 123 } }
+            });
         });
 
         it('should fail when deleting user by non-existing id', function (done) {
             var requestId = getRequestId();
 
-            adminConn.params({
+            adminConn.on({
+                code: status.NOT_FOUND,
+                error: 'User with id = ' + utils.NON_EXISTING_ID + ' not found'
+            }, done);
+
+            adminConn.send({
                 action: 'user/delete',
                 requestId: getRequestId(),
                 userId: utils.NON_EXISTING_ID
-            })
-                .expectError(status.NOT_FOUND, format('User with id = ' + utils.NON_EXISTING_ID + ' not found'))
-                .send(done);
+            });
         });
     });
 
@@ -1175,7 +1301,7 @@ describe('WebSocket API User', function () {
                 login: utils.getName('usr-1'),
                 password: utils.NEW_USER_PASSWORD
             };
-            var params = {jwt: utils.jwt.admin};
+            var params = { jwt: utils.jwt.admin };
 
             utils.createUser(user.login, user.password, 0, 0,
                 function (err, result) {
@@ -1202,27 +1328,36 @@ describe('WebSocket API User', function () {
                         return done(err);
                     }
                     user.accessToken = result.accessToken;
-                })}, 100);
+                })
+            }, 100);
 
             setTimeout(function authenticateConn(callback) {
-                conn.params({
+                conn.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+    
+                conn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: user.accessToken
-                })
-                    .send(callback);
-                }, 200);
+                });
+            }, 200);
 
-            setTimeout(function() {
-                adminConn.params({
+            setTimeout(function () {
+                adminConn.on({
+                    action: 'user/get',
+                    status: 'success'
+                }, (err,data) => {
+                    assert(data.user.lastLogin !== null);
+                    done();
+                });
+    
+                adminConn.send({
                     action: 'user/get',
                     userId: user.id
-                })
-                .assert(function (result) {
-                    assert(result.user.lastLogin !== null);
-                })
-                .send(done);
-                }, 300);
+                });
+            }, 300);
         });
     });
 
@@ -1324,12 +1459,16 @@ describe('WebSocket API User', function () {
             }
 
             function authenticateConn(callback) {
-                conn.params({
+                conn.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+    
+                conn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: token
-                })
-                    .send(callback);
+                });
             }
 
             async.series([
@@ -1347,18 +1486,18 @@ describe('WebSocket API User', function () {
         it('should not get any device types for user created with allDeviceTypesAvailable = false', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                action: 'user/getDeviceTypes',
+                requestId: requestId,
+                status: 'success',
+                deviceTypes: []
+            }, done);
+
+            conn.send({
                 action: 'user/getDeviceTypes',
                 userId: userId1,
                 requestId: requestId
-            })
-                .expect({
-                    action: 'user/getDeviceTypes',
-                    requestId: requestId,
-                    status: 'success',
-                    deviceTypes: []
-                })
-                .send(done);
+            });
         });
 
         it('should get only available device types for user', function (done) {
@@ -1370,44 +1509,51 @@ describe('WebSocket API User', function () {
                 description: null
             };
 
-            conn.params({
+            conn.on({
+                action: 'user/getDeviceTypes',
+                requestId: requestId,
+                status: 'success',
+                deviceTypes: [expectedDeviceType2]
+            }, done);
+
+            conn.send({
                 action: 'user/getDeviceTypes',
                 userId: userId2,
                 requestId: requestId
-            })
-                .expect({
-                    action: 'user/getDeviceTypes',
-                    requestId: requestId,
-                    status: 'success',
-                    deviceTypes: [expectedDeviceType2]
-                })
-                .send(done);
+            });
         });
 
         it('should get all available device types for user created with default allDeviceTypesAvailable', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                action: 'user/getDeviceTypes',
+                status: 'success'
+            }, (err,data) => {
+                assert(data.deviceTypes.length > 2, 'Length of deviceTypes should be bigger than 2');
+                done();
+            });
+
+            conn.send({
                 action: 'user/getDeviceTypes',
                 userId: userId3,
                 requestId: requestId
-            })
-                .expectTrue(function (result) {
-                    return result.deviceTypes.length > 2;
-                })
-                .send(done);
+            });
         });
 
-        it('should return error for invalid user id', function(done) {
+        it('should return error for invalid user id', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                code: 400,
+                error: 'User id is wrong or empty'
+            }, done);
+
+            conn.send({
                 action: 'user/getDeviceTypes',
                 requestId: requestId,
                 deviceTypeId: utils.NON_EXISTING_ID
-            })
-                .expectError(400, 'User id is wrong or empty')
-                .send(done);
+            });
         });
 
         after(function (done) {

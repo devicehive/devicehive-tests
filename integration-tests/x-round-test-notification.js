@@ -3,7 +3,7 @@ var assert = require('assert');
 var utils = require('./common/utils');
 var path = require('./common/path');
 var req = require('./common/request');
-var Websocket = require('./common/websocket');
+var Websocket = require('./common/ws');
 var getRequestId = utils.core.getRequestId;
 
 describe('Round tests for notification', function () {
@@ -21,7 +21,7 @@ describe('Round tests for notification', function () {
     var deviceDef = {
         name: DEVICE,
         status: 'Online',
-        data: {a: '1', b: '2'}
+        data: { a: '1', b: '2' }
     };
     var deviceId = utils.getName('round-notif-device-id');
     var networkId = null;
@@ -40,7 +40,7 @@ describe('Round tests for notification', function () {
             for (var i = 0; i < TOTAL_NOTIFS; i++) {
                 notifications.push({
                     notification: NOTIFICATION,
-                    parameters: {a: (i + 1), b: (i + 2)}
+                    parameters: { a: (i + 1), b: (i + 2) }
                 })
             }
 
@@ -48,7 +48,7 @@ describe('Round tests for notification', function () {
         }
 
         function getWsUrl(callback) {
-            req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
+            req.get(path.INFO).params({ jwt: utils.jwt.admin }).send(function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -78,14 +78,14 @@ describe('Round tests for notification', function () {
         function createDevice(callback) {
             deviceDef.networkId = networkId;
             req.update(path.get(path.DEVICE, deviceId))
-                .params({jwt: utils.jwt.admin, data: deviceDef})
+                .params({ jwt: utils.jwt.admin, data: deviceDef })
                 .send(function (err) {
                     if (err) {
                         return callback(err);
                     }
 
                     req.get(path.get(path.DEVICE, deviceId))
-                        .params({jwt: utils.jwt.admin})
+                        .params({ jwt: utils.jwt.admin })
                         .send(function (err) {
                             if (err) {
                                 return callback(err);
@@ -133,13 +133,17 @@ describe('Round tests for notification', function () {
         }
 
         function authenticateDeviceConn(callback) {
-            deviceConn.params({
-                    action: 'authenticate',
-                    requestId: getRequestId(),
-                    deviceId: deviceId,
-                    token: jwt
-                })
-                .send(callback);
+            deviceConn.on({
+                action: 'authenticate',
+                status: 'success'
+            }, callback);
+
+            deviceConn.send({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: jwt,
+                deviceId: deviceId,
+            });
         }
 
         function createClientConn(callback) {
@@ -148,12 +152,16 @@ describe('Round tests for notification', function () {
         }
 
         function authenticateClientConn(callback) {
-            clientConn.params({
-                    action: 'authenticate',
-                    requestId: getRequestId(),
-                    token: jwt
-                })
-                .send(callback);
+            clientConn.on({
+                action: 'authenticate',
+                status: 'success'
+            }, callback);
+
+            clientConn.send({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: jwt
+            });
         }
 
         async.series([
@@ -175,37 +183,38 @@ describe('Round tests for notification', function () {
         var subscriptionId = null;
 
         before(function (done) {
-            clientConn.params({
-                    action: 'notification/subscribe',
-                    requestId: getRequestId(),
-                    deviceIds: [deviceId],
-                    names: [NOTIFICATION]
-                })
-                .send(function (err, result) {
-                    if (err) {
-                        return done(err);
-                    }
+            clientConn.on({
+                action: 'notification/subscribe',
+                status: 'success'
+            }, function (err, result) {
+                if (err) {
+                    return done(err);
+                }
 
-                    subscriptionId = result.subscriptionId;
-                    done();
-                })
+                subscriptionId = result.subscriptionId;
+                done();
+            });
+            clientConn.send({
+                action: 'notification/subscribe',
+                requestId: getRequestId(),
+                deviceIds: [deviceId],
+                names: [NOTIFICATION]
+            });
         });
 
         function runTest(notification, done) {
 
-            clientConn.waitFor('notification/insert', done)
-                .expect({
-                    action: 'notification/insert',
-                    notification: notification
-                });
+            clientConn.on({
+                action: 'notification/insert',
+                notification: notification
+            }, done);
 
-            deviceConn.params({
-                    action: 'notification/insert',
-                    requestId: getRequestId(),
-                    deviceId: deviceId,
-                    notification: notification
-                })
-                .send();
+            deviceConn.send({
+                action: 'notification/insert',
+                requestId: getRequestId(),
+                deviceId: deviceId,
+                notification: notification
+            });
         }
 
         it('WS device -> WS client', function (done) {
@@ -214,14 +223,15 @@ describe('Round tests for notification', function () {
 
         after(function (done) {
             var requestId = getRequestId();
-            clientConn.params({
-                    action: 'notification/unsubscribe',
-                    requestId:requestId,
-                    subscriptionId: subscriptionId
-                }).expect({
-                    action: 'notification/unsubscribe',
-                    requestId:requestId
-                }).send(done);
+            clientConn.on({
+                action: 'notification/unsubscribe',
+                requestId: requestId
+            }, done);
+            clientConn.send({
+                action: 'notification/unsubscribe',
+                requestId: requestId,
+                subscriptionId: subscriptionId
+            });
         });
     });
 
@@ -239,19 +249,23 @@ describe('Round tests for notification', function () {
             expectedNotif.deviceId = deviceId;
 
             req.get($path)
-                .params({jwt: jwt})
+                .params({ jwt: jwt })
                 .query('names', NOTIFICATION)
                 .expect([expectedNotif])
                 .send(done);
 
             setTimeout(function () {
                 var requestId = getRequestId();
-                deviceConn.params({
+                deviceConn.on({
+                    action: 'notification/insert',
+                    status: 'success'
+                });
+                deviceConn.send({
                     action: 'notification/insert',
                     requestId: requestId,
                     deviceId: deviceId,
                     notification: notification
-                }).send();
+                });
             }, 500);
         }
 
@@ -268,29 +282,32 @@ describe('Round tests for notification', function () {
         before(function (done) {
 
             $path = path.NOTIFICATION.get(deviceId);
-
-            clientConn.params({
+            clientConn.on({
                 action: 'notification/subscribe',
-                requestId: getRequestId(),
-                deviceIds: [deviceId],
-                names: [NOTIFICATION]
-            }).send(function (err, result) {
+                status: 'success'
+            }, function (err, result) {
                 if (err) {
                     return done(err);
                 }
 
                 subscriptionId = result.subscriptionId;
                 done();
-            })
+            });
+
+            clientConn.send({
+                action: 'notification/subscribe',
+                requestId: getRequestId(),
+                deviceIds: [deviceId],
+                names: [NOTIFICATION]
+            });
         });
 
         function runTest(notification, done) {
 
-            clientConn.waitFor('notification/insert', done)
-                .expect({
-                    action: 'notification/insert',
-                    notification: notification
-                });
+            clientConn.on({
+                action: 'notification/insert',
+                notification: notification
+            }, done);
 
             req.create($path)
                 .params({
@@ -306,14 +323,17 @@ describe('Round tests for notification', function () {
 
         after(function (done) {
             var requestId = getRequestId();
-            clientConn.params({
+
+            clientConn.on({
+                action: 'notification/unsubscribe',
+                requestId: requestId
+            }, done);
+
+            clientConn.send({
                 action: 'notification/unsubscribe',
                 requestId: requestId,
                 subscriptionId: subscriptionId
-            }).expect({
-                action: 'notification/unsubscribe',
-                requestId: requestId
-            }).send(done);
+            });
         });
     });
 
@@ -337,34 +357,34 @@ describe('Round tests for notification', function () {
             expectedNotif.deviceTypeId = deviceTypeId;
             expectedNotif.deviceId = deviceId;
             expectedNotif.networkId = networkId;
-            
+
             var deviceParams = utils.core.clone(deviceAuth);
             var clientParams = utils.core.clone(clientAuth);
 
             req.get(clientPath)
                 .params(clientParams)
                 .query('names', NOTIFICATION)
-                .send(function(err, result) {
+                .send(function (err, result) {
                     expectedNotif.id = result[0].id;
                     expectedNotif.timestamp = result[0].timestamp;
                     assert.deepEqual(result, [expectedNotif], "Not expected notification");
                     done();
                 });
-            
-            
+
+
             setTimeout(function () {
                 deviceParams.data = notification;
                 req.create(devicePath)
                     .params(deviceParams)
                     .send();
             }, 100);
-            
-            
+
+
         }
 
         it('REST device -> REST client', function (done) {
-            deviceAuth = {jwt: utils.jwt.admin};
-            clientAuth = {jwt: jwt};
+            deviceAuth = { jwt: utils.jwt.admin };
+            clientAuth = { jwt: jwt };
             async.eachSeries(notifications, runTest, done);
         });
     });

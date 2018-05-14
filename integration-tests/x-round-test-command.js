@@ -3,7 +3,7 @@ var assert = require('assert');
 var utils = require('./common/utils');
 var path = require('./common/path');
 var req = require('./common/request');
-var Websocket = require('./common/websocket');
+var Websocket = require('./common/ws');
 var getRequestId = utils.core.getRequestId;
 
 describe('Round tests for command', function () {
@@ -22,7 +22,7 @@ describe('Round tests for command', function () {
     var deviceDef = {
         name: DEVICE,
         status: 'Online',
-        data: {a: '1', b: '2'}
+        data: { a: '1', b: '2' }
     };
     var deviceId = utils.getName('round-cmd-device-id');
     var networkId = null;
@@ -40,7 +40,7 @@ describe('Round tests for command', function () {
             for (var i = 0; i < TOTAL_COMMANDS; i++) {
                 commands.push({
                     command: COMMAND,
-                    parameters: {a: (i + 1), b: (i + 2)},
+                    parameters: { a: (i + 1), b: (i + 2) },
                     status: 'in progress ' + (i + 1)
                 })
             }
@@ -49,7 +49,7 @@ describe('Round tests for command', function () {
         }
 
         function getWsUrl(callback) {
-            req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
+            req.get(path.INFO).params({ jwt: utils.jwt.admin }).send(function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -75,16 +75,16 @@ describe('Round tests for command', function () {
         }
 
         function createDevice(callback) {
-        	deviceDef.networkId = networkId;
+            deviceDef.networkId = networkId;
             req.update(path.get(path.DEVICE, deviceId))
-                .params({jwt: utils.jwt.admin, data: deviceDef})
+                .params({ jwt: utils.jwt.admin, data: deviceDef })
                 .send(function (err) {
                     if (err) {
                         return callback(err);
                     }
 
                     req.get(path.get(path.DEVICE, deviceId))
-                        .params({jwt: utils.jwt.admin})
+                        .params({ jwt: utils.jwt.admin })
                         .send(function (err) {
                             if (err) {
                                 return callback(err);
@@ -133,13 +133,17 @@ describe('Round tests for command', function () {
         }
 
         function authenticateDeviceConn(callback) {
-            deviceConn.params({
-                    action: 'authenticate',
-                    requestId: getRequestId(),
-                    deviceId: deviceId,
-                    token: jwt
-                })
-                .send(callback);
+            deviceConn.on({
+                action: 'authenticate',
+                status: 'success'
+            }, callback);
+
+            deviceConn.send({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: jwt,
+                deviceId: deviceId,
+            });
         }
 
         function createClientConn(callback) {
@@ -148,12 +152,16 @@ describe('Round tests for command', function () {
         }
 
         function authenticateClientConn(callback) {
-            clientConn.params({
-                    action: 'authenticate',
-                    requestId: getRequestId(),
-                    token: jwt
-                })
-                .send(callback);
+            clientConn.on({
+                action: 'authenticate',
+                status: 'success'
+            }, callback);
+
+            clientConn.send({
+                action: 'authenticate',
+                requestId: getRequestId(),
+                token: jwt
+            });
         }
 
         async.series([
@@ -174,37 +182,45 @@ describe('Round tests for command', function () {
 
         before(function (done) {
             var requestId = getRequestId();
-            deviceConn.params({
+
+            deviceConn.on({
                 action: 'command/subscribe',
-                requestId: requestId
-            }).send(function () {
+                status: 'success'
+            }, function () {
                 var requestId2 = getRequestId();
-                clientConn.params({
+
+                clientConn.on({
+                    action: 'command/subscribe',
+                    status: 'success'
+                }, done);
+
+                clientConn.send({
                     action: 'command/subscribe',
                     returnUpdatedCommands: true,
                     requestId: requestId2
-                }).send(done);        
+                });
             });
-            
+            deviceConn.send({
+                action: 'command/subscribe',
+                requestId: requestId
+            });
         });
 
         function runTest(command, done) {
 
             function sendCommand(callback) {
 
-                deviceConn.waitFor('command/insert', callback)
-                    .expect({
-                        action: 'command/insert',
-                        command: command
-                    });
+                deviceConn.on({
+                    action: 'command/insert',
+                    command: command
+                }, callback);
 
-                clientConn.params({
+                clientConn.send({
                     action: 'command/insert',
                     requestId: getRequestId(),
                     deviceId: deviceId,
                     command: command
-                })
-                    .send();    
+                });
             }
 
             function sendReply(cmnd, callback) {
@@ -212,23 +228,21 @@ describe('Round tests for command', function () {
                 var update = {
                     command: COMMAND,
                     status: 'updated',
-                    result: {done: 'yes'}
+                    result: { done: 'yes' }
                 };
 
-                clientConn.waitFor('command/update', callback)
-                    .expect({
-                        action: 'command/update',
-                        command: update
-                    });
+                clientConn.on({
+                    action: 'command/update',
+                    command: update
+                }, callback);
 
-                deviceConn.params({
+                deviceConn.send({
                     action: 'command/update',
                     requestId: getRequestId(),
                     deviceId: deviceId,
                     commandId: cmnd.command.id,
                     command: update
-                })
-                    .send();
+                });
             }
 
             async.waterfall([
@@ -243,17 +257,27 @@ describe('Round tests for command', function () {
 
         after(function (done) {
             var requestId = getRequestId();
-            
-            clientConn.params({
+
+            clientConn.on({
                 action: 'command/unsubscribe',
                 requestId: requestId
-            }).send(function() {
+            }, function () {
                 var requestId2 = getRequestId();
-                
-                deviceConn.params({
+
+                deviceConn.on({
+                    action: 'command/unsubscribe',
+                    status: 'success'
+                }, done);
+
+                deviceConn.send({
                     action: 'command/unsubscribe',
                     requestId: requestId2
-                }).send(done);
+                });
+            });
+
+            clientConn.send({
+                action: 'command/unsubscribe',
+                requestId: requestId
             });
         });
     });
@@ -266,24 +290,24 @@ describe('Round tests for command', function () {
 
             createPath = path.COMMAND.get(deviceId);
             var requestId = getRequestId();
-            deviceConn.params({
-                    action: 'command/subscribe',
-                    requestId: requestId
-                }).expect({
-                    action: 'command/subscribe',
-                    requestId: requestId
-                }).send(done);
+            deviceConn.on({
+                action: 'command/subscribe',
+                requestId: requestId
+            }, done);
+            deviceConn.send({
+                action: 'command/subscribe',
+                requestId: requestId
+            });
         });
 
         function runTest(command, done) {
 
             function sendCommand(callback) {
-                
-                deviceConn.waitFor('command/insert', callback)
-                    .expect({
-                        action: 'command/insert',
-                        command: command
-                    });
+
+                deviceConn.on({
+                    action: 'command/insert',
+                    command: command
+                }, callback);
 
                 req.create(createPath)
                     .params({ jwt: jwt, data: command })
@@ -297,10 +321,10 @@ describe('Round tests for command', function () {
                 var update = {
                     command: COMMAND,
                     status: 'updated',
-                    result: {done: 'yes'}
+                    result: { done: 'yes' }
                 };
 
-                utils.get(waitPath, {jwt: jwt}, function (err, result) {
+                utils.get(waitPath, { jwt: jwt }, function (err, result) {
                     assert.strictEqual(!(!err), false, 'No error');
                     assert.strictEqual(result.command, update.command);
                     assert.strictEqual(result.status, update.status);
@@ -310,17 +334,17 @@ describe('Round tests for command', function () {
 
                 setTimeout(function () {
                     var requestId = getRequestId();
-                    deviceConn.params({
+                    deviceConn.on({
+                        action: 'command/update',
+                        requestId: requestId,
+                    });
+                    deviceConn.send({
                         action: 'command/update',
                         requestId: requestId,
                         deviceId: deviceId,
                         commandId: cmnd.command.id,
                         command: update
-                    }).expect({
-                        action: 'command/update',
-                        requestId: requestId,
-
-                    }).send();
+                    });
                 }, 100);
             }
 
@@ -335,11 +359,14 @@ describe('Round tests for command', function () {
         });
 
         after(function (done) {
-            deviceConn.params({
-                    action: 'command/unsubscribe',
-                    requestId: getRequestId()
-                })
-                .send(done);
+            deviceConn.on({
+                action: 'command/unsubscribe',
+                status: 'success'
+            }, done);
+            deviceConn.send({
+                action: 'command/unsubscribe',
+                requestId: getRequestId()
+            });
         });
     });
 
@@ -351,14 +378,18 @@ describe('Round tests for command', function () {
         before(function (done) {
             $path = path.COMMAND.get(deviceId);
             pollPath = path.combine($path, path.POLL);
-            
-            clientConn.params({
+
+            clientConn.on({
+                action: 'command/subscribe',
+                status: 'success'
+            }, done);
+
+            clientConn.send({
                 action: 'command/subscribe',
                 returnUpdatedCommands: true,
                 requestId: getRequestId()
-            })
-                .send(done);
-            
+            });
+
         });
 
         function runTest(command, done) {
@@ -374,13 +405,16 @@ describe('Round tests for command', function () {
                     .send(callback);
 
                 setTimeout(function () {
-                    clientConn.params({
+                    clientConn.on({
+                        action: 'command/insert',
+                        status: 'success'
+                    });
+                    clientConn.send({
                         action: 'command/insert',
                         requestId: getRequestId(),
                         deviceId: deviceId,
                         command: command
-                    })
-                        .send();    
+                    });
                 }, 1000);
             }
 
@@ -390,16 +424,15 @@ describe('Round tests for command', function () {
                 var update = {
                     command: COMMAND,
                     status: 'updated',
-                    result: {done: 'yes'}
+                    result: { done: 'yes' }
                 };
-                
+
                 async.parallel({
                     one: function (cb) {
-                        clientConn.waitFor('command/update', cb)
-                            .expect({
-                                action: 'command/update',
-                                command: update
-                            });        
+                        clientConn.on({
+                            action: 'command/update',
+                            command: update
+                        }, cb);
                     },
                     two: function (cb) {
                         setTimeout(function () {
@@ -410,19 +443,19 @@ describe('Round tests for command', function () {
                                     data: update
                                 })
                                 .send(cb);
-                        }, 1000);        
+                        }, 1000);
                     }
                 }, function (err) {
                     if (err) {
                         callback(err);
                     }
-                    
+
                     callback();
                 });
 
-                
 
-                
+
+
             }
 
             async.waterfall([
@@ -476,7 +509,7 @@ describe('Round tests for command', function () {
                 var update = {
                     command: COMMAND,
                     status: 'updated',
-                    result: {done: 'yes'}
+                    result: { done: 'yes' }
                 };
 
                 async.parallel({
@@ -503,7 +536,7 @@ describe('Round tests for command', function () {
                     if (err) {
                         callback(err);
                     }
-    
+
                     callback();
                 });
             }
@@ -515,8 +548,8 @@ describe('Round tests for command', function () {
         }
 
         it('REST client -> REST device', function (done) {
-            clientAuth = {jwt: jwt};
-            deviceAuth = {jwt: jwt};
+            clientAuth = { jwt: jwt };
+            deviceAuth = { jwt: jwt };
             async.eachSeries(commands, runTest, done);
         });
     });
