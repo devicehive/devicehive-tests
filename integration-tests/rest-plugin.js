@@ -691,30 +691,25 @@ describe('REST API Plugin', function () {
                 t: 'topic',
                 a: 'subscribe',
                 p: {
-                    sg: "",
                     t: [topic]
                 }
-            }
+            };
+
             client.send(msg);
-            client.on({
-                s: 0
-            }, callback);
+            client.on({ s: 0 }, callback);
         }
 
         function unsubscribe(client, topic, callback) {
-
             var msg = {
                 a: 'unsubscribe',
                 t: 'topic',
                 p: {
                     t: [topic]
                 }
-            }
+            };
 
             client.send(msg);
-            client.on({
-                s: 0
-            }, callback);
+            client.on({ s: 0 }, callback);
         }
 
         function runTest(client, topic, deviceId, notification, done) {
@@ -724,15 +719,12 @@ describe('REST API Plugin', function () {
                 if (err) {
                     return done(err);
                 }
-                client.on({
-                    t: 'notif',
-                    s: 0
-                }, cleanUp);
+
+                client.on({ t: 'notif', s: 0 }, cleanUp);
 
                 createNotification(notification, deviceId);
 
                 function cleanUp(err) {
-
                     if (err) {
                         done(err);
                     }
@@ -749,10 +741,7 @@ describe('REST API Plugin', function () {
                     return done(err);
                 }
 
-                client.on({
-                    t: 'notif',
-                    s: 0
-                }, checkResponse);
+                client.on({ t: 'notif', s: 0 }, checkResponse);
 
                 createCommand(command, deviceId);
 
@@ -999,7 +988,6 @@ describe('REST API Plugin', function () {
                         t: 'topic',
                         a: 'subscribe',
                         p: {
-                            sg: "",
                             t: [pluginCommand.topic]
                         }
                     }
@@ -1512,6 +1500,7 @@ describe('REST API Plugin', function () {
             var pluginCreds;
             var testPlugin;
             var conn = null;
+            var url;
 
             before(function (done) {
                 if (!utils.pluginUrl) {

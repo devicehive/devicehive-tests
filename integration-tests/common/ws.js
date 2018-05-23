@@ -31,22 +31,25 @@ class WSConnection {
 
     on(obj = {}, callback = utils.emptyCb) {
         let received = false;
+        let timeoutHandler = null;
 
         const listener = event => {
             console.log(`<- ${event.data}`);
             const data = JSON.parse(event.data);
 
             if (utils.matchesFields(data, obj)) {
-                received = true;
                 this.socket.removeEventListener('message', listener);
+                clearTimeout(timeoutHandler);
+                received = true;
                 callback(null, data);
             }
-        }
+        };
+
         this.socket.addEventListener('message', listener);
 
         const timeout = utils.WEBSOCKET_TIMEOUT;
 
-        setTimeout(() => {
+        timeoutHandler = setTimeout(() => {
             if (!received) {
                 this.socket.removeEventListener('message', listener);
                 callback(new Error('waitFor() timeout: hasn\'t got message, for ' + timeout + 'ms'));
