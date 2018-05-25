@@ -493,37 +493,98 @@ describe('REST API Device Type', function () {
 
     describe('#Delete', function () {
 
-        var deviceTypeId = null;
+        var DEVICE = utils.getName('deviceType-device');
+        var DEVICE_ID = utils.getName('deviceType-id');
+
+        var deviceTypeId1 = null;
+        var deviceTypeId2 = null;
 
         before(function (done) {
-            req.create(path.current)
-                .params({
-                    jwt: utils.jwt.admin,
-                    data: {name: utils.getName('deviceType-5')}
-                })
-                .send(function (err, result) {
-                    if (err) {
-                        return done(err);
-                    }
+            function createDeviceType1(callback) {
+                req.create(path.current)
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {name: utils.getName('deviceType-5')}
+                    })
+                    .send(function (err, result) {
+                        if (err) {
+                            return done(err);
+                        }
 
-                    deviceTypeId = result.id;
-                    done();
-                });
+                        deviceTypeId1 = result.id;
+                        callback();
+                    });
+            }
+
+            function createDeviceType2(callback) {
+                req.create(path.current)
+                    .params({
+                        jwt: utils.jwt.admin,
+                        data: {name: utils.getName('deviceType-5')}
+                    })
+                    .send(function (err, result) {
+                        if (err) {
+                            return done(err);
+                        }
+
+                        deviceTypeId2 = result.id;
+                        callback();
+                    });
+            }
+
+            function createDevice(callback) {
+                var params = utils.device.getParamsObj(DEVICE, utils.jwt.admin, null, {name: DEVICE, version: '1'});
+                params.data.deviceTypeId = deviceTypeId2;
+                req.update(path.get(path.DEVICE, DEVICE_ID))
+                    .params(params)
+                    .send(function (err) {
+                        if (err) {
+                            return callback(err);
+                        }
+                        callback();
+                    });
+            }
+
+            async.series([
+                createDeviceType1,
+                createDeviceType2,
+                createDevice
+            ], done);
         });
 
-        it('should fail get with 404 after we deleted deviceType', function (done) {
+        it('should fail get with 404 if deviceType has already been deleted', function (done) {
             req.delete(path.current)
-                .params({jwt: utils.jwt.admin, id: deviceTypeId})
+                .params({jwt: utils.jwt.admin, id: deviceTypeId1})
                 .send(function (err) {
                     if (err) {
                         return done(err);
                     }
 
                     req.get(path.current)
-                        .params({jwt: utils.jwt.admin, id: deviceTypeId})
+                        .params({jwt: utils.jwt.admin, id: deviceTypeId1})
                         .expectError(status.NOT_FOUND,
-                            format('Device type with id = %s not found', deviceTypeId))
+                            format('Device type with id = %s not found', deviceTypeId1))
                         .send(done);
+                });
+        });
+
+        it('should fail with 400 if deviceType has devices, force = false', function (done) {
+            req.delete(path.current)
+                .params({jwt: utils.jwt.admin, id: deviceTypeId2})
+                .query('force', false)
+                .expectError(status.BAD_REQUEST,
+                    'There are the following devices within this device type: ' + DEVICE_ID + '. Please review and delete them first.')
+                .send(done);
+        });
+
+        it('should fail delete deviceType with devices, force = true', function (done) {
+            req.delete(path.current)
+                .params({jwt: utils.jwt.admin, id: deviceTypeId2})
+                .query('force', true)
+                .send(function (err) {
+                    assert.strictEqual(!(!err), false, 'No error');
+
+                    done();
                 });
         });
     });

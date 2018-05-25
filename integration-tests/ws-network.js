@@ -4,7 +4,7 @@ var utils = require('./common/utils');
 var path = require('./common/path');
 var req = require('./common/request');
 var status = require('./common/http').status;
-var Websocket = require('./common/websocket');
+var Websocket = require('./common/ws');
 var getRequestId = utils.core.getRequestId;
 
 describe('WebSocket API Network', function () {
@@ -17,7 +17,7 @@ describe('WebSocket API Network', function () {
     var noActionsToken = null;
 
     before(function (done) {
-        req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
+        req.get(path.INFO).params({ jwt: utils.jwt.admin }).send(function (err, result) {
             if (err) {
                 return done(err);
             }
@@ -77,21 +77,30 @@ describe('WebSocket API Network', function () {
             }
 
             function authenticateConn(callback) {
-                conn.params({
+
+                conn.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+
+                conn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: token
-                })
-                    .send(callback);
+                });
             }
 
             function authenticateAdminConn(callback) {
-                adminConn.params({
+                adminConn.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+
+                adminConn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: utils.jwt.admin
-                })
-                    .send(callback);
+                });
             }
 
             async.series([
@@ -107,48 +116,60 @@ describe('WebSocket API Network', function () {
         it('should not get information about network without id', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                code: 400,
+                error: 'Network id is wrong or empty'
+            }, done)
+
+            conn.send({
                 action: 'network/get',
                 requestId: requestId
-            })
-                .expectError(400, 'Network id is wrong or empty')
-                .send(done);
+            });
         });
 
         it('should return 400 when id is null', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                code: 400,
+                error: 'Network id is wrong or empty'
+            }, done)
+
+            conn.send({
                 action: 'network/get',
                 requestId: requestId,
                 id: null
-            })
-                .expectError(400, 'Network id is wrong or empty')
-                .send(done);
+            });
         });
 
         it('should return 403 when no network exists with client token', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                code: 403,
+                error: 'Access is denied'
+            }, done)
+
+            conn.send({
                 action: 'network/get',
                 networkId: utils.NON_EXISTING_ID,
                 requestId: requestId
-            })
-                .expectError(403, 'Access is denied')
-                .send(done);
+            });
         });
 
         it('should return 404 when no network exists with admin token', function (done) {
             var requestId = getRequestId();
 
-            adminConn.params({
+            adminConn.on({
+                code: 404,
+                error: 'Network with id = ' + utils.NON_EXISTING_ID + ' not found'
+            }, done);
+
+            adminConn.send({
                 action: 'network/get',
                 networkId: utils.NON_EXISTING_ID,
                 requestId: requestId
-            })
-                .expectError(404, 'Network with id = ' + utils.NON_EXISTING_ID + ' not found')
-                .send(done);
+            });
         });
 
         after(function (done) {
@@ -240,21 +261,29 @@ describe('WebSocket API Network', function () {
             }
 
             function authenticateConn(callback) {
-                conn.params({
+                conn.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+
+                conn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: token
-                })
-                    .send(callback);
+                });
             }
 
             function authenticateNoActionsConnection(callback) {
-                noActionsConnection.params({
+                noActionsConnection.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+
+                noActionsConnection.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: noActionsToken
-                })
-                    .send(callback);
+                });
             }
 
             async.series([
@@ -272,20 +301,18 @@ describe('WebSocket API Network', function () {
         it('should count networks based on the name pattern', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                action: 'network/count',
+                requestId: requestId,
+                status: 'success',
+                count: 1
+            }, done);
+
+            conn.send({
                 action: 'network/count',
                 requestId: requestId,
                 namePattern: '%ws-network-1%'
-            })
-                .expect({
-                    action: 'network/count',
-                    requestId: requestId,
-                    status: 'success'
-                })
-                .assert(function (result) {
-                    assert.strictEqual(result.count, 1);
-                })
-                .send(done);
+            });
         });
 
         it('should get the first network only', function (done) {
@@ -297,47 +324,49 @@ describe('WebSocket API Network', function () {
                 description: null
             };
 
-            conn.params({
+            conn.on({
+                action: 'network/list',
+                requestId: requestId,
+                status: 'success',
+                networks: [expectedNetwork]
+            }, done);
+
+            conn.send({
                 action: 'network/list',
                 requestId: requestId,
                 namePattern: '%ws-network-1%'
-            })
-                .expect({
-                    action: 'network/list',
-                    requestId: requestId,
-                    status: 'success',
-                    networks: [expectedNetwork]
-                })
-                .send(done);
+            });
         });
 
         it('should get network count', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                action: 'network/count',
+                requestId: requestId,
+                status: 'success'
+            }, (err, data) => {
+                assert.strictEqual(data.count > 0, true);
+                done();
+            });
+
+            conn.send({
                 action: 'network/count',
                 requestId: requestId
-            })
-                .expect({
-                    action: 'network/count',
-                    requestId: requestId,
-                    status: 'success'
-                })
-                .assert(function (result) {
-                    assert.strictEqual(result.count > 0, true);
-                })
-                .send(done);
+            });
         });
 
         it('should fail with 403 on count all networks', function (done) {
             var requestId = getRequestId();
 
-            noActionsConnection.params({
+            noActionsConnection.on({
+                code: status.FORBIDDEN
+            }, done);
+
+            noActionsConnection.send({
                 action: 'network/count',
                 requestId: requestId
-            })
-                .expectError(status.FORBIDDEN)
-                .send(done);
+            });
         });
 
         it('should get networks in correct ASC order', function (done) {
@@ -354,19 +383,19 @@ describe('WebSocket API Network', function () {
                 description: null
             };
 
-            conn.params({
+            conn.on({
+                action: 'network/list',
+                requestId: requestId,
+                status: 'success',
+                networks: [expectedNetwork1, expectedNetwork2]
+            }, done);
+
+            conn.send({
                 action: 'network/list',
                 requestId: requestId,
                 sortField: 'name',
                 sortOrder: 'ASC'
-            })
-                .expect({
-                    action: 'network/list',
-                    requestId: requestId,
-                    status: 'success',
-                    networks: [expectedNetwork1, expectedNetwork2]
-                })
-                .send(done);
+            });
         });
 
         it('should get networks in correct DESC order', function (done) {
@@ -383,19 +412,19 @@ describe('WebSocket API Network', function () {
                 description: null
             };
 
-            conn.params({
+            conn.on({
+                action: 'network/list',
+                requestId: requestId,
+                status: 'success',
+                networks: [expectedNetwork2, expectedNetwork1]
+            }, done);
+
+            conn.send({
                 action: 'network/list',
                 requestId: requestId,
                 sortField: 'name',
                 sortOrder: 'DESC'
-            })
-                .expect({
-                    action: 'network/list',
-                    requestId: requestId,
-                    status: 'success',
-                    networks: [expectedNetwork2, expectedNetwork1]
-                })
-                .send(done);
+            });
         });
 
 
@@ -433,12 +462,16 @@ describe('WebSocket API Network', function () {
             }
 
             function authenticateConn(callback) {
-                conn.params({
+                conn.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+
+                conn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: token
-                })
-                    .send(callback);
+                });
             }
 
             async.series([
@@ -451,17 +484,17 @@ describe('WebSocket API Network', function () {
         it('should insert network', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                action: 'network/insert',
+                requestId: requestId,
+                status: 'success'
+            }, done);
+
+            conn.send({
                 action: 'network/insert',
                 requestId: requestId,
                 network: { name: NETWORK1 }
-            })
-                .expect({
-                    action: 'network/insert',
-                    requestId: requestId,
-                    status: 'success'
-                })
-                .send(done);
+            });
         });
 
         after(function (done) {
@@ -503,21 +536,29 @@ describe('WebSocket API Network', function () {
             }
 
             function authenticateConn(callback) {
-                conn.params({
+                conn.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+
+                conn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: token
-                })
-                    .send(callback);
+                });
             }
 
             function authenticateAdminConn(callback) {
-                adminConn.params({
+                adminConn.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+
+                adminConn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: utils.jwt.admin
-                })
-                    .send(callback);
+                });
             }
 
             async.series([
@@ -529,45 +570,51 @@ describe('WebSocket API Network', function () {
             ], done);
         });
 
-        it('should return error for invalid network id with client token', function(done) {
+        it('should return error for invalid network id with client token', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                code: 403,
+                error: 'Access is denied'
+            }, done);
+
+            conn.send({
                 action: 'network/update',
                 requestId: requestId,
                 networkId: utils.NON_EXISTING_ID
-            })
-                .expectError(403, 'Access is denied')
-                .send(done);
+            });
         });
 
-        it('should return error for invalid network id with admin token', function(done) {
+        it('should return error for invalid network id with admin token', function (done) {
             var requestId = getRequestId();
             var networkId = utils.NON_EXISTING_ID;
 
-            adminConn.params({
+            adminConn.on({
+                code: 404,
+                error: 'Network with id = ' + networkId + ' not found'
+            }, done);
+            
+            adminConn.send({
                 action: 'network/update',
                 requestId: requestId,
                 networkId: networkId
-            })
-                .expectError(404, 'Network with id = ' + networkId + ' not found')
-                .send(done);
+            });
         });
 
         it('should update network', function (done) {
             var requestId = getRequestId();
 
-            adminConn.params({
+            adminConn.on({
+                action: 'network/insert',
+                requestId: requestId,
+                status: 'success'
+            }, networkUpdate);
+            
+            adminConn.send({
                 action: 'network/insert',
                 requestId: requestId,
                 network: { name: NETWORK1 }
-            })
-                .expect({
-                    action: 'network/insert',
-                    requestId: requestId,
-                    status: 'success'
-                })
-                .send(networkUpdate);
+            });
 
             function networkUpdate(err, result) {
                 if (err) {
@@ -577,18 +624,19 @@ describe('WebSocket API Network', function () {
                 var requestId = getRequestId();
                 this.networkId = result.network.id;
                 var NETWORK1_UPDATE = utils.getName('ws-network-1');
-                adminConn.params({
+
+                adminConn.on({
+                    action: 'network/update',
+                    status: 'success',
+                    requestId: requestId
+                }, checkNetworkUpdate);
+                
+                adminConn.send({
                     action: 'network/update',
                     requestId: requestId,
                     networkId: this.networkId,
                     network: { name: NETWORK1_UPDATE }
-                })
-                    .expect({
-                        action: 'network/update',
-                        status: 'success',
-                        requestId: requestId
-                    })
-                    .send(checkNetworkUpdate);
+                });
             };
 
             function checkNetworkUpdate(err, result) {
@@ -597,17 +645,18 @@ describe('WebSocket API Network', function () {
                 }
 
                 var requestId = getRequestId();
-                adminConn.params({
+
+                adminConn.on({
+                    action: 'network/get',
+                    status: 'success',
+                    requestId: requestId
+                }, done);
+                
+                adminConn.send({
                     action: 'network/get',
                     requestId: requestId,
                     networkId: this.networkId
-                })
-                    .expect({
-                        action: 'network/get',
-                        status: 'success',
-                        requestId: requestId
-                    })
-                    .send(done);
+                });
             };
         });
 
@@ -669,21 +718,30 @@ describe('WebSocket API Network', function () {
             }
 
             function authenticateConn(callback) {
-                conn.params({
+                conn.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+                
+                conn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: token
-                })
-                    .send(callback);
+                });                
             }
 
             function authenticateAdminConn(callback) {
-                adminConn.params({
+
+                adminConn.on({
+                    action: 'authenticate',
+                    status: 'success'
+                }, callback);
+                
+                adminConn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: utils.jwt.admin
-                })
-                    .send(callback);
+                });
             }
 
             async.series([
@@ -696,51 +754,57 @@ describe('WebSocket API Network', function () {
             ], done);
         });
 
-        it('should return error for invalid network id with client token', function(done) {
+        it('should return error for invalid network id with client token', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                code: 403,
+                error: 'Access is denied'
+            }, done);
+            
+            conn.send({
                 action: 'network/delete',
                 requestId: requestId,
                 networkId: utils.NON_EXISTING_ID
-            })
-                .expectError(403, 'Access is denied')
-                .send(done);
+            });
         });
 
-        it('should return error for invalid network id with admin token', function(done) {
+        it('should return error for invalid network id with admin token', function (done) {
             var requestId = getRequestId();
-            var networkId = utils.NON_EXISTING_ID; 
-
-            adminConn.params({
+            var networkId = utils.NON_EXISTING_ID;
+            adminConn.on({
+                code: 404,
+                error: 'Network with id = ' + networkId + ' not found'
+            }, done);
+            
+            adminConn.send({
                 action: 'network/delete',
                 requestId: requestId,
                 networkId: networkId
-            })
-                .expectError(404, 'Network with id = ' + networkId + ' not found')
-                .send(done);
+            });
         });
 
         it('should delete network', function (done) {
 
             function deleteNetwork(callback) {
                 var requestId = getRequestId();
-                conn.params({
+
+                conn.on({
+                    action: 'network/delete',
+                    requestId: requestId,
+                    status: 'success'
+                }, callback);
+                
+                conn.send({
                     action: 'network/delete',
                     requestId: requestId,
                     networkId: networkId
-                })
-                    .expect({
-                        action: 'network/delete',
-                        requestId: requestId,
-                        status: 'success'
-                    })
-                    .send(callback);
+                });
             }
 
             function checkNetwork(callback) {
                 req.get(path.NETWORK)
-                    .params({jwt: utils.jwt.admin, id: networkId})
+                    .params({ jwt: utils.jwt.admin, id: networkId })
                     .expectError(404, 'Network with id = ' + networkId + ' not found')
                     .send(callback);
             }

@@ -5,7 +5,7 @@ var utils = require('./common/utils');
 var path = require('./common/path');
 var status = require('./common/http').status;
 var req = require('./common/request');
-var Websocket = require('./common/websocket');
+var Websocket = require('./common/ws');
 var getRequestId = utils.core.getRequestId;
 
 describe('Websocker API User Network', function () {
@@ -22,7 +22,7 @@ describe('Websocker API User Network', function () {
 
     before(function (done) {
         function createUrl(callback) {
-            req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
+            req.get(path.INFO).params({ jwt: utils.jwt.admin }).send(function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -46,7 +46,7 @@ describe('Websocker API User Network', function () {
 
         function createNetwork(callback) {
             req.create(path.NETWORK)
-                .params({jwt: utils.jwt.admin, data: {name: NETWORK}})
+                .params({ jwt: utils.jwt.admin, data: { name: NETWORK } })
                 .send(function (err, result) {
                     if (err) {
                         callback(err);
@@ -90,12 +90,16 @@ describe('Websocker API User Network', function () {
         }
 
         function authenticateConn(callback) {
-            conn.params({
+            conn.on({
+                action: 'authenticate',
+                status: 'success'
+            }, callback);
+
+            conn.send({
                 action: 'authenticate',
                 requestId: getRequestId(),
                 token: token
-            })
-                .send(callback);
+            });
         }
 
         async.series([
@@ -112,34 +116,38 @@ describe('Websocker API User Network', function () {
     describe('#Update', function () {
         it('should assing user network', function (done) {
             var requestId = getRequestId();
-            
-            conn.params({
+
+            conn.on({
+                action: 'user/assignNetwork',
+                status: 'success'
+            }, (err, data) => {
+                if (err) {
+                    return done(err);
+                }
+                conn.on({
+                    network: {
+                        network: {
+                            id: networkId,
+                            name: NETWORK
+                        }
+                    }
+                }, done);
+
+                conn.send({
+                    action: 'user/getNetwork',
+                    requestId: requestId,
+                    userId: userId,
+                    networkId: networkId
+                });
+
+            });
+
+            conn.send({
                 action: 'user/assignNetwork',
                 requestId: requestId,
                 userId: userId,
                 networkId: networkId
-            })
-                .send(function (err) {
-                    if (err) {
-                        return done(err);
-                    }
-
-                    conn.params({
-                        action: 'user/getNetwork',
-                        requestId: requestId,
-                        userId: userId,
-                        networkId: networkId
-                    })
-                        .expect({
-                            network: {
-                                network: {
-                                    id: networkId,
-                                    name: NETWORK
-                                }
-                            }
-                        })
-                        .send(done);
-                });
+            });
         });
     });
 
@@ -147,27 +155,33 @@ describe('Websocker API User Network', function () {
         it('should delete user network', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                action: 'user/unassignNetwork',
+                status: 'success'
+            }, (err, data) => {
+                if (err) {
+                    return done(err);
+                }
+                conn.on({
+                    code: status.NOT_FOUND,
+                    error: `Network with id ${networkId} for user with id ${userId} was not found`
+                }, done);
+
+                conn.send({
+                    action: 'user/getNetwork',
+                    requestId: requestId,
+                    userId: userId,
+                    networkId: networkId
+                });
+
+            });
+
+            conn.send({
                 action: 'user/unassignNetwork',
                 requestId: requestId,
                 userId: userId,
                 networkId: networkId
-            })
-                .send(function (err) {
-                    if (err) {
-                        return done(err);
-                    }
-
-                    conn.params({
-                        action: 'user/getNetwork',
-                        requestId: requestId,
-                        userId: userId,
-                        networkId: networkId
-                    })
-                        .expectError(status.NOT_FOUND,
-                            format('Network with id %s for user with id %s was not found', networkId, userId))
-                        .send(done);
-                });
+            });
         });
     });
 
@@ -177,50 +191,63 @@ describe('Websocker API User Network', function () {
             it('should fail with 401 on authencitation if auth parameters omitted', function (done) {
                 var requestId = getRequestId();
 
-                noTokenConn.params({
+                noTokenConn.on({
+                    code: status.NOT_AUTHORIZED,
+                    error: 'Unauthorized'
+                }, done);
+
+                noTokenConn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
                     token: null
-                })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(done);
+                });
             });
-            
+
             it('should fail with 401 when selecting user network by id, auth parameters omitted', function (done) {
                 var requestId = getRequestId();
 
-                noTokenConn.params({
+                noTokenConn.on({
+                    code: status.NOT_AUTHORIZED,
+                    error: 'Unauthorized'
+                }, done);
+
+                noTokenConn.send({
                     action: 'user/getNetwork',
                     requestId: getRequestId(),
                     userId: userId,
                     networkId: utils.NON_EXISTING_ID
-                })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(done);
+                });
             });
 
             it('should fail with 401 when updating user network with no auth parameters', function (done) {
                 var requestId = getRequestId();
 
-                noTokenConn.params({
+                noTokenConn.on({
+                    code: status.NOT_AUTHORIZED,
+                    error: 'Unauthorized'
+                }, done);
+
+                noTokenConn.send({
                     action: 'user/assignNetwork',
                     requestId: getRequestId(),
                     userId: userId,
                     networkId: utils.NON_EXISTING_ID
-                })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(done);
+                });
             });
 
             it('should fail with 401 when deleting user network with no auth parameters', function (done) {
-                noTokenConn.params({
+
+                noTokenConn.on({
+                    code: status.NOT_AUTHORIZED,
+                    error: 'Unauthorized'
+                }, done);
+
+                noTokenConn.send({
                     action: 'user/unassignNetwork',
                     requestId: getRequestId(),
                     userId: userId,
                     networkId: utils.NON_EXISTING_ID
-                })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(done);
+                });
             });
         });
 
@@ -231,7 +258,7 @@ describe('Websocker API User Network', function () {
             var refreshConn = null;
 
             before(function (done) {
-                
+
                 function createJWT(callback) {
                     utils.jwt.create(utils.admin.id, 'RegisterDevice', void 0, void 0, function (err, result) {
                         if (err) {
@@ -253,12 +280,16 @@ describe('Websocker API User Network', function () {
                 }
 
                 function authenticateNonNetworkConn(callback) {
-                    jwtConn.params({
+                    jwtConn.on({
+                        action: 'authenticate',
+                        status: 'success'
+                    }, callback);
+
+                    jwtConn.send({
                         action: 'authenticate',
                         requestId: getRequestId(),
                         token: jwt
-                    })
-                        .send(callback);
+                    });
                 }
 
                 async.series([
@@ -267,60 +298,72 @@ describe('Websocker API User Network', function () {
                     createRefreshConn,
                     authenticateNonNetworkConn
                 ], done);
-                
+
             });
 
             it('should fail with 403 when selecting user network by id using invalid access token', function (done) {
                 var requestId = getRequestId();
 
-                jwtConn.params({
+                jwtConn.on({
+                    code: status.FORBIDDEN,
+                    error: 'Access is denied'
+                }, done);
+
+                jwtConn.send({
                     action: 'user/getNetwork',
                     requestId: getRequestId(),
                     userId: utils.admin.id,
                     networkId: utils.NON_EXISTING_ID
-                })
-                    .expectError(status.FORBIDDEN, 'Access is denied')
-                    .send(done);
+                });
             });
 
             it('should fail with 401 when selecting user network by id using refresh jwt', function (done) {
                 var requestId = getRequestId();
 
-                refreshConn.params({
+                refreshConn.on({
+                    code: status.NOT_AUTHORIZED,
+                    error: 'Unauthorized'
+                }, done);
+
+                refreshConn.send({
                     action: 'user/getNetwork',
                     requestId: getRequestId(),
                     userId: utils.admin.id,
                     networkId: networkId
-                })
-                    .expectError(status.NOT_AUTHORIZED, 'Unauthorized')
-                    .send(done);
+                });
             });
 
 
             it('should fail with 403 when updating user network using invalid access token', function (done) {
                 var requestId = getRequestId();
 
-                jwtConn.params({
+                jwtConn.on({
+                    code: status.FORBIDDEN,
+                    error: 'Access is denied'
+                }, done);
+
+                jwtConn.send({
                     action: 'user/assignNetwork',
                     requestId: getRequestId(),
                     userId: utils.admin.id,
                     networkId: utils.NON_EXISTING_ID
-                })
-                    .expectError(status.FORBIDDEN, 'Access is denied')
-                    .send(done);
+                });
             });
 
             it('should fail with 403 when deleting user network using invalid access token', function (done) {
                 var requestId = getRequestId();
 
-                jwtConn.params({
+                jwtConn.on({
+                    code: status.FORBIDDEN,
+                    error: 'Access is denied'
+                }, done);
+
+                jwtConn.send({
                     action: 'user/unassignNetwork',
                     requestId: getRequestId(),
                     userId: utils.admin.id,
                     networkId: utils.NON_EXISTING_ID
-                })
-                    .expectError(status.FORBIDDEN, 'Access is denied')
-                    .send(done);
+                });
             });
 
             after(function (done) {
@@ -336,45 +379,50 @@ describe('Websocker API User Network', function () {
         it('should fail with 404 when selecting user network by non-existing id', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                code: status.NOT_FOUND,
+                error: `Network with id ${utils.NON_EXISTING_ID} for user with id ${userId} was not found` // TODO: swap networkId <> userId in error message
+            }, done);
+            
+            conn.send({
                 action: 'user/getNetwork',
                 requestId: getRequestId(),
                 userId: userId,
                 networkId: utils.NON_EXISTING_ID
-            })
-                .expectError(status.NOT_FOUND,
-                    format('Network with id %s for user with id %s was not found', utils.NON_EXISTING_ID, userId))// TODO: swap networkId <> userId in error message
-                .send(done);
+            });
         });
 
         it('should fail with 404 when updating user network by non-existing id', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                code: status.NOT_FOUND,
+                error: `Network with id = ${utils.NON_EXISTING_ID} not found` 
+            }, done);
+            
+            conn.send({
                 action: 'user/assignNetwork',
                 requestId: getRequestId(),
                 userId: userId,
                 networkId: utils.NON_EXISTING_ID
-            })
-                .expectError(status.NOT_FOUND, format('Network with id = %s not found', utils.NON_EXISTING_ID))
-                .send(done);
+            });
         });
 
         it('should succeed when deleting user network by non-existing id', function (done) {
             var requestId = getRequestId();
 
-            conn.params({
+            conn.on({
+                code: status.NOT_FOUND,
+                error: `Network with id = ${utils.NON_EXISTING_ID} not found` 
+            }, done);
+            
+            conn.send({
                 action: 'user/unassignNetwork',
                 requestId: getRequestId(),
                 userId: userId,
                 networkId: utils.NON_EXISTING_ID
-            })
-                .expectError(status.NOT_FOUND,
-                    format('Network with id = %s not found', utils.NON_EXISTING_ID))
-                .send(done);
+            });
         });
-
-        
     });
 
     after(function (done) {

@@ -3,7 +3,7 @@ var assert = require('assert');
 var utils = require('./common/utils');
 var path = require('./common/path');
 var req = require('./common/request');
-var Websocket = require('./common/websocket');
+var Websocket = require('./common/ws');
 var getRequestId = utils.core.getRequestId;
 
 describe('WebSocket API Subscription', function () {
@@ -26,7 +26,7 @@ describe('WebSocket API Subscription', function () {
     before(function (done) {
 
         function getWsUrl(callback) {
-            req.get(path.INFO).params({jwt: utils.jwt.admin}).send(function (err, result) {
+            req.get(path.INFO).params({ jwt: utils.jwt.admin }).send(function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -65,7 +65,7 @@ describe('WebSocket API Subscription', function () {
         function createDevice(callback) {
             req.update(path.get(path.DEVICE, deviceId))
                 .params(utils.device.getParamsObj(DEVICE, utils.jwt.admin,
-                    networkId, {name: DEVICE, version: '1'}))
+                    networkId, { name: DEVICE, version: '1' }))
                 .send(callback);
         }
 
@@ -90,7 +90,7 @@ describe('WebSocket API Subscription', function () {
 
         function createInvalidToken(callback) {
             var args = {
-                actions: [ 'GetNetwork' ],
+                actions: ['GetNetwork'],
                 deviceIds: [deviceId],
                 networkIds: [networkId],
                 deviceTypeIds: ['*']
@@ -120,30 +120,42 @@ describe('WebSocket API Subscription', function () {
         }
 
         function authenticateWithToken(callback) {
-            clientToken.params({
+            clientToken.on({
+                action: 'authenticate',
+                status: 'success'
+            }, callback);
+
+            clientToken.send({
                 action: 'authenticate',
                 requestId: getRequestId(),
                 token: token
-            })
-                .send(callback);
+            });
         }
 
         function authenticateWithInvalidToken(callback) {
-            clientInvalidToken.params({
+            clientInvalidToken.on({
+                action: 'authenticate',
+                status: 'success'
+            }, callback);
+
+            clientInvalidToken.send({
                 action: 'authenticate',
                 requestId: getRequestId(),
                 token: invalidToken
-            })
-                .send(callback);
+            });
         }
 
         function authenticateConn(callback) {
-            device.params({
+            device.on({
+                action: 'authenticate',
+                status: 'success'
+            }, callback);
+
+            device.send({
                 action: 'authenticate',
                 requestId: getRequestId(),
                 token: token
-            })
-                .send(callback);
+            });
         }
 
         async.series([
@@ -167,35 +179,35 @@ describe('WebSocket API Subscription', function () {
         it('should return empty list for session without subscriptions', function (done) {
             var requestId = getRequestId();
 
-            device.params({
+            device.on({
+                action: 'subscription/list',
+                status: 'success',
+                requestId: requestId
+            }, (err, data) => {
+                assert.deepEqual(data.subscriptions, {}, "Subscriptions list should be empty");
+                done();
+            });
+
+            device.send({
                 action: 'subscription/list',
                 requestId: requestId
-            })
-                .expect({
-                    action: 'subscription/list',
-                    status: 'success',
-                    requestId: requestId
-                })
-                .assert(function (result) {
-                    assert.deepEqual(result.subscriptions, {}, "Subscriptions list should be empty");
-                })
-                .send(done);
+            });
         });
 
         it('should return subscription info for command/subscribe', function (done) {
             var requestId = getRequestId();
 
-            device.params({
+            device.on({
+                action: 'command/subscribe',
+                requestId: requestId,
+                status: 'success'
+            }, onSubscribed);
+
+            device.send({
                 action: 'command/subscribe',
                 deviceIds: [deviceId],
                 requestId: requestId
-            })
-                .expect({
-                    action: 'command/subscribe',
-                    requestId: requestId,
-                    status: 'success'
-                })
-                .send(onSubscribed);
+            });
 
             function onSubscribed(err, result) {
                 if (err) {
@@ -203,31 +215,36 @@ describe('WebSocket API Subscription', function () {
                 }
 
                 var subscriptionId = result.subscriptionId;
-                device.params({
+
+                device.on({
+                    action: 'subscription/list',
+                    status: 'success',
+                    requestId: requestId
+                }, (err, data) => {
+                    assert.equal(data.subscriptions[0].subscriptionId, subscriptionId);
+                    assert.equal(data.subscriptions[0].type, "command");
+                    cleanUp();
+                });
+
+                device.send({
                     action: 'subscription/list',
                     requestId: requestId
-                })
-                    .expect({
-                        action: 'subscription/list',
-                        status: 'success',
-                        requestId: requestId
-                    })
-                    .assert(function (result) {
-                        assert.equal(result.subscriptions[0].subscriptionId, subscriptionId);
-                        assert.equal(result.subscriptions[0].type, "command");
-                    })
-                    .send(cleanUp);
+                });
 
                 function cleanUp(err) {
                     if (err) {
                         return done(err);
                     }
 
-                    device.params({
+                    device.on({
+                        action: 'command/unsubscribe',
+                        status: 'success'
+                    }, done);
+
+                    device.send({
                         action: 'command/unsubscribe',
                         requestId: requestId
-                    })
-                        .send(done);
+                    });
                 }
             }
         });
@@ -235,17 +252,17 @@ describe('WebSocket API Subscription', function () {
         it('should return subscription info for notification/subscribe', function (done) {
             var requestId = getRequestId();
 
-            device.params({
+            device.on({
+                action: 'notification/subscribe',
+                requestId: requestId,
+                status: 'success'
+            }, onSubscribed);
+
+            device.send({
                 action: 'notification/subscribe',
                 deviceIds: [deviceId],
                 requestId: requestId
-            })
-                .expect({
-                    action: 'notification/subscribe',
-                    requestId: requestId,
-                    status: 'success'
-                })
-                .send(onSubscribed);
+            });
 
             function onSubscribed(err, result) {
                 if (err) {
@@ -253,31 +270,36 @@ describe('WebSocket API Subscription', function () {
                 }
 
                 var subscriptionId = result.subscriptionId;
-                device.params({
+
+                device.on({
+                    action: 'subscription/list',
+                    status: 'success',
+                    requestId: requestId
+                }, (err, data) => {
+                    assert.equal(data.subscriptions[0].subscriptionId, subscriptionId);
+                    assert.equal(data.subscriptions[0].type, "notification");
+                    cleanUp();
+                });
+
+                device.send({
                     action: 'subscription/list',
                     requestId: requestId
-                })
-                    .expect({
-                        action: 'subscription/list',
-                        status: 'success',
-                        requestId: requestId
-                    })
-                    .assert(function (result) {
-                        assert.equal(result.subscriptions[0].subscriptionId, subscriptionId);
-                        assert.equal(result.subscriptions[0].type, "notification");
-                    })
-                    .send(cleanUp);
+                });
 
                 function cleanUp(err) {
                     if (err) {
                         return done(err);
                     }
 
-                    device.params({
+                    device.on({
+                        action: 'notification/unsubscribe',
+                        status: 'success'
+                    }, done);
+
+                    device.send({
                         action: 'notification/unsubscribe',
                         requestId: requestId
-                    })
-                        .send(done);
+                    });
                 }
             }
         });
@@ -285,48 +307,53 @@ describe('WebSocket API Subscription', function () {
         it('should return empty notification list for command/subscribe', function (done) {
             var requestId = getRequestId();
 
-            device.params({
+
+            device.on({
+                action: 'command/subscribe',
+                requestId: requestId,
+                status: 'success'
+            }, onSubscribed);
+
+            device.send({
                 action: 'command/subscribe',
                 deviceIds: [deviceId],
                 requestId: requestId
-            })
-                .expect({
-                    action: 'command/subscribe',
-                    requestId: requestId,
-                    status: 'success'
-                })
-                .send(onSubscribed);
+            });
 
             function onSubscribed(err) {
                 if (err) {
                     return done(err);
                 }
 
-                device.params({
+                device.on({
+                    action: 'subscription/list',
+                    status: 'success',
+                    requestId: requestId
+                }, (err, data) => {
+                    assert.deepEqual(data.subscriptions, [], "Subscriptions list should be empty");
+                    cleanUp();
+                })
+
+                device.send({
                     action: 'subscription/list',
                     type: "notification",
                     requestId: requestId
                 })
-                    .expect({
-                        action: 'subscription/list',
-                        status: 'success',
-                        requestId: requestId
-                    })
-                    .assert(function (result) {
-                        assert.deepEqual(result.subscriptions, [], "Subscriptions list should be empty");
-                    })
-                    .send(cleanUp);
 
                 function cleanUp(err) {
                     if (err) {
                         return done(err);
                     }
 
-                    device.params({
+                    device.on({
+                        action: 'command/unsubscribe',
+                        status: 'success'
+                    }, done);
+
+                    device.send({
                         action: 'command/unsubscribe',
                         requestId: requestId
-                    })
-                        .send(done);
+                    });
                 }
             }
         });
@@ -334,13 +361,15 @@ describe('WebSocket API Subscription', function () {
         it('should return 403 using token without proper permissions', function (done) {
             var requestId = getRequestId();
 
-            clientInvalidToken.params({
+            clientInvalidToken.on({
+                code: 403,
+                error: 'Access is denied'
+            }, done);
+            
+            clientInvalidToken.send({
                 action: 'subscription/list',
                 requestId: requestId
-            })
-                .expectError(403, 'Access is denied')
-                .send(done);
-
+            });
         });
     });
 

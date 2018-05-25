@@ -6,7 +6,6 @@
     "restUrl": "http://localhost:8080/dh/rest",
     "authRestUrl": "http://localhost:8090/dh/rest",
     "pluginRestUrl": "",
-    "backendRestUrl": "http://localhost:8090/dh/rest",
     "jwt": "admin_token"
   },
   "loadTests": {
