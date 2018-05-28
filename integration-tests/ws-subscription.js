@@ -232,14 +232,10 @@ describe('WebSocket API Subscription', function () {
                 });
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
-
                     device.on({
                         action: 'command/unsubscribe',
                         status: 'success'
-                    }, done);
+                    }, () => done(err));
 
                     device.send({
                         action: 'command/unsubscribe',
@@ -287,14 +283,10 @@ describe('WebSocket API Subscription', function () {
                 });
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
-
                     device.on({
                         action: 'notification/unsubscribe',
                         status: 'success'
-                    }, done);
+                    }, () => done(err));
 
                     device.send({
                         action: 'notification/unsubscribe',
@@ -341,14 +333,11 @@ describe('WebSocket API Subscription', function () {
                 })
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
 
                     device.on({
                         action: 'command/unsubscribe',
                         status: 'success'
-                    }, done);
+                    }, () => done(err));
 
                     device.send({
                         action: 'command/unsubscribe',
