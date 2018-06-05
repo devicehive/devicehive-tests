@@ -511,6 +511,27 @@ describe('REST API User', function () {
                 });
         });
 
+        it('should update current user agreedToPersonalDataCollection field', function (done) {
+            req.update(path.combine(path.USER, path.CURRENT))
+                .params({jwt: jwt, data: {agreedToPersonalDataCollection: true}})
+                .send(function (err) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    req.get(path.combine(path.USER, path.CURRENT))
+                        .params({jwt: jwt})
+                        .expect({
+                            id: user.id,
+                            login: user.login,
+                            role: 1,
+                            status: 0,
+                            agreedToPersonalDataCollection: true
+                        })
+                        .send(done);
+                });
+        });
+
         it('should update current user data field', function (done) {
             req.update(path.combine(path.USER, path.CURRENT))
                 .params({jwt: jwt, data: {data: {userdata: "userdata"}}})
