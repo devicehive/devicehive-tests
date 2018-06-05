@@ -660,6 +660,42 @@ describe('WebSocket API User', function () {
             });
         });
 
+        it('should update current user agreedToPersonalDataCollection field', function (done) {
+            var requestId = getRequestId();
+
+            conn.on({
+                action: "user/updateCurrent",
+                requestId: requestId,
+                status: "success"
+            }, (err, data) => {
+                if (err) {
+                    return done(err);
+                }
+                var requestId2 = getRequestId();
+
+                conn.on({
+                    current: {
+                        id: user.id,
+                        login: user.login,
+                        role: 1,
+                        status: 0,
+                        agreedToPersonalDataCollection: true
+                    }
+                }, done);
+
+                conn.send({
+                    action: 'user/getCurrent',
+                    requestId: requestId
+                });
+            });
+
+            conn.send({
+                action: 'user/updateCurrent',
+                requestId: requestId,
+                user: { agreedToPersonalDataCollection: true }
+            });
+        });
+
         it('should update current user data field', function (done) {
             var requestId = getRequestId();
             var requestId2 = getRequestId();
@@ -941,7 +977,7 @@ describe('WebSocket API User', function () {
                     code: status.NOT_AUTHORIZED,
                     error: 'Unauthorized'
                 }, done);
-    
+
                 noTokenConn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
@@ -956,7 +992,7 @@ describe('WebSocket API User', function () {
                     code: status.NOT_AUTHORIZED,
                     error: 'Unauthorized'
                 }, done);
-    
+
                 noTokenConn.send({
                     action: 'user/list',
                     requestId: getRequestId(),
@@ -971,7 +1007,7 @@ describe('WebSocket API User', function () {
                     code: status.NOT_AUTHORIZED,
                     error: 'Unauthorized'
                 }, done);
-    
+
                 noTokenConn.send({
                     action: 'user/get',
                     requestId: getRequestId(),
@@ -986,7 +1022,7 @@ describe('WebSocket API User', function () {
                     code: status.NOT_AUTHORIZED,
                     error: 'Unauthorized'
                 }, done);
-    
+
                 noTokenConn.send({
                     action: 'user/getCurrent',
                     requestId: getRequestId(),
@@ -1001,7 +1037,7 @@ describe('WebSocket API User', function () {
                     code: status.NOT_AUTHORIZED,
                     error: 'Unauthorized'
                 }, done);
-    
+
                 noTokenConn.send({
                     action: 'user/insert',
                     requestId: getRequestId(),
@@ -1016,7 +1052,7 @@ describe('WebSocket API User', function () {
                     code: status.NOT_AUTHORIZED,
                     error: 'Unauthorized'
                 }, done);
-    
+
                 noTokenConn.send({
                     action: 'user/update',
                     requestId: getRequestId(),
@@ -1031,7 +1067,7 @@ describe('WebSocket API User', function () {
                     code: status.NOT_AUTHORIZED,
                     error: 'Unauthorized'
                 }, done);
-    
+
                 noTokenConn.send({
                     action: 'user/updateCurrent',
                     requestId: getRequestId(),
@@ -1046,7 +1082,7 @@ describe('WebSocket API User', function () {
                     code: status.NOT_AUTHORIZED,
                     error: 'Unauthorized'
                 }, done);
-    
+
                 noTokenConn.send({
                     action: 'user/delete',
                     requestId: getRequestId(),
@@ -1100,7 +1136,7 @@ describe('WebSocket API User', function () {
                         action: 'authenticate',
                         status: 'success'
                     }, callback);
-        
+
                     nonNetworkConn.send({
                         action: 'authenticate',
                         requestId: getRequestId(),
@@ -1125,7 +1161,7 @@ describe('WebSocket API User', function () {
                     code: status.FORBIDDEN,
                     error: 'Access is denied'
                 }, done);
-    
+
                 nonNetworkConn.send({
                     action: 'user/list',
                     requestId: getRequestId()
@@ -1139,7 +1175,7 @@ describe('WebSocket API User', function () {
                     code: status.FORBIDDEN,
                     error: 'Access is denied'
                 }, done);
-    
+
                 nonNetworkConn.send({
                     action: 'user/get',
                     requestId: getRequestId(),
@@ -1154,7 +1190,7 @@ describe('WebSocket API User', function () {
                     code: status.NOT_AUTHORIZED,
                     error: 'Invalid credentials'
                 }, done);
-    
+
                 refreshConn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
@@ -1169,7 +1205,7 @@ describe('WebSocket API User', function () {
                     code: status.FORBIDDEN,
                     error: 'Access is denied'
                 }, done);
-    
+
                 nonNetworkConn.send({
                     action: 'user/list',
                     requestId: getRequestId()
@@ -1183,7 +1219,7 @@ describe('WebSocket API User', function () {
                     code: status.FORBIDDEN,
                     error: 'Access is denied'
                 }, done);
-    
+
                 nonNetworkConn.send({
                     action: 'user/list',
                     requestId: getRequestId(),
@@ -1198,7 +1234,7 @@ describe('WebSocket API User', function () {
                     code: status.FORBIDDEN,
                     error: 'Access is denied'
                 }, done);
-    
+
                 nonNetworkConn.send({
                     action: 'user/insert',
                     requestId: getRequestId(),
@@ -1213,7 +1249,7 @@ describe('WebSocket API User', function () {
                     code: status.FORBIDDEN,
                     error: 'Access is denied'
                 }, done);
-    
+
                 nonNetworkConn.send({
                     action: 'user/update',
                     requestId: getRequestId(),
@@ -1229,7 +1265,7 @@ describe('WebSocket API User', function () {
                     code: status.FORBIDDEN,
                     error: 'Access is denied'
                 }, done);
-    
+
                 nonNetworkConn.send({
                     action: 'user/delete',
                     requestId: requestId,
@@ -1336,7 +1372,7 @@ describe('WebSocket API User', function () {
                     action: 'authenticate',
                     status: 'success'
                 }, callback);
-    
+
                 conn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
@@ -1352,7 +1388,7 @@ describe('WebSocket API User', function () {
                     assert(data.user.lastLogin !== null);
                     done();
                 });
-    
+
                 adminConn.send({
                     action: 'user/get',
                     userId: user.id
@@ -1463,7 +1499,7 @@ describe('WebSocket API User', function () {
                     action: 'authenticate',
                     status: 'success'
                 }, callback);
-    
+
                 conn.send({
                     action: 'authenticate',
                     requestId: getRequestId(),
