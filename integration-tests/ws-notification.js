@@ -669,13 +669,11 @@ describe('WebSocket API Notification', function () {
                     .send();
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
+
                     client.on({
                         action: 'notification/unsubscribe',
                         status: 'success'
-                    }, done);
+                    }, () => done(err));
 
                     client.send({
                         action: 'notification/unsubscribe',
@@ -751,14 +749,11 @@ describe('WebSocket API Notification', function () {
                     .send();
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
 
                     conn.on({
                         action: 'notification/unsubscribe',
                         status: 'success'
-                    }, done);
+                    }, () => done(err));
 
                     conn.send({
                         action: 'notification/unsubscribe',
@@ -804,14 +799,10 @@ describe('WebSocket API Notification', function () {
                     .send();
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
-
                     conn.on({
                         action: 'notification/unsubscribe',
                         status: 'success'
-                    }, done);
+                    }, () => done(err));
                     conn.send({
                         action: 'notification/unsubscribe',
                         requestId: getRequestId(),
@@ -857,16 +848,12 @@ describe('WebSocket API Notification', function () {
                     .send();
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
-
                     var requestId = getRequestId();
 
                     conn.on({
                         action: 'notification/unsubscribe',
                         requestId: requestId
-                    }, done);
+                    }, () => done(err));
 
                     conn.send({
                         action: 'notification/unsubscribe',
@@ -913,16 +900,12 @@ describe('WebSocket API Notification', function () {
                     .send();
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
-
                     var requestId = getRequestId();
 
                     adminConn.on({
                         action: 'notification/unsubscribe',
                         requestId: requestId
-                    }, done);
+                    }, () => done(err));
 
                     adminConn.send({
                         action: 'notification/unsubscribe',
@@ -992,19 +975,15 @@ describe('WebSocket API Notification', function () {
                     .send();
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
-
                     adminConn.on({
                         action: 'device/delete',
                         requestId: requestId,
                         status: 'success'
-                    }, (err, data) => {
+                    }, () => {
                         adminConn.on({
                             action: 'notification/unsubscribe',
                             status: 'success'
-                        },done)
+                        },() => done(err))
                         adminConn.send({
                             action: 'notification/unsubscribe',
                             requestId: getRequestId(),
@@ -1079,19 +1058,15 @@ describe('WebSocket API Notification', function () {
                     .send();
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
-
                     conn.on({
                         action: 'device/delete',
                         requestId: requestId,
                         status: 'success'
-                    }, (err, data) => {
+                    }, () => {
                         conn.on({
                             action: 'notification/unsubscribe',
                             status: 'success'
-                        }, done);
+                        }, () => done(err));
                         conn.send({
                             action: 'notification/unsubscribe',
                             requestId: getRequestId(),
@@ -1166,18 +1141,15 @@ describe('WebSocket API Notification', function () {
                     .send();
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
                     adminConn.on({
                         action: 'device/delete',
                         requestId: requestId,
                         status: 'success'
-                    }, err => {
+                    }, () => {
                         adminConn.on({
                             action: 'notification/unsubscribe',
                             status: 'success'
-                        }, done)
+                        }, () => done(err))
                         adminConn.send({
                             action: 'notification/unsubscribe',
                             requestId: getRequestId(),
@@ -1357,13 +1329,11 @@ describe('WebSocket API Notification', function () {
                     .send();
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
+
                     client.on({
                         action: 'notification/unsubscribe',
                         status: 'success'
-                    }, done);
+                    }, () => done(err));
 
                     client.send({
                         action: 'notification/unsubscribe',

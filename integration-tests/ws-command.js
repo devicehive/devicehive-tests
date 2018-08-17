@@ -710,14 +710,11 @@ describe('WebSocket API Command', function () {
                     .send();
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
 
                     client.on({
                         action: 'command/unsubscribe',
                         status: 'success'
-                    }, done);
+                    }, () => done(err));
 
                     client.send({
                         action: 'command/unsubscribe',
@@ -791,16 +788,13 @@ describe('WebSocket API Command', function () {
                     });
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
 
                     var requestId = getRequestId();
 
                     client.on({
                         action: 'command/unsubscribe',
                         requestId: requestId
-                    }, done);
+                    }, () => done(err));
 
                     client.send({
                         action: 'command/unsubscribe',
@@ -881,15 +875,11 @@ describe('WebSocket API Command', function () {
                     .send();
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
-
                     var requestId = getRequestId();
                     conn.on({
                         action: 'command/unsubscribe',
                         requestId: requestId
-                    }, done);
+                    }, () => done(err));
                     conn.send({
                         action: 'command/unsubscribe',
                         requestId: requestId
@@ -951,13 +941,10 @@ describe('WebSocket API Command', function () {
                     });
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
                     conn.on({
                         action: 'command/unsubscribe',
                         status: 'success'
-                    }, done);
+                    }, () => done(err));
 
                     conn.send({
                         action: 'command/unsubscribe',
@@ -1013,14 +1000,10 @@ describe('WebSocket API Command', function () {
                     });
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
-
                     conn.on({
                         action: 'command/unsubscribe',
                         status: 'success'
-                    }, done);
+                    }, () => done(err));
 
                     conn.send({
                         action: 'command/unsubscribe',
@@ -1077,13 +1060,10 @@ describe('WebSocket API Command', function () {
                     });
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
                     adminConn.on({
                         action: 'command/unsubscribe',
                         status: 'success'
-                    }, done);
+                    }, () => done(err));
                     adminConn.send({
                         action: 'command/unsubscribe',
                         requestId: getRequestId(),
@@ -1153,10 +1133,6 @@ describe('WebSocket API Command', function () {
 
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
-
                     adminConn.send({
                         action: 'device/delete',
                         requestId: requestId,
@@ -1166,11 +1142,11 @@ describe('WebSocket API Command', function () {
                         action: 'device/delete',
                         requestId: requestId,
                         status: 'success'
-                    }, (err, result) => {
+                    }, () => {
                         adminConn.on({
                             action: 'command/unsubscribe',
                             status: 'success'
-                        }, done);
+                        }, () => done(err));
                         adminConn.send({
                             action: 'command/unsubscribe',
                             requestId: getRequestId(),
@@ -1239,10 +1215,6 @@ describe('WebSocket API Command', function () {
                     .send();
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
-
                     conn.send({
                         action: 'device/delete',
                         requestId: requestId,
@@ -1252,12 +1224,11 @@ describe('WebSocket API Command', function () {
                         action: 'device/delete',
                         requestId: requestId,
                         status: 'success'
-                    }, (err, result) => {
-
+                    }, () => {
                         conn.on({
                             action: 'command/unsubscribe',
                             status: 'success'
-                        }, done);
+                        }, () => done(err));
                         conn.send({
                             action: 'command/unsubscribe',
                             requestId: getRequestId(),
@@ -1337,22 +1308,18 @@ describe('WebSocket API Command', function () {
                     });
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
-
                     var requestId = getRequestId();
 
                     conn.on({
                         action: 'device/delete',
                         requestId: requestId,
                         status: 'success'
-                    }, (err, result) => {
+                    }, () => {
                         var requestId = getRequestId();
                         conn.on({
                             action: 'command/unsubscribe',
                             requestId: requestId
-                        }, done);
+                        }, () => done(err));
                         conn.send({
                             action: 'command/unsubscribe',
                             requestId: requestId,
@@ -1427,10 +1394,6 @@ describe('WebSocket API Command', function () {
                     })
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
-
                     conn.send({
                         action: 'device/delete',
                         requestId: requestId,
@@ -1440,13 +1403,13 @@ describe('WebSocket API Command', function () {
                         action: 'device/delete',
                         requestId: requestId,
                         status: 'success'
-                    }, (err, result) => {
+                    }, () => {
                         var requestId = getRequestId();
 
                         conn.on({
                             action: 'command/unsubscribe',
                             requestId: requestId
-                        }, done);
+                        }, () => done(err));
 
                         conn.send({
                             action: 'command/unsubscribe',
@@ -1730,13 +1693,10 @@ describe('WebSocket API Command', function () {
                     .send();
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
                     client.on({
                         action: 'command/unsubscribe',
                         status: 'success'
-                    }, done);
+                    }, () => done(err));
                     client.send({
                         action: 'command/unsubscribe',
                         requestId: getRequestId(),

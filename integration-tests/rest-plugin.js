@@ -725,10 +725,7 @@ describe('REST API Plugin', function () {
                 createNotification(notification, deviceId);
 
                 function cleanUp(err) {
-                    if (err) {
-                        done(err);
-                    }
-                    unsubscribe(client, topic, done);
+                    unsubscribe(client, topic, () => done(err));
                 }
             }
         }
@@ -755,10 +752,7 @@ describe('REST API Plugin', function () {
                 }
 
                 function cleanUp(err) {
-                    if (err) {
-                        done(err);
-                    }
-                    unsubscribe(client, topic, done);
+                    unsubscribe(client, topic, () => done(err));
                 }
             }
         }
@@ -788,11 +782,7 @@ describe('REST API Plugin', function () {
                 }
 
                 function cleanUp(err) {
-                    if (err) {
-                        return done(err);
-                    }
-
-                    unsubscribe(client, topic, done);
+                    unsubscribe(client, topic, () => done(err));
                 }
             }
         }
@@ -1906,7 +1896,7 @@ describe('REST API Plugin', function () {
         });
     });
 
-    describe('#Plugin List', function () {
+    describe.only('#Plugin List', function () {
         var PLUGIN_USER = utils.getName('plugin');
         var PLUGIN1 = utils.getName('plugin');
         var PLUGIN2 = utils.getName('plugin');
@@ -2049,7 +2039,7 @@ describe('REST API Plugin', function () {
             })
         });
 
-        it('should get sorteed plugins by Id ASC', function (done) {
+        it('should get sorted plugins by Id ASC', function (done) {
             var params = {
                 jwt: utils.jwt.admin
             };
